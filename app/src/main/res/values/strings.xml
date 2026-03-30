@@ -8,4 +8,11 @@
     <string name="onboarding_next">Далее</string>
     <string name="onboarding_allow">Разрешить</string>
     <string name="onboarding_skip">Пропустить</string>
+    <string name="camera_gallery">Галерея</string>
+    <string name="camera_capture">Снять</string>
+    <string name="camera_manual">Вручную</string>
+    <string name="camera_retake">Переснять</string>
+    <string name="camera_scanning">Сканирование…</string>
+    <string name="camera_permission_needed">Для сканирования нужен доступ к камере</string>
+    <string name="camera_open_settings">Открыть настройки</string>
 </resources>
