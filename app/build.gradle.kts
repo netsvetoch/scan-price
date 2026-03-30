@@ -76,6 +76,9 @@ dependencies {
     // Location
     implementation(libs.play.services.location)
 
+    // Coroutines Play Services (await() on ML Kit Tasks)
+    implementation(libs.kotlinx.coroutines.play.services)
+
     // Testing
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
