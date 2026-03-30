@@ -33,7 +33,7 @@ class VisionApiClient(
     companion object {
         private const val TAG = "VisionApiClient"
         const val DEFAULT_BASE_URL = "https://ollama.netsvetaev.dev/v1"
-        const val DEFAULT_MODEL = "qwen3.5:9b"
+        const val DEFAULT_MODEL = "qwen3.5:2b"
 
         private const val SYSTEM_PROMPT = """Ты анализируешь фото ценника из магазина. Извлеки данные и верни ТОЛЬКО JSON без markdown:
 {"product_name": "название товара", "price_regular": "цена без скидки (число)", "price_discount": "цена со скидкой/по карте (число или null)", "weight_value": "вес/объём (число или null)", "weight_unit": "единица: г, кг, мл, л, шт (или null)"}
@@ -171,9 +171,23 @@ class VisionApiClient(
     }
 
     private fun bitmapToBase64(bitmap: Bitmap): String {
+        val resized = downscaleForApi(bitmap, maxSide = 800)
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+        resized.compress(Bitmap.CompressFormat.JPEG, 60, stream)
+        Log.d(TAG, "Image for API: ${resized.width}x${resized.height}, ${stream.size() / 1024}KB")
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun downscaleForApi(bitmap: Bitmap, maxSide: Int): Bitmap {
+        val longerSide = maxOf(bitmap.width, bitmap.height)
+        if (longerSide <= maxSide) return bitmap
+        val scale = maxSide.toFloat() / longerSide
+        return Bitmap.createScaledBitmap(
+            bitmap,
+            (bitmap.width * scale).toInt(),
+            (bitmap.height * scale).toInt(),
+            true
+        )
     }
 
     private fun JSONObject.optStringOrNull(key: String): String? {
