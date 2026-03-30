@@ -14,6 +14,8 @@ camerax = "1.4.1"
 room = "2.7.1"
 ksp = "2.2.10-2.0.2"
 playServicesLocation = "21.3.0"
+navigationCompose = "2.8.6"
+lifecycleViewmodelCompose = "2.8.7"
 coroutinesTest = "1.9.0"
 mockk = "1.13.13"
 robolectric = "4.14.1"
@@ -48,6 +50,8 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesTest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
