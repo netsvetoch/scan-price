@@ -5,10 +5,20 @@ import ru.ainetico.honestprice.model.OcrBlock
 class BlockClassifier {
 
     companion object {
-        private val PRICE_PATTERN = Regex("""\d+[.,]\d{2}""")
-        private val PRICE_CONTEXT = Regex("""[₽]|руб|р\.""", RegexOption.IGNORE_CASE)
+        // Strict: price with decimal separator (89.90, 269,99)
+        private val PRICE_WITH_DECIMAL = Regex("""\d+[.,]\d{2}""")
+        // Relaxed: pure digits that could be a price (26999 → 269.99, 2999 → 29.99)
+        private val PRICE_DIGITS_ONLY = Regex("""^\d{3,6}$""")
+        // Any number (for bounding box based classification)
+        private val NUMBER_PATTERN = Regex("""\d+""")
+
+        private val PRICE_CONTEXT = Regex("""[₽]|руб|р\.|р$""", RegexOption.IGNORE_CASE)
         private val DISCOUNT_CONTEXT = Regex(
             """карт|скидк|цена для вас|по карте|выгод""",
+            RegexOption.IGNORE_CASE
+        )
+        private val DISCOUNT_LABEL_ONLY = Regex(
+            """^(с картой|по карте|скидка|выгода)$""",
             RegexOption.IGNORE_CASE
         )
         private val WEIGHT_PATTERN = Regex(
@@ -21,17 +31,33 @@ class BlockClassifier {
     fun classify(block: OcrBlock, imageHeight: Int): BlockRole {
         val text = block.text.lowercase().trim()
 
-        // Date check BEFORE price — dates like "01.03.2026" match PRICE_PATTERN
+        // Date check BEFORE price
         if (DATE_PATTERN.containsMatchIn(text) && !PRICE_CONTEXT.containsMatchIn(text)) {
             return BlockRole.NOISE
         }
 
-        if (DISCOUNT_CONTEXT.containsMatchIn(text) && PRICE_PATTERN.containsMatchIn(text)) {
+        // "С КАРТОЙ" / "ПО КАРТЕ" without a price number = discount label
+        if (DISCOUNT_LABEL_ONLY.containsMatchIn(text)) {
             return BlockRole.DISCOUNT_PRICE
         }
 
-        if (PRICE_PATTERN.containsMatchIn(text) &&
+        // Discount context + price pattern
+        if (DISCOUNT_CONTEXT.containsMatchIn(text) && hasPriceNumber(text)) {
+            return BlockRole.DISCOUNT_PRICE
+        }
+
+        // Price with decimal separator + context or large box
+        if (PRICE_WITH_DECIMAL.containsMatchIn(text) &&
             (PRICE_CONTEXT.containsMatchIn(text) || hasLargeBoundingBox(block, imageHeight))
+        ) {
+            return BlockRole.PRICE
+        }
+
+        // Pure digits with large bounding box = likely a price (e.g. "26999", "2999", "29")
+        val cleanText = text.replace(Regex("""[^0-9]"""), "")
+        if (cleanText.isNotEmpty() && NUMBER_PATTERN.matches(cleanText) &&
+            hasLargeBoundingBox(block, imageHeight) &&
+            block.boundingBox.height() > imageHeight * 0.1
         ) {
             return BlockRole.PRICE
         }
@@ -45,6 +71,10 @@ class BlockClassifier {
         }
 
         return BlockRole.NOISE
+    }
+
+    private fun hasPriceNumber(text: String): Boolean {
+        return PRICE_WITH_DECIMAL.containsMatchIn(text) || PRICE_DIGITS_ONLY.containsMatchIn(text)
     }
 
     private fun hasLargeBoundingBox(block: OcrBlock, imageHeight: Int): Boolean {

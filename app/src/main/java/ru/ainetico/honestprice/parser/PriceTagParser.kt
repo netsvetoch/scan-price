@@ -54,8 +54,9 @@ class PriceTagParser {
 
     private fun extractName(classified: List<Pair<BlockRole, OcrBlock>>): String? {
         return classified
-            .filter { it.first == BlockRole.NAME }
-            .maxByOrNull { it.second.boundingBox.width() * it.second.boundingBox.height() }
+            .filter { it.first == BlockRole.NAME && it.second.confidence > 0.5f }
+            .sortedBy { it.second.boundingBox.top }
+            .firstOrNull()
             ?.second?.text?.trim()
     }
 
@@ -89,9 +90,20 @@ class PriceTagParser {
     }
 
     private fun extractPriceValue(text: String): BigDecimal? {
-        return PRICE_VALUE.find(text)?.value
+        // Try standard format first: 269.99 or 269,99
+        PRICE_VALUE.find(text)?.value
             ?.replace(',', '.')
-            ?.let { BigDecimal(it) }
+            ?.let { return BigDecimal(it) }
+
+        // Try pure digits: "26999" → 269.99, "2999" → 29.99
+        val digitsOnly = text.replace(Regex("""[^0-9]"""), "")
+        if (digitsOnly.length >= 3) {
+            val withDecimal = digitsOnly.substring(0, digitsOnly.length - 2) +
+                    "." + digitsOnly.substring(digitsOnly.length - 2)
+            return try { BigDecimal(withDecimal) } catch (_: Exception) { null }
+        }
+
+        return null
     }
 
     private fun extractWeight(
