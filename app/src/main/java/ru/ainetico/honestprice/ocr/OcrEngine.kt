@@ -1,102 +1,174 @@
 package ru.ainetico.honestprice.ocr
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Rect
+import android.util.Base64
 import android.util.Log
-import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.model.OcrBlock
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 import ru.ainetico.honestprice.model.OcrResult
-import java.io.File
-import java.io.FileOutputStream
+import ru.ainetico.honestprice.model.ParsedPriceTag
+import ru.ainetico.honestprice.model.WeightUnit
+import java.io.ByteArrayOutputStream
+import java.math.BigDecimal
+import java.util.concurrent.TimeUnit
 
-class OcrEngine(private val appContext: Context) {
+/**
+ * Sends price tag image to an OpenAI-compatible vision API (e.g. local Qwen, Ollama)
+ * and receives structured price tag data back.
+ *
+ * Replaces the OCR + Parser pipeline entirely — the LLM handles both recognition and parsing.
+ */
+class VisionApiClient(
+    private val baseUrl: String = DEFAULT_BASE_URL,
+    private val model: String = DEFAULT_MODEL,
+    private val apiKey: String = ""
+) {
 
     companion object {
-        private const val TAG = "OcrEngine"
-        private const val LANGUAGE = "rus"
+        private const val TAG = "VisionApiClient"
+        const val DEFAULT_BASE_URL = "http://10.0.2.2:1234/v1"  // localhost from Android emulator
+        const val DEFAULT_MODEL = "qwen2.5-vl"
+
+        private const val SYSTEM_PROMPT = """Ты анализируешь фото ценника из магазина. Извлеки данные и верни ТОЛЬКО JSON без markdown:
+{"product_name": "название товара", "price_regular": "цена без скидки (число)", "price_discount": "цена со скидкой/по карте (число или null)", "weight_value": "вес/объём (число или null)", "weight_unit": "единица: г, кг, мл, л, шт (или null)"}
+Если поле не найдено, ставь null. Цены в рублях, числа без символа валюты."""
     }
 
-    private var tessApi: TessBaseAPI? = null
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .build()
 
-    private suspend fun ensureInitialized(): TessBaseAPI {
-        tessApi?.let { return it }
+    /**
+     * Send image to vision API and get parsed price tag data.
+     * Returns ParsedPriceTag with as many fields filled as the model could extract.
+     */
+    suspend fun analyze(bitmap: Bitmap): ParsedPriceTag = withContext(Dispatchers.IO) {
+        try {
+            val base64Image = bitmapToBase64(bitmap)
+            Log.d(TAG, "Sending image to $baseUrl/chat/completions (model=$model, image=${base64Image.length} chars)")
 
-        return withContext(Dispatchers.IO) {
-            val dataDir = File(appContext.filesDir, "tesseract")
-            val tessDataDir = File(dataDir, "tessdata")
+            val messagesArray = JSONArray().apply {
+                put(JSONObject().apply {
+                    put("role", "system")
+                    put("content", SYSTEM_PROMPT)
+                })
+                put(JSONObject().apply {
+                    put("role", "user")
+                    put("content", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("type", "image_url")
+                            put("image_url", JSONObject().apply {
+                                put("url", "data:image/jpeg;base64,$base64Image")
+                            })
+                        })
+                        put(JSONObject().apply {
+                            put("type", "text")
+                            put("text", "Проанализируй этот ценник")
+                        })
+                    })
+                })
+            }
 
-            if (!tessDataDir.exists()) {
-                tessDataDir.mkdirs()
-                // Copy traineddata from assets
-                val assetFileName = "$LANGUAGE.traineddata"
-                appContext.assets.open("tessdata/$assetFileName").use { input ->
-                    FileOutputStream(File(tessDataDir, assetFileName)).use { output ->
-                        input.copyTo(output)
+            val requestBody = JSONObject().apply {
+                put("model", model)
+                put("messages", messagesArray)
+                put("max_tokens", 500)
+                put("temperature", 0.1)
+            }
+
+            val request = Request.Builder()
+                .url("$baseUrl/chat/completions")
+                .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
+                .apply {
+                    if (apiKey.isNotBlank()) {
+                        addHeader("Authorization", "Bearer $apiKey")
                     }
                 }
-                Log.d(TAG, "Copied $assetFileName to ${tessDataDir.absolutePath}")
+                .build()
+
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "API error ${response.code}: $responseBody")
+                return@withContext ParsedPriceTag()
             }
 
-            val api = TessBaseAPI()
-            if (!api.init(dataDir.absolutePath, LANGUAGE)) {
-                Log.e(TAG, "Tesseract init failed for language: $LANGUAGE")
-                throw RuntimeException("Tesseract init failed")
-            }
-            // PSM_AUTO — automatic page segmentation, good for price tags
-            api.pageSegMode = TessBaseAPI.PageSegMode.PSM_AUTO
-            Log.d(TAG, "Tesseract initialized with language: $LANGUAGE")
-            tessApi = api
-            api
+            Log.d(TAG, "API response: ${responseBody?.take(500)}")
+
+            val content = JSONObject(responseBody!!)
+                .getJSONArray("choices")
+                .getJSONObject(0)
+                .getJSONObject("message")
+                .getString("content")
+
+            parseApiResponse(content)
+        } catch (e: Exception) {
+            Log.e(TAG, "Vision API call failed", e)
+            ParsedPriceTag()
         }
     }
 
-    suspend fun recognize(bitmap: Bitmap): OcrResult {
+    private fun parseApiResponse(content: String): ParsedPriceTag {
         return try {
-            Log.d(TAG, "Starting OCR on bitmap ${bitmap.width}x${bitmap.height}")
+            // Strip markdown code fences if present
+            val jsonStr = content
+                .replace(Regex("""```json\s*"""), "")
+                .replace(Regex("""```\s*"""), "")
+                .trim()
 
-            val api = ensureInitialized()
-            val blocks = withContext(Dispatchers.Default) {
-                api.setImage(bitmap)
+            Log.d(TAG, "Parsing JSON: $jsonStr")
+            val json = JSONObject(jsonStr)
 
-                val fullText = api.utF8Text
-                Log.d(TAG, "Tesseract full text: '${fullText?.take(200)}'")
-
-                val lines = mutableListOf<OcrBlock>()
-
-                val iterator = api.resultIterator
-                if (iterator != null) {
-                    val level = TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE
-                    do {
-                        val text = iterator.getUTF8Text(level) ?: continue
-                        val confidence = iterator.confidence(level)
-                        val boundingRect = iterator.getBoundingRect(level)
-
-                        if (text.isNotBlank() && boundingRect != null) {
-                            Log.d(TAG, "  Line: '$text' confidence=$confidence box=$boundingRect")
-                            lines.add(
-                                OcrBlock(
-                                    text = text.trim(),
-                                    boundingBox = boundingRect,
-                                    confidence = confidence / 100f
-                                )
-                            )
-                        }
-                    } while (iterator.next(level))
-                    iterator.delete()
+            val unit = json.optString("weight_unit", "").lowercase().let { raw ->
+                when {
+                    raw.contains("кг") -> WeightUnit.KG
+                    raw.contains("г") -> WeightUnit.G
+                    raw.contains("мл") -> WeightUnit.ML
+                    raw.contains("л") -> WeightUnit.L
+                    raw.contains("шт") -> WeightUnit.PCS
+                    else -> null
                 }
-
-                api.clear()
-                lines
             }
 
-            Log.d(TAG, "OCR result: ${blocks.size} lines extracted")
-            OcrResult(blocks)
+            val tag = ParsedPriceTag(
+                productName = json.optStringOrNull("product_name"),
+                priceRegular = json.optStringOrNull("price_regular")?.toBigDecimalSafe(),
+                priceDiscount = json.optStringOrNull("price_discount")?.toBigDecimalSafe(),
+                weightValue = json.optStringOrNull("weight_value")?.toBigDecimalSafe(),
+                weightUnit = unit
+            )
+
+            Log.d(TAG, "Parsed: name=${tag.productName}, regular=${tag.priceRegular}, discount=${tag.priceDiscount}, weight=${tag.weightValue} ${tag.weightUnit}")
+            tag
         } catch (e: Exception) {
-            Log.e(TAG, "OCR failed", e)
-            OcrResult(emptyList())
+            Log.e(TAG, "Failed to parse API response: $content", e)
+            ParsedPriceTag()
         }
+    }
+
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun JSONObject.optStringOrNull(key: String): String? {
+        val value = optString(key, "")
+        return if (value.isBlank() || value == "null") null else value
+    }
+
+    private fun String.toBigDecimalSafe(): BigDecimal? {
+        return try {
+            val cleaned = this.replace(Regex("""[^\d.,]"""), "").replace(',', '.')
+            if (cleaned.isBlank()) null else BigDecimal(cleaned)
+        } catch (_: Exception) { null }
     }
 }
