@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ScanDao {
@@ -21,4 +22,7 @@ interface ScanDao {
 
     @Query("SELECT * FROM scans ORDER BY createdAt DESC")
     suspend fun getAllScans(): List<Scan>
+
+    @Query("SELECT * FROM scans WHERE status != 'PROCESSING' ORDER BY createdAt DESC")
+    fun getAllScansFlow(): Flow<List<Scan>>
 }
