@@ -59,8 +59,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // ML Kit
-    implementation(libs.mlkit.text.recognition)
+    // OCR - Tesseract
+    implementation(libs.tesseract4android)
+
+    // ML Kit - Barcode only
     implementation(libs.mlkit.barcode.scanning)
 
     // CameraX

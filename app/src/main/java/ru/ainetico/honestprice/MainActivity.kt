@@ -88,7 +88,7 @@ fun HonestPriceApp() {
             val analyzer = remember {
                 ImageAnalyzer(
                     ImagePreprocessor(),
-                    OcrEngine(),
+                    OcrEngine(context.applicationContext),
                     BarcodeEngine(),
                     PriceTagParser(),
                     PriceCalculator()

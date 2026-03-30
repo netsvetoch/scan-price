@@ -1,5 +1,6 @@
 package ru.ainetico.honestprice.parser
 
+import android.util.Log
 import ru.ainetico.honestprice.model.OcrBlock
 import ru.ainetico.honestprice.model.OcrResult
 import ru.ainetico.honestprice.model.ParsedPriceTag
@@ -11,6 +12,7 @@ class PriceTagParser {
     private val classifier = BlockClassifier()
 
     companion object {
+        private const val TAG = "PriceTagParser"
         private val PRICE_VALUE = Regex("""\d+[.,]\d{2}""")
         private val WEIGHT_VALUE = Regex("""\d+[.,]?\d*""")
         private val UNIT_PATTERN = Regex(
@@ -26,7 +28,9 @@ class PriceTagParser {
 
         val imageHeight = ocrResult.blocks.maxOf { it.boundingBox.bottom }
         val classified = ocrResult.blocks.map { block ->
-            classifier.classify(block, imageHeight) to block
+            val role = classifier.classify(block, imageHeight)
+            Log.d(TAG, "  Block '${block.text}' → $role")
+            role to block
         }
 
         val name = extractName(classified)
@@ -34,6 +38,8 @@ class PriceTagParser {
         val (weightValue, weightUnit) = extractWeight(classified, classified.filter {
             it.first == BlockRole.PRICE || it.first == BlockRole.DISCOUNT_PRICE
         })
+
+        Log.d(TAG, "Parsed: name=$name, regular=$priceRegular, discount=$priceDiscount, weight=$weightValue $weightUnit")
 
         return ParsedPriceTag(
             productName = name,
