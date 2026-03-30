@@ -26,6 +26,8 @@ import ru.ainetico.honestprice.parser.PriceTagParser
 import ru.ainetico.honestprice.location.LocationProvider
 import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
+import ru.ainetico.honestprice.ui.history.HistoryScreen
+import ru.ainetico.honestprice.ui.history.HistoryViewModel
 import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
 import ru.ainetico.honestprice.ui.result.ResultScreen
 import ru.ainetico.honestprice.ui.result.ResultViewModel
@@ -142,8 +144,17 @@ fun HonestPriceApp() {
             )
         }
         composable(Screen.History.route) {
-            // TODO: HistoryScreen - Task 9
-            androidx.compose.material3.Text("History")
+            val db = remember { AppDatabase.getInstance(context) }
+            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
+            val viewModel = remember { HistoryViewModel(repository) }
+
+            HistoryScreen(
+                viewModel = viewModel,
+                onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
+                onCameraClick = { navController.navigate(Screen.Camera.createRoute(openGallery = false)) },
+                onGalleryClick = { navController.navigate(Screen.Camera.createRoute(openGallery = true)) },
+                onManualClick = { navController.navigate(Screen.ResultManual.route) }
+            )
         }
     }
 }

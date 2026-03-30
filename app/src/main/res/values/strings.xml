@@ -26,4 +26,9 @@
     <string name="result_regular_per_unit">обычная: %s ₽/%s</string>
     <string name="result_save">Сохранить</string>
     <string name="result_saving">Сохранение…</string>
+    <string name="history_empty">Нет сканирований</string>
+    <string name="history_empty_hint">Нажмите 📷 чтобы начать</string>
+    <string name="history_fab_camera">Камера</string>
+    <string name="history_fab_gallery">Галерея</string>
+    <string name="history_fab_manual">Вручную</string>
 </resources>
