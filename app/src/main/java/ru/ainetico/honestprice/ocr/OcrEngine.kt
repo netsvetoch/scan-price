@@ -79,8 +79,12 @@ class VisionApiClient(
             val requestBody = JSONObject().apply {
                 put("model", model)
                 put("messages", messagesArray)
-                put("max_tokens", 500)
+                put("max_tokens", 1024)
                 put("temperature", 0.1)
+                // Disable thinking/reasoning mode — force direct JSON output
+                put("chat_template_kwargs", JSONObject().apply {
+                    put("enable_thinking", false)
+                })
             }
 
             val request = Request.Builder()
