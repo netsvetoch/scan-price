@@ -79,6 +79,9 @@ dependencies {
     // Coroutines Play Services (await() on ML Kit Tasks)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // ExifInterface for EXIF rotation
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+
     // Testing
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
