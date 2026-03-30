@@ -4,6 +4,7 @@
 **Подсистема:** Onboarding, экраны камеры/результата/истории, навигация, интеграция с OCR+Парсер
 **Статус:** MVP / offline-first / open-source
 **Зависимости:** подсистема OCR+Парсер (реализована)
+**Изменения в подсистеме 1:** эта спецификация требует добавления `getAllScansFlow()` в `ScanDao`, `updateUserFields()` и `createManual()` в `ScanRepository`. Метод `ImagePreprocessor` в реализации называется `processBitmap()` (не `process()` как в спеке подсистемы 1) — UI вызывает `ImageAnalyzer.analyze()` который использует правильное имя.
 
 ---
 
@@ -38,11 +39,13 @@ Onboarding → Camera → Result(scanId) → History
 ```kotlin
 sealed class Screen(val route: String) {
     object Onboarding : Screen("onboarding")
-    object Camera : Screen("camera")
+    object Camera : Screen("camera?openGallery={openGallery}") {
+        fun createRoute(openGallery: Boolean = false) = "camera?openGallery=$openGallery"
+    }
     object Result : Screen("result/{scanId}") {
         fun createRoute(scanId: Long) = "result/$scanId"
     }
-    object ResultManual : Screen("result/manual")
+    object ResultManual : Screen("result_manual")
     object History : Screen("history")
 }
 ```
@@ -60,7 +63,8 @@ sealed class Screen(val route: String) {
 - Camera → Result: Camera остаётся в стеке
 - Result → History: Result и Camera убираются (`popUpTo("camera") { inclusive = true }`)
 - History → Camera (FAB): Camera добавляется поверх History
-- History → Result/manual (FAB ручной ввод): Result добавляется поверх History
+- History → ResultManual (FAB ручной ввод): Result добавляется поверх History
+- History → Camera(openGallery=true) (FAB галерея): Camera открывается и сразу запускает gallery picker
 
 ---
 
@@ -83,6 +87,8 @@ sealed class Screen(val route: String) {
 - Текст: «Это поможет запоминать магазин и добавить новые функции в будущем»
 - Кнопка «Разрешить» → запрос `ACCESS_FINE_LOCATION` через `rememberLauncherForActivityResult(RequestPermission)`
 - Текстовая кнопка «Пропустить»
+
+**Каноничный поток разрешения геолокации:** запрос происходит ТОЛЬКО на onboarding. Если пользователь пропустил — `LocationProvider.getCurrentLocation()` вернёт `null` при сохранении, координаты не записываются. Повторный запрос не делается. Это поведение заменяет описание в спеке подсистемы 1 (секция 7, «при первом сканировании»).
 
 **При завершении:**
 - Сохраняем `onboarding_completed = true` в SharedPreferences
@@ -243,11 +249,30 @@ class ResultViewModel(
 
 ### Сохранение
 
-1. Запрашиваем геолокацию: `LocationProvider.getCurrentLocation()` (если есть разрешение)
+1. Запрашиваем геолокацию: `LocationProvider.getCurrentLocation()` (если есть разрешение, иначе `null`)
 2. Если новый магазин — `StoreDao.insert(Store(name = storeName))`
-3. `ScanRepository.markCompleted(scanId, tag, price)` — обновляем запись с финальными данными + координатами
-4. Для ручного ввода: `ScanRepository.createProcessing("")` → сразу `markCompleted`
+3. Для ручного ввода: `ScanRepository.createManual()` → создаёт запись без фото (`status = COMPLETED`)
+4. `ScanRepository.updateUserFields(scanId, tag, price, storeName, latitude, longitude)` — сохраняет все поля включая магазин и координаты
 5. Навигация на History
+
+**Изменение в ScanRepository (подсистема 1):** добавить методы:
+
+```kotlin
+interface ScanRepository {
+    // ... существующие методы ...
+    suspend fun createManual(): Long   // создаёт запись без imagePath, status=COMPLETED
+    suspend fun updateUserFields(
+        scanId: Long,
+        tag: ParsedPriceTag,
+        price: PriceResult?,
+        storeName: String?,
+        latitude: Double?,
+        longitude: Double?
+    )
+}
+```
+
+`updateUserFields` заменяет `markCompleted` на экране результата — он записывает все поля включая `storeName`, `latitude`, `longitude`, которых нет в `ParsedPriceTag`.
 
 ---
 
@@ -259,8 +284,18 @@ class ResultViewModel(
 class HistoryViewModel(
     private val scanDao: ScanDao
 ) : ViewModel() {
-    val scans: StateFlow<List<Scan>>  // из scanDao.getAllScans() через Flow
+    val scans: StateFlow<List<Scan>>  // из scanDao.getAllScansFlow()
 }
+```
+
+**Изменение в ScanDao (подсистема 1):** добавить реактивный метод:
+
+```kotlin
+@Query("SELECT * FROM scans WHERE status != 'PROCESSING' ORDER BY createdAt DESC")
+fun getAllScansFlow(): Flow<List<Scan>>
+```
+
+Существующий `suspend fun getAllScans()` сохраняется для разовых запросов. `getAllScansFlow()` — реактивная подписка для `HistoryViewModel`.
 ```
 
 ### UI компоненты
@@ -271,15 +306,15 @@ class HistoryViewModel(
   - Магазин (серый текст)
   - Обычная цена → скидочная цена
   - Честная цена за единицу (зелёный, крупный, справа)
-- Клик по карточке → навигация на `Result(scanId)` для просмотра/редактирования
+- Клик по карточке → навигация на `Result(scanId)` для просмотра/редактирования. При повторном сохранении ранее сохранённого скана — `status` обновляется до `EDITED`
 - Пустое состояние: текст «Нет сканирований» + подсказка «Нажмите 📷 чтобы начать»
 
 ### FAB-кнопки
 
 Три кнопки в правом нижнем углу, вертикальный стек снизу вверх:
-1. **Камера** (главный, `LargeFloatingActionButton`) — навигация на Camera
-2. **Галерея** (`SmallFloatingActionButton`) — запуск `GetContent` → Camera в режиме Scanning
-3. **Ручной ввод** (`SmallFloatingActionButton`) — навигация на ResultManual
+1. **Камера** (главный, `LargeFloatingActionButton`) — навигация на `Camera(openGallery=false)`
+2. **Галерея** (`SmallFloatingActionButton`) — навигация на `Camera(openGallery=true)`. `CameraScreen` при `openGallery=true` сразу запускает gallery picker через `LaunchedEffect`
+3. **Ручной ввод** (`SmallFloatingActionButton`) — навигация на `ResultManual`
 
 ---
 
