@@ -87,14 +87,20 @@ data class OcrResult(
 ### WeightUnit
 
 ```kotlin
-enum class WeightUnit(val displayName: String, val baseUnit: WeightUnit?) {
-    G("г", KG), KG("кг", null),
-    ML("мл", L), L("л", null),
+enum class WeightUnit(val displayName: String, val baseUnitName: String?) {
+    KG("кг", null),
+    G("г", "KG"),
+    L("л", null),
+    ML("мл", "L"),
     PCS("шт", null);
+
+    val baseUnit: WeightUnit? get() = baseUnitName?.let { valueOf(it) }
 }
 ```
 
 ### ParsedPriceTag
+
+Результат работы парсера. Поля `storeName`, `latitude`, `longitude` не заполняются парсером — они устанавливаются на уровне UI/ViewModel перед сохранением в Room.
 
 ```kotlin
 data class ParsedPriceTag(
@@ -104,10 +110,18 @@ data class ParsedPriceTag(
     val weightValue: BigDecimal?,
     val weightUnit: WeightUnit?,
     val barcode: String?,
-    val storeName: String?,
-    val latitude: Double?,
-    val longitude: Double?,
     val rawBlocks: List<OcrBlock>
+)
+```
+
+### AnalysisResult
+
+Составной результат работы `ImageAnalyzer` — содержит и распознанные данные, и вычисленную цену за единицу.
+
+```kotlin
+data class AnalysisResult(
+    val tag: ParsedPriceTag,
+    val price: PriceResult?    // null если priceRegular не распознана
 )
 ```
 
@@ -122,9 +136,19 @@ data class PriceResult(
 )
 ```
 
-### ScanStatus
+### Scan (минимальная сущность для crash-recovery)
+
+Полная Room-схема определяется в подсистеме «БД + История». Здесь — минимальный контракт, необходимый для `ImageAnalyzer` и crash-recovery.
 
 ```kotlin
+data class Scan(
+    val id: Long = 0,
+    val status: ScanStatus,
+    val imagePath: String?,       // путь к оригиналу в filesDir
+    val thumbnailPath: String?,
+    val createdAt: Long           // System.currentTimeMillis()
+)
+
 enum class ScanStatus {
     PROCESSING,   // фото сохранено, OCR ещё не завершён
     COMPLETED,    // распознано (полностью или частично)
@@ -132,26 +156,26 @@ enum class ScanStatus {
 }
 ```
 
-### SyncStatus (для будущей серверной синхронизации)
+### ScanRepository (интерфейс для persistence)
+
+`ImageAnalyzer` работает с persistence через этот интерфейс. Реализация — в подсистеме «БД + История».
 
 ```kotlin
-enum class SyncStatus {
-    LOCAL_ONLY,       // MVP — все записи в этом статусе
-    PENDING_UPLOAD,
-    UPLOADED,
-    UPLOAD_FAILED
+interface ScanRepository {
+    suspend fun createProcessing(imagePath: String): Long   // возвращает scanId
+    suspend fun markCompleted(scanId: Long, tag: ParsedPriceTag, price: PriceResult?)
+    suspend fun getProcessingScans(): List<Scan>
 }
 ```
 
-### ScanImage
+### SyncStatus
+
+В MVP используется только `LOCAL_ONLY`. Остальные значения будут добавлены через Room-миграцию в подсистеме серверной синхронизации (будущий релиз). В текущей подсистеме `SyncStatus` не используется.
 
 ```kotlin
-data class ScanImage(
-    val originalPath: String,
-    val thumbnailPath: String,
-    val syncStatus: SyncStatus,
-    val serverUrl: String?
-)
+enum class SyncStatus {
+    LOCAL_ONLY
+}
 ```
 
 ### Store
@@ -184,7 +208,7 @@ class ImagePreprocessor {
 **На уровне Bitmap:**
 - Кроп по рамке видоискателя (для камеры), без кропа для галереи
 - Автоповорот по EXIF-данным
-- Загрузка с `inSampleSize` — не декодировать полное разрешение для OCR, достаточно ~2MP
+- Даунсемплинг для OCR: считать размеры исходного изображения, вычислить `inSampleSize` как максимальную степень двойки, при которой короткая сторона >= 1080px. Минимальный порог — 1080px по короткой стороне (ниже страдает распознавание мелкого текста)
 
 ### 4.2 OcrEngine
 
@@ -197,6 +221,7 @@ class OcrEngine {
 - ML Kit Text Recognition v2 (`TextRecognition.getClient()`)
 - Маппинг: ML Kit `TextBlock` → `Line` → наши `OcrBlock` (уровень Line — оптимальная гранулярность для ценников)
 - Кириллица + латиница: ML Kit обрабатывает смешанный текст (Snickers, Whiskas на ценниках)
+- **Обработка ошибок:** при любом исключении ML Kit (MlKitException, OOM и т.д.) возвращает `OcrResult(emptyList())`. Ошибка логируется, но не прерывает поток — graceful degradation, пользователь заполнит поля вручную.
 
 ### 4.3 BarcodeEngine
 
@@ -209,6 +234,7 @@ class BarcodeEngine {
 - ML Kit Barcode Scanning
 - Форматы: `FORMAT_EAN_13`, `FORMAT_UPC_A`
 - Возвращает `null` если штрихкод не найден
+- **Обработка ошибок:** при любом исключении возвращает `null`. Отсутствие штрихкода — нормальная ситуация, не ошибка.
 
 ### 4.4 PriceTagParser
 
@@ -233,9 +259,10 @@ class PriceTagParser {
 | NOISE | Всё остальное (даты, адреса, артикулы) |
 
 **Шаг 3 — Разрешение конфликтов:**
-- Две цены без контекста: меньшая = `priceDiscount`, большая = `priceRegular`
+- Если хотя бы одна цена классифицирована как `DISCOUNT_PRICE` на шаге 2 — использовать эту классификацию
+- Если две цены найдены и обе без контекста скидки: **считаем неоднозначными** — меньшая предварительно назначается как `priceDiscount`, большая как `priceRegular`, но на экране результата оба поля подсвечиваются для проверки пользователем
 - Одна цена: записывается как `priceRegular`, `priceDiscount` = `null`
-- Более двух цен: берём две с наибольшими bounding box, меньшая = discount
+- Более двух цен: берём две с наибольшими bounding box, применяем те же правила
 - Несколько значений веса: ближайшее к цене по координатам
 - Ничего не найдено: все поля `null` — пользователь заполнит вручную
 
@@ -251,12 +278,15 @@ class PriceCalculator {
 }
 ```
 
+Возвращает `null` **только** если `tag.priceRegular == null` (цена не распознана — нечего считать).
+
 **Алгоритм:**
-1. Определить базовую единицу: г/кг → KG, мл/л → L, шт/уп/null → PCS
-2. Привести вес к базовой: 500г → 0.5кг, 330мл → 0.33л
-3. `pricePerUnit = priceRegular / weightInBaseUnit`
-4. Если есть `priceDiscount`: `pricePerUnitDiscount = priceDiscount / weightInBaseUnit`
-5. Вес не указан или PCS: `pricePerUnit = priceRegular`, единица = PCS
+1. Если `priceRegular == null` → вернуть `null`
+2. Определить базовую единицу: г/кг → KG, мл/л → L, шт/уп/null → PCS
+3. Привести вес к базовой: 500г → 0.5кг, 330мл → 0.33л
+4. `pricePerUnit = priceRegular / weightInBaseUnit`
+5. Если есть `priceDiscount`: `pricePerUnitDiscount = priceDiscount / weightInBaseUnit`
+6. Вес не указан или PCS: `pricePerUnit = priceRegular`, единица = PCS
 
 **Переключение единицы пользователем:** конвертация только внутри группы (г↔кг, мл↔л). Между кг и л — невозможно.
 
@@ -270,12 +300,20 @@ class ImageAnalyzer(
     private val parser: PriceTagParser,
     private val calculator: PriceCalculator
 ) {
-    suspend fun analyze(bitmap: Bitmap, cropRect: Rect?): ParsedPriceTag
+    suspend fun analyze(bitmap: Bitmap, cropRect: Rect?): AnalysisResult
 }
 ```
 
 - OCR и Barcode запускаются параллельно через `coroutineScope { async {} }`
-- Всегда возвращает `ParsedPriceTag` (поля от 0 до всех заполнены)
+- Всегда возвращает `AnalysisResult` с заполненным `tag` (от 0 до всех полей) и `price` (`null` если цена не распознана)
+- **Не зависит от persistence напрямую.** Сохранение в Room выполняется на уровне ViewModel через `ScanRepository`:
+
+```
+ViewModel:
+  1. scanRepository.createProcessing(imagePath)  → получить scanId
+  2. imageAnalyzer.analyze(bitmap, cropRect)      → получить AnalysisResult
+  3. scanRepository.markCompleted(scanId, tag, price)
+```
 
 ---
 
@@ -290,7 +328,7 @@ filesDir/
     thumbnails/    — превью для списка истории (200px по ширине)
 ```
 
-- Имя файла: `{scanId}_{timestamp}.jpg`
+- Имя файла: `{scanId}_{timestamp}.jpg` — `scanId` получен от `ScanRepository.createProcessing()` до начала обработки
 - Хранение во внутреннем хранилище (`filesDir`) — не требует разрешений, недоступно другим приложениям
 - Оригинал сохраняется всегда — для будущей серверной обработки и повторного OCR
 
@@ -298,6 +336,7 @@ filesDir/
 
 ```
 Галерея → content:// URI
+  → ScanRepository.createProcessing() → scanId
   → копируем в images/originals/{scanId}_{timestamp}.jpg
   → генерируем thumbnail
   → работаем только с локальной копией
@@ -307,7 +346,7 @@ URI из галереи временный — копирование гаран
 
 ### Ручной ввод
 
-Фото опционально. Если не прикреплено — `originalPath` и `thumbnailPath` = `null`.
+Фото опционально. Если не прикреплено — `imagePath` и `thumbnailPath` = `null`.
 
 ---
 
@@ -322,9 +361,18 @@ URI из галереи временный — копирование гаран
 
 ## 7. Геолокация
 
+**Компонент:** `LocationProvider` — отдельный класс, инжектируется в ViewModel. Не является частью `ImageAnalyzer`.
+
+```kotlin
+class LocationProvider(private val context: Context) {
+    suspend fun getCurrentLocation(): Location?
+}
+```
+
 - Разрешение: `ACCESS_FINE_LOCATION` (точность важна для ТЦ с несколькими магазинами)
-- Если пользователь отказал — координаты `null`, приложение работает без них
-- Координаты сохраняются в Room для будущих фич (автоопределение магазина, карта цен)
+- Если пользователь отказал — возвращает `null`, приложение работает без координат
+- Координаты запрашиваются в ViewModel параллельно с OCR и сохраняются в Room вместе с результатом сканирования
+- **Поток запроса разрешения:** при первом сканировании с камеры → rationale-диалог → системный запрос. При отказе — больше не спрашиваем, координаты = `null`
 
 ---
 
@@ -336,24 +384,24 @@ URI из галереи временный — копирование гаран
 UI Thread              Background (Dispatchers.IO)
 ──────────             ──────────────────────────
 Нажал "снять" →        1. Сохранить фото в filesDir
-Показать спиннер       2. Создать запись в Room (status=PROCESSING)
-                       3. OCR + Barcode (параллельно)
+Показать спиннер       2. ScanRepository.createProcessing() → scanId
+                       3. OCR + Barcode + Location (параллельно)
                        4. Парсинг (~мс)
                        5. Генерация thumbnail
-← Показать карточку    6. Обновить запись (status=COMPLETED)
+← Показать карточку    6. ScanRepository.markCompleted()
 ```
 
 ### Устойчивость к крашам
 
 Принцип: **сохраняй как можно раньше**.
 
-1. Фото сохранено в filesDir → запись создана в Room (`PROCESSING`)
-2. Если краш → при запуске: `SELECT * FROM scans WHERE status = 'PROCESSING'` → повторить OCR
-3. OCR завершён → обновить запись (`COMPLETED`)
+1. Фото сохранено в filesDir → `ScanRepository.createProcessing()` создаёт запись (`PROCESSING`)
+2. Если краш → при запуске: `ScanRepository.getProcessingScans()` → повторить OCR для каждой
+3. OCR завершён → `ScanRepository.markCompleted()`
 
 ### Оптимизация для слабых устройств
 
-- Bitmap: загрузка с `inSampleSize` (~2MP для OCR, не полное разрешение)
+- Bitmap: даунсемплинг через `inSampleSize` (короткая сторона >= 1080px)
 - Thumbnail: 200px по ширине, отдельный файл
 - ML Kit: использует GPU/NNAPI где доступно
 - Room: все запросы через `suspend` + `Dispatchers.IO`
@@ -387,14 +435,15 @@ CameraX                  — камера + превью
 CameraX Camera2 Interop  — тонкая настройка параметров съёмки
 Room                     — локальная БД
 Kotlin Coroutines        — асинхронная обработка
+FusedLocationProviderClient — геолокация (Google Play Services)
 ```
 
 ---
 
 ## 11. Что НЕ входит в эту подсистему (следующие этапы)
 
-- Room-схема и DAO (подсистема «БД + История»)
+- Полная Room-схема и DAO (подсистема «БД + История»). Минимальный `Scan` и `ScanRepository` определены здесь для crash-recovery
 - UI экранов (подсистема «UI»)
 - Сравнение товаров по штрихкоду (подсистема «БД + История»)
-- Серверная обработка и подписка (будущий релиз)
+- Серверная обработка и подписка (будущий релиз). `SyncStatus` будет расширен через Room-миграцию
 - Автоопределение магазина по координатам (будущий релиз)
