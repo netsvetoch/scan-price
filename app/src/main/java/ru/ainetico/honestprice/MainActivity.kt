@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
@@ -22,9 +23,12 @@ import ru.ainetico.honestprice.navigation.Screen
 import ru.ainetico.honestprice.ocr.BarcodeEngine
 import ru.ainetico.honestprice.ocr.OcrEngine
 import ru.ainetico.honestprice.parser.PriceTagParser
+import ru.ainetico.honestprice.location.LocationProvider
 import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
+import ru.ainetico.honestprice.ui.result.ResultScreen
+import ru.ainetico.honestprice.ui.result.ResultViewModel
 import ru.ainetico.honestprice.ui.theme.ЧестнаяЦенаTheme
 
 class MainActivity : ComponentActivity() {
@@ -106,12 +110,36 @@ fun HonestPriceApp() {
             arguments = listOf(navArgument("scanId") { type = NavType.LongType })
         ) { backStackEntry ->
             val scanId = backStackEntry.arguments?.getLong("scanId") ?: 0L
-            // TODO: ResultScreen - Task 8
-            androidx.compose.material3.Text("Result (scanId=$scanId)")
+            val db = remember { AppDatabase.getInstance(context) }
+            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
+            val viewModel = remember {
+                ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
+            }
+            LaunchedEffect(scanId) { viewModel.loadScan(scanId) }
+            ResultScreen(
+                viewModel = viewModel,
+                onSaved = {
+                    navController.navigate(Screen.History.route) {
+                        popUpTo(Screen.Camera.route) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Screen.ResultManual.route) {
-            // TODO: ResultScreen manual - Task 8
-            androidx.compose.material3.Text("Result Manual")
+            val db = remember { AppDatabase.getInstance(context) }
+            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
+            val viewModel = remember {
+                ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
+            }
+            LaunchedEffect(Unit) { viewModel.loadManual() }
+            ResultScreen(
+                viewModel = viewModel,
+                onSaved = {
+                    navController.navigate(Screen.History.route) {
+                        popUpTo(Screen.Camera.route) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Screen.History.route) {
             // TODO: HistoryScreen - Task 9

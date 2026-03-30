@@ -15,4 +15,15 @@
     <string name="camera_scanning">Сканирование…</string>
     <string name="camera_permission_needed">Для сканирования нужен доступ к камере</string>
     <string name="camera_open_settings">Открыть настройки</string>
+    <string name="result_product_name">Название товара</string>
+    <string name="result_price_regular">Цена</string>
+    <string name="result_price_discount">По скидке</string>
+    <string name="result_weight">Вес / Объём</string>
+    <string name="result_unit">Единица</string>
+    <string name="result_store">Магазин</string>
+    <string name="result_barcode">Штрихкод</string>
+    <string name="result_honest_price">Честная цена</string>
+    <string name="result_regular_per_unit">обычная: %s ₽/%s</string>
+    <string name="result_save">Сохранить</string>
+    <string name="result_saving">Сохранение…</string>
 </resources>
