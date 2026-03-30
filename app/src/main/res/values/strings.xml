@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ЧестнаяЦена</string>
+    <string name="onboarding_camera_title">Сканируйте ценник</string>
+    <string name="onboarding_camera_text">Наведите камеру на ценник — мы рассчитаем честную цену за кг или литр</string>
+    <string name="onboarding_camera_hint">Также можно загрузить фото из галереи или ввести данные вручную</string>
+    <string name="onboarding_location_title">Сохраняйте местоположение</string>
+    <string name="onboarding_location_text">Это поможет запоминать магазин и добавить новые функции в будущем</string>
+    <string name="onboarding_next">Далее</string>
+    <string name="onboarding_allow">Разрешить</string>
+    <string name="onboarding_skip">Пропустить</string>
+</resources>

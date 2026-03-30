@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.navigation.Screen
+import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
 import ru.ainetico.honestprice.ui.theme.ЧестнаяЦенаTheme
 
 class MainActivity : ComponentActivity() {
@@ -51,8 +52,11 @@ fun HonestPriceApp() {
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Onboarding.route) {
-            // TODO: OnboardingScreen - Task 4
-            androidx.compose.material3.Text("Onboarding")
+            OnboardingScreen(onComplete = {
+                navController.navigate(Screen.Camera.createRoute()) {
+                    popUpTo(Screen.Onboarding.route) { inclusive = true }
+                }
+            })
         }
         composable(
             route = Screen.Camera.route,
