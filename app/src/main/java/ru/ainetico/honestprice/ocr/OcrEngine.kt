@@ -103,11 +103,17 @@ class VisionApiClient(
 
             Log.d(TAG, "API response: ${responseBody?.take(500)}")
 
-            val content = JSONObject(responseBody!!)
+            val message = JSONObject(responseBody!!)
                 .getJSONArray("choices")
                 .getJSONObject(0)
                 .getJSONObject("message")
-                .getString("content")
+
+            // Qwen3.5 may put the answer in "content" or in "reasoning"
+            var content = message.optString("content", "")
+            if (content.isBlank()) {
+                content = message.optString("reasoning", "")
+                Log.d(TAG, "Content empty, using reasoning field (${content.length} chars)")
+            }
 
             parseApiResponse(content)
         } catch (e: Exception) {
@@ -118,11 +124,17 @@ class VisionApiClient(
 
     private fun parseApiResponse(content: String): ParsedPriceTag {
         return try {
-            // Strip markdown code fences if present
-            val jsonStr = content
-                .replace(Regex("""```json\s*"""), "")
-                .replace(Regex("""```\s*"""), "")
-                .trim()
+            // Extract JSON object from content — may be surrounded by reasoning text
+            val jsonMatch = Regex("""\{[^{}]*"product_name"[^{}]*\}""").find(content)
+            val jsonStr = if (jsonMatch != null) {
+                jsonMatch.value
+            } else {
+                // Fallback: strip markdown fences and try the whole string
+                content
+                    .replace(Regex("""```json\s*"""), "")
+                    .replace(Regex("""```\s*"""), "")
+                    .trim()
+            }
 
             Log.d(TAG, "Parsing JSON: $jsonStr")
             val json = JSONObject(jsonStr)
