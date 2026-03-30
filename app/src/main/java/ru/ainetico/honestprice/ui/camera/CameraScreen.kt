@@ -117,6 +117,64 @@ fun CameraScreen(
             .background(Color.Black)
     ) {
         when {
+            state is CameraState.Scanning -> {
+                // Frozen bitmap + scanning animation + retake button
+                val scanning = state as CameraState.Scanning
+                Image(
+                    bitmap = scanning.previewBitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+
+                ScanningOverlay(modifier = Modifier.fillMaxSize())
+
+                // Scanning label
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                        .padding(top = 64.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color(0xFF00E676),
+                            strokeWidth = 2.dp
+                        )
+                        Text(
+                            text = stringResource(R.string.camera_scanning),
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+
+                // Retake button
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OutlinedButton(
+                        onClick = { viewModel.retake() },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Black.copy(alpha = 0.5f),
+                            contentColor = Color.White
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White)
+                    ) {
+                        Text(stringResource(R.string.camera_retake))
+                    }
+                }
+            }
+
             !cameraPermissionGranted -> {
                 // No camera permission — show explanation + allow button + gallery/manual controls
                 Column(
@@ -183,64 +241,6 @@ fun CameraScreen(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(stringResource(R.string.camera_manual), color = Color.White, fontSize = 12.sp)
-                    }
-                }
-            }
-
-            state is CameraState.Scanning -> {
-                // Frozen bitmap + scanning animation + retake button
-                val scanning = state as CameraState.Scanning
-                Image(
-                    bitmap = scanning.previewBitmap.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                ScanningOverlay(modifier = Modifier.fillMaxSize())
-
-                // Scanning label
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter)
-                        .padding(top = 64.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = Color(0xFF00E676),
-                            strokeWidth = 2.dp
-                        )
-                        Text(
-                            text = stringResource(R.string.camera_scanning),
-                            color = Color.White,
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-
-                // Retake button
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 48.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    OutlinedButton(
-                        onClick = { viewModel.retake() },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.Black.copy(alpha = 0.5f),
-                            contentColor = Color.White
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White)
-                    ) {
-                        Text(stringResource(R.string.camera_retake))
                     }
                 }
             }
