@@ -32,8 +32,8 @@ class VisionApiClient(
 
     companion object {
         private const val TAG = "VisionApiClient"
-        const val DEFAULT_BASE_URL = "http://10.0.2.2:1234/v1"  // localhost from Android emulator
-        const val DEFAULT_MODEL = "qwen2.5-vl"
+        const val DEFAULT_BASE_URL = "https://ollama.netsvetaev.dev/v1"
+        const val DEFAULT_MODEL = "qwen3.5:9b"
 
         private const val SYSTEM_PROMPT = """Ты анализируешь фото ценника из магазина. Извлеки данные и верни ТОЛЬКО JSON без markdown:
 {"product_name": "название товара", "price_regular": "цена без скидки (число)", "price_discount": "цена со скидкой/по карте (число или null)", "weight_value": "вес/объём (число или null)", "weight_unit": "единица: г, кг, мл, л, шт (или null)"}
