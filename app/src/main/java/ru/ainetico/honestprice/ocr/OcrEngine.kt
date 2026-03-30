@@ -52,7 +52,8 @@ class VisionApiClient(
     suspend fun analyze(bitmap: Bitmap): ParsedPriceTag = withContext(Dispatchers.IO) {
         try {
             val base64Image = bitmapToBase64(bitmap)
-            Log.d(TAG, "Sending image to $baseUrl/chat/completions (model=$model, image=${base64Image.length} chars)")
+            val apiUrl = baseUrl.removeSuffix("/v1")  // Use native Ollama API
+            Log.d(TAG, "Sending image to $apiUrl/api/chat (model=$model, image=${base64Image.length} chars)")
 
             val messagesArray = JSONArray().apply {
                 put(JSONObject().apply {
@@ -61,17 +62,9 @@ class VisionApiClient(
                 })
                 put(JSONObject().apply {
                     put("role", "user")
-                    put("content", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("type", "image_url")
-                            put("image_url", JSONObject().apply {
-                                put("url", "data:image/jpeg;base64,$base64Image")
-                            })
-                        })
-                        put(JSONObject().apply {
-                            put("type", "text")
-                            put("text", "Проанализируй этот ценник")
-                        })
+                    put("content", "Проанализируй этот ценник")
+                    put("images", JSONArray().apply {
+                        put(base64Image)
                     })
                 })
             }
@@ -79,13 +72,16 @@ class VisionApiClient(
             val requestBody = JSONObject().apply {
                 put("model", model)
                 put("messages", messagesArray)
-                put("max_tokens", 512)
-                put("temperature", 0.1)
+                put("stream", false)
                 put("think", false)
+                put("options", JSONObject().apply {
+                    put("temperature", 0.1)
+                    put("num_predict", 512)
+                })
             }
 
             val request = Request.Builder()
-                .url("$baseUrl/chat/completions")
+                .url("$apiUrl/api/chat")
                 .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
                 .apply {
                     if (apiKey.isNotBlank()) {
@@ -104,17 +100,11 @@ class VisionApiClient(
 
             Log.d(TAG, "API response: ${responseBody?.take(500)}")
 
-            val message = JSONObject(responseBody!!)
-                .getJSONArray("choices")
-                .getJSONObject(0)
-                .getJSONObject("message")
+            val json = JSONObject(responseBody!!)
+            val message = json.getJSONObject("message")
+            val content = message.optString("content", "")
 
-            // Qwen3.5 may put the answer in "content" or in "reasoning"
-            var content = message.optString("content", "")
-            if (content.isBlank()) {
-                content = message.optString("reasoning", "")
-                Log.d(TAG, "Content empty, using reasoning field (${content.length} chars)")
-            }
+            Log.d(TAG, "Content (${content.length} chars): ${content.take(300)}")
 
             parseApiResponse(content)
         } catch (e: Exception) {
