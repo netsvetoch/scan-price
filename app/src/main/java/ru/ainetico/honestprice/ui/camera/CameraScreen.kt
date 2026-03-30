@@ -106,12 +106,7 @@ fun CameraScreen(
         }
     }
 
-    // Request permission on first show
-    LaunchedEffect(Unit) {
-        if (!cameraPermissionGranted) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
+    // No auto-request — permission is handled on onboarding or via in-screen button
 
     // PreviewView reference shared between CameraPreview composable and capture button
     var previewViewRef by remember { mutableStateOf<PreviewView?>(null) }
@@ -123,7 +118,7 @@ fun CameraScreen(
     ) {
         when {
             !cameraPermissionGranted -> {
-                // Permission denied UI
+                // No camera permission — show explanation + allow button + gallery/manual controls
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -137,18 +132,57 @@ fun CameraScreen(
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
-                    if (permissionDeniedPermanently) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            if (permissionDeniedPermanently) {
                                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                                     data = Uri.fromParts("package", context.packageName, null)
                                 }
                                 context.startActivity(intent)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
                             }
-                        ) {
-                            Text(stringResource(R.string.camera_open_settings))
                         }
+                    ) {
+                        Text(stringResource(R.string.onboarding_allow))
+                    }
+                }
+
+                // Bottom controls — gallery and manual always available
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 48.dp, start = 32.dp, end = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(
+                            onClick = { galleryLauncher.launch("image/*") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+                            modifier = Modifier.size(56.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("🖼", fontSize = 22.sp)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(stringResource(R.string.camera_gallery), color = Color.White, fontSize = 12.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(
+                            onClick = { viewModel.onManualEntry() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+                            modifier = Modifier.size(56.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("✏️", fontSize = 22.sp)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(stringResource(R.string.camera_manual), color = Color.White, fontSize = 12.sp)
                     }
                 }
             }

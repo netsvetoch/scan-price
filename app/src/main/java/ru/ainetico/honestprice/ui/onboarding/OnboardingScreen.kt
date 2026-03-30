@@ -51,6 +51,14 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
 
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        coroutineScope.launch {
+            pagerState.animateScrollToPage(1)
+        }
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
@@ -100,13 +108,22 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             0 -> {
                 Button(
                     onClick = {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.onboarding_allow))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(
+                    onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(1)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.onboarding_next))
+                    Text(stringResource(R.string.onboarding_skip))
                 }
             }
             1 -> {
@@ -164,7 +181,7 @@ private fun CameraPage() {
             text = stringResource(R.string.onboarding_camera_hint),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
