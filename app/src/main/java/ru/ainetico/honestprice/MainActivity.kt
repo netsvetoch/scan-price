@@ -110,7 +110,13 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onCancel = { navController.popBackStack() },
+                onDelete = {
+                    kotlinx.coroutines.MainScope().launch {
+                        repository.delete(scanId)
+                    }
+                    navController.popBackStack()
+                }
             )
         }
         composable(Screen.ResultManual.route) {

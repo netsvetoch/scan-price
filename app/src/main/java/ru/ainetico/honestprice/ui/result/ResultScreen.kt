@@ -23,7 +23,8 @@ import ru.ainetico.honestprice.model.WeightUnit
 fun ResultScreen(
     viewModel: ResultViewModel,
     onSaved: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     val state by viewModel.state.collectAsState()
     val suggestions by viewModel.storeSuggestions.collectAsState()
@@ -181,7 +182,7 @@ fun ResultScreen(
                 displayUnit = state.displayUnit
             )
 
-            // Save + Cancel buttons
+            // Action buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -203,6 +204,19 @@ fun ResultScreen(
                         if (state.isSaving) stringResource(R.string.result_saving)
                         else stringResource(R.string.result_save)
                     )
+                }
+            }
+
+            // Delete button — only for existing scans from history
+            if (onDelete != null) {
+                TextButton(
+                    onClick = onDelete,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(stringResource(R.string.result_delete))
                 }
             }
 
