@@ -176,12 +176,7 @@ fun CameraScreen(
               )
               ScanningOverlay(modifier = Modifier.matchParentSize())
             } else {
-              // Skeleton 3:2
-              Spacer(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .aspectRatio(3f / 2f)
-              )
+              ru.ainetico.honestprice.ui.common.ShimmerImageSkeleton()
             }
           }
         }

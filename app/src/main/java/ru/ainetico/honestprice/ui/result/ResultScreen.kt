@@ -70,23 +70,17 @@ fun ResultScreen(
                         BitmapFactory.decodeFile(state.imagePath)
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    if (bitmap != null) {
-                        Image(
-                            bitmap = bitmap!!.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.FillWidth
-                        )
-                    } else {
-                        // Skeleton with 3:2 aspect ratio
-                        Spacer(modifier = Modifier.fillMaxWidth().aspectRatio(3f / 2f))
-                    }
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.FillWidth
+                    )
+                } else {
+                    ru.ainetico.honestprice.ui.common.ShimmerImageSkeleton()
                 }
             }
 

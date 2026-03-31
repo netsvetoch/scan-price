@@ -30,7 +30,6 @@ android {
         release {
             isMinifyEnabled = false
             isShrinkResources = false
-            isDebuggable = true  // temp: for testing performance with logcat
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -73,6 +72,9 @@ dependencies {
 
     // llama.cpp local inference
     implementation(project(":llama-lib"))
+
+    // Shimmer skeleton animation
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
 
     // ML Kit - Barcode only
     implementation(libs.mlkit.barcode.scanning)

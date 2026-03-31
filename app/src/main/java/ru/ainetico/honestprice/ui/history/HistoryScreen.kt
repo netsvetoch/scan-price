@@ -119,9 +119,16 @@ fun HistoryScreen(
     ) { padding ->
         when {
             scans == null -> {
-                // Loading
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                // Loading skeleton
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    repeat(5) {
+                        ru.ainetico.honestprice.ui.common.ShimmerBox(
+                            modifier = Modifier.fillMaxWidth().height(72.dp)
+                        )
+                    }
                 }
             }
             scans.isEmpty() -> {
