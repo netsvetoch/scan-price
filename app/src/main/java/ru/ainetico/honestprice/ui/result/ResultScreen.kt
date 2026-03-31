@@ -36,15 +36,19 @@ fun ResultScreen(
     }
 
     Scaffold { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentAlignment = androidx.compose.ui.Alignment.BottomCenter
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Photo preview
             if (state.imagePath != null) {
@@ -168,6 +172,7 @@ fun ResultScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
         }
     }
 }
