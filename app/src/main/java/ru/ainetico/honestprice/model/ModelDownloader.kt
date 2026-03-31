@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -23,6 +24,10 @@ class ModelDownloader(
   private val context: Context,
   private val onModelsReady: (suspend () -> Unit)? = null
 ) {
+  // Own scope — survives activity lifecycle (not cancelled on app background)
+  private val downloadScope = kotlinx.coroutines.CoroutineScope(
+    Dispatchers.IO + kotlinx.coroutines.SupervisorJob()
+  )
 
   companion object {
     private const val TAG = "ModelDownloader"
@@ -53,6 +58,16 @@ class ModelDownloader(
 
   init {
     createNotificationChannel()
+  }
+
+  /**
+   * Start download in background if models not present.
+   * Survives activity lifecycle — won't cancel on app background.
+   */
+  fun startDownloadIfNeeded() {
+    if (!isModelDownloaded()) {
+      downloadScope.launch { downloadModels() }
+    }
   }
 
   fun isModelDownloaded(): Boolean {
@@ -122,19 +137,24 @@ class ModelDownloader(
           val buffer = ByteArray(8192)
           var bytesRead: Int
 
+          var lastReportedProgress = -1
           while (input.read(buffer).also { bytesRead = it } != -1) {
             output.write(buffer, 0, bytesRead)
             downloadedBytes += bytesRead
 
             val progress = if (totalBytes > 0) ((downloadedBytes * 100) / totalBytes).toInt() else -1
-            _state.value = DownloadState.Downloading(displayName, progress)
+            // Update only when progress changes by at least 1%
+            if (progress != lastReportedProgress) {
+              lastReportedProgress = progress
+              _state.value = DownloadState.Downloading(displayName, progress)
 
-            if (progress >= 0) {
-              showNotification(
-                "Загрузка модели",
-                "$displayName — ${downloadedBytes / 1024 / 1024}MB / ${totalBytes / 1024 / 1024}MB",
-                progress
-              )
+              if (progress >= 0) {
+                showNotification(
+                  "Загрузка модели",
+                  "$displayName — ${downloadedBytes / 1024 / 1024}MB / ${totalBytes / 1024 / 1024}MB",
+                  progress
+                )
+              }
             }
           }
         }

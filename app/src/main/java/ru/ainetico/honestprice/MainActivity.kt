@@ -71,17 +71,15 @@ class MainActivity : ComponentActivity() {
             Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
         }
 
-        lifecycleScope.launch {
-            if (modelDownloader.isModelDownloaded()) {
-                // Models present — init engine immediately
+        if (modelDownloader.isModelDownloaded()) {
+            lifecycleScope.launch {
                 Log.i("MainActivity", "Models already present, initializing vision engine...")
                 localVisionEngine.initialize()
                 Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-            } else {
-                // Models missing or incomplete — resume download
-                Log.i("MainActivity", "Models not found, starting download...")
-                modelDownloader.downloadModels()
             }
+        } else {
+            // Download on own scope — survives app backgrounding
+            modelDownloader.startDownloadIfNeeded()
         }
 
         setContent {
