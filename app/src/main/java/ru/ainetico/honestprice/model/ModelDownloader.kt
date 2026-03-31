@@ -161,16 +161,29 @@ class ModelDownloader(
 
           DownloadManager.STATUS_SUCCESSFUL -> {
             completed = true
-            // Move from Downloads to app's filesDir
-            val downloadedFile = File(
-              Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-              "honestprice_$filename"
-            )
-            if (downloadedFile.exists()) {
-              downloadedFile.copyTo(destFile, overwrite = true)
-              downloadedFile.delete()
-              progressFlow.value = progressFlow.value.copy(progress = 100, done = true)
-              Log.i(TAG, "$label downloaded: ${destFile.length() / 1024 / 1024}MB")
+            // Copy from DownloadManager's URI to app's filesDir
+            try {
+              val uri = downloadManager.getUriForDownloadedFile(downloadId)
+              if (uri != null) {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                  java.io.FileOutputStream(destFile).use { output ->
+                    val buf = ByteArray(65536)
+                    var len: Int
+                    while (input.read(buf).also { len = it } > 0) {
+                      output.write(buf, 0, len)
+                    }
+                  }
+                }
+                // Remove from Downloads
+                downloadManager.remove(downloadId)
+                progressFlow.value = progressFlow.value.copy(progress = 100, done = true)
+                Log.i(TAG, "$label downloaded: ${destFile.length() / 1024 / 1024}MB")
+              } else {
+                throw RuntimeException("Download URI is null")
+              }
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to copy downloaded file", e)
+              throw e
             }
           }
 
