@@ -64,9 +64,7 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
 
   // Start download on first page
   LaunchedEffect(Unit) {
-    if (!modelDownloader.isModelDownloaded()) {
-      modelDownloader.downloadModels()
-    }
+    modelDownloader.startDownloadIfNeeded()
   }
 
   val notificationPermissionLauncher = rememberLauncherForActivityResult(
