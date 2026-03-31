@@ -66,8 +66,12 @@ class LocalVisionEngine(private val appContext: Context) {
             Log.i(TAG, "Native libs in ${nativeLibDir.absolutePath}:")
             nativeLibDir.listFiles()?.forEach { Log.i(TAG, "  ${it.name} (${it.length() / 1024}KB)") }
 
-            // Find model files
-            val modelsDir = File(appContext.filesDir, "models")
+            // Find model files — check internal storage first, then Downloads
+            var modelsDir = File(appContext.filesDir, "models")
+            if (!File(modelsDir, MODEL_FILENAME).exists()) {
+                modelsDir = File(android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOWNLOADS), "models")
+            }
             val modelFile = File(modelsDir, MODEL_FILENAME)
             val mmprojFile = File(modelsDir, MMPROJ_FILENAME)
 

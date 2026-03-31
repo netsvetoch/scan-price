@@ -139,9 +139,7 @@ fun HistoryScreen(
         ) {
             Box(modifier = Modifier.height(500.dp)) {
                 CameraScreen(
-                    viewModel = cameraViewModel,
-                    onNavigateToResult = { _, _ -> },
-                    onNavigateToManualEntry = { }
+                    viewModel = cameraViewModel
                 )
             }
         }

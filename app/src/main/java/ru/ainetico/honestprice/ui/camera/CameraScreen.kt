@@ -59,30 +59,11 @@ import ru.ainetico.honestprice.R
 @Composable
 fun CameraScreen(
   viewModel: CameraViewModel,
-  openGallery: Boolean = false,
-  onNavigateToResult: (Long, ru.ainetico.honestprice.model.AnalysisResult) -> Unit,
-  onNavigateToManualEntry: () -> Unit
+  openGallery: Boolean = false
 ) {
   val context = LocalContext.current
   val state by viewModel.state.collectAsState()
-  val event by viewModel.event.collectAsState()
-
-  // Consume navigation events
-  LaunchedEffect(event) {
-    when (val e = event) {
-      is CameraEvent.NavigateToResult -> {
-        viewModel.eventConsumed()
-        onNavigateToResult(e.scanId, e.result)
-      }
-
-      is CameraEvent.NavigateToManualEntry -> {
-        viewModel.eventConsumed()
-        onNavigateToManualEntry()
-      }
-
-      null -> Unit
-    }
-  }
+  // Navigation events handled by parent (HistoryScreen)
 
   // Permission state
   var cameraPermissionGranted by remember {

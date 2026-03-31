@@ -23,12 +23,19 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Reduce Compose debug overhead for smoother animations
+            isDebuggable = true
+        }
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = true  // temp: for testing performance with logcat
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
