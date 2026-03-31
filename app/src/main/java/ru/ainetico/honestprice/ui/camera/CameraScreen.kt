@@ -12,6 +12,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -419,6 +420,8 @@ private fun CameraPreview(
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
 
+  var cameraProviderRef by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+
   AndroidView(
     modifier = modifier,
     factory = { ctx ->
@@ -431,6 +434,7 @@ private fun CameraPreview(
       val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
       cameraProviderFuture.addListener({
         val cameraProvider = cameraProviderFuture.get()
+        cameraProviderRef = cameraProvider
         val preview = Preview.Builder().build().also {
           it.surfaceProvider = previewView.surfaceProvider
         }
@@ -446,4 +450,11 @@ private fun CameraPreview(
       previewView
     }
   )
+
+  // Release camera when composable leaves composition
+  DisposableEffect(Unit) {
+    onDispose {
+      cameraProviderRef?.unbindAll()
+    }
+  }
 }
