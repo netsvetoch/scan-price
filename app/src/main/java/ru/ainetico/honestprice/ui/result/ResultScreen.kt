@@ -131,6 +131,16 @@ fun ResultScreen(
             }
 
             // Unit selector - Segmented Button
+            val unitAutoFilled = state.weightValue.isNotBlank() && !state.isManualEntry
+            val unitBorder = if (unitAutoFilled) {
+                SegmentedButtonDefaults.borderStroke(
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                SegmentedButtonDefaults.borderStroke(
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 state.availableUnits.forEachIndexed { index, unit ->
                     SegmentedButton(
@@ -139,7 +149,8 @@ fun ResultScreen(
                         shape = SegmentedButtonDefaults.itemShape(
                             index = index,
                             count = state.availableUnits.size
-                        )
+                        ),
+                        border = unitBorder
                     ) {
                         Text(unit.displayName)
                     }
