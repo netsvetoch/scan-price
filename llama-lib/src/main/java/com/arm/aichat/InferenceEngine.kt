@@ -31,6 +31,17 @@ interface InferenceEngine {
     fun sendUserPrompt(message: String, predictLength: Int = DEFAULT_PREDICT_LENGTH): Flow<String>
 
     /**
+     * Load multimodal projector for vision support.
+     */
+    suspend fun loadVisionProjector(mmprojPath: String)
+
+    /**
+     * Analyze an image (JPEG/PNG bytes) with a text prompt.
+     * Returns the model's text response.
+     */
+    suspend fun analyzeImage(imageData: ByteArray, prompt: String): String
+
+    /**
      * Runs a benchmark with the specified parameters.
      */
     suspend fun bench(pp: Int, tg: Int, pl: Int, nr: Int = 1): String

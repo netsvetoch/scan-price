@@ -2,9 +2,12 @@ package ru.ainetico.honestprice
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.arm.aichat.AiChat
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -35,6 +38,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Test llama.cpp native library loading
+        try {
+            val engine = AiChat.getInferenceEngine(this)
+            Log.i("LlamaTest", "InferenceEngine created, observing state...")
+            kotlinx.coroutines.MainScope().launch {
+                engine.state.collect { state ->
+                    Log.i("LlamaTest", "Engine state: ${state.javaClass.simpleName}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("LlamaTest", "Failed to init llama.cpp", e)
+        }
+
         setContent {
             ЧестнаяЦенаTheme {
                 HonestPriceApp()

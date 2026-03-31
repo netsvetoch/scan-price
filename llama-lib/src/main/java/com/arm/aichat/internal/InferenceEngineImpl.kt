@@ -106,6 +106,10 @@ internal class InferenceEngineImpl private constructor(
     @FastNative
     private external fun unload()
 
+    // Vision / multimodal JNI
+    private external fun loadMmproj(mmprojPath: String): Int
+    private external fun analyzeImage(imageData: ByteArray, dataLen: Int, prompt: String): String
+
     @FastNative
     private external fun shutdown()
 
@@ -258,6 +262,42 @@ internal class InferenceEngineImpl private constructor(
             throw e
         }
     }.flowOn(llamaDispatcher)
+
+    /**
+     * Load vision projector
+     */
+    override suspend fun loadVisionProjector(mmprojPath: String): Unit =
+        withContext(llamaDispatcher) {
+            check(_state.value is InferenceEngine.State.ModelReady) {
+                "Cannot load mmproj in ${_state.value.javaClass.simpleName}!"
+            }
+            Log.i(TAG, "Loading vision projector: $mmprojPath")
+            loadMmproj(mmprojPath).let { result ->
+                if (result != 0) {
+                    throw RuntimeException("Failed to load mmproj: $result")
+                }
+            }
+            Log.i(TAG, "Vision projector loaded!")
+        }
+
+    /**
+     * Analyze image with vision model
+     */
+    override suspend fun analyzeImage(imageData: ByteArray, prompt: String): String =
+        withContext(llamaDispatcher) {
+            check(_state.value is InferenceEngine.State.ModelReady) {
+                "Cannot analyze image in ${_state.value.javaClass.simpleName}!"
+            }
+            Log.i(TAG, "Analyzing image (${imageData.size} bytes)...")
+            _state.value = InferenceEngine.State.Generating
+            try {
+                val result = analyzeImage(imageData, imageData.size, prompt)
+                Log.i(TAG, "Image analysis complete: ${result.length} chars")
+                result
+            } finally {
+                _state.value = InferenceEngine.State.ModelReady
+            }
+        }
 
     /**
      * Benchmark the model
