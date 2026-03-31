@@ -26,7 +26,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import ru.ainetico.honestprice.model.ModelDownloader
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppDatabase
@@ -48,6 +50,7 @@ private const val TRANSITION_DURATION = 300
 class MainActivity : ComponentActivity() {
 
     private lateinit var localVisionEngine: LocalVisionEngine
+  private lateinit var modelDownloader: ModelDownloader
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,8 +62,12 @@ class MainActivity : ComponentActivity() {
                 ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
         }
 
+        modelDownloader = ModelDownloader(applicationContext)
+
         localVisionEngine = LocalVisionEngine(applicationContext)
         lifecycleScope.launch {
+            // Wait for models to be available before initializing engine
+            modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed || modelDownloader.isModelDownloaded() }
             Log.i("MainActivity", "Initializing local vision engine...")
             localVisionEngine.initialize()
             Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
@@ -68,14 +75,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ЧестнаяЦенаTheme {
-                HonestPriceApp(localVisionEngine)
+                HonestPriceApp(localVisionEngine, modelDownloader)
             }
         }
     }
 }
 
 @Composable
-fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
+fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelDownloader) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val prefs = remember {
@@ -103,7 +110,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
         popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(TRANSITION_DURATION)) + fadeOut(tween(TRANSITION_DURATION / 2)) }
     ) {
         composable(Screen.Onboarding.route) {
-            OnboardingScreen(onComplete = {
+            OnboardingScreen(modelDownloader = modelDownloader, onComplete = {
                 navController.navigate(Screen.History.route) {
                     popUpTo(Screen.Onboarding.route) { inclusive = true }
                 }

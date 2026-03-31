@@ -20,13 +20,19 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.model.ModelDownloader
 
 private fun completeOnboarding(context: Context, onComplete: () -> Unit) {
   context.getSharedPreferences("honest_price_prefs", Context.MODE_PRIVATE)
@@ -46,16 +53,24 @@ private fun completeOnboarding(context: Context, onComplete: () -> Unit) {
 }
 
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit) {
+fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
   val context = LocalContext.current
-  val pagerState = rememberPagerState(pageCount = { 2 })
+  val pagerState = rememberPagerState(pageCount = { 3 })
   val coroutineScope = rememberCoroutineScope()
+  val downloadState by modelDownloader.state.collectAsState()
+
+  // Start download on first page
+  LaunchedEffect(Unit) {
+    if (!modelDownloader.isModelDownloaded()) {
+      modelDownloader.downloadModels()
+    }
+  }
 
   val cameraPermissionLauncher = rememberLauncherForActivityResult(
     ActivityResultContracts.RequestPermission()
   ) { _ ->
     coroutineScope.launch {
-      pagerState.animateScrollToPage(1)
+      pagerState.animateScrollToPage(2)
     }
   }
 
@@ -76,8 +91,9 @@ fun OnboardingScreen(onComplete: () -> Unit) {
       modifier = Modifier.weight(1f)
     ) { page ->
       when (page) {
-        0 -> CameraPage()
-        1 -> LocationPage()
+        0 -> ModelDownloadPage(downloadState)
+        1 -> CameraPage()
+        2 -> LocationPage()
       }
     }
 
@@ -88,7 +104,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         .padding(vertical = 16.dp),
       horizontalArrangement = Arrangement.Center
     ) {
-      repeat(2) { index ->
+      repeat(3) { index ->
         val color = if (pagerState.currentPage == index) {
           MaterialTheme.colorScheme.primary
         } else {
@@ -108,6 +124,19 @@ fun OnboardingScreen(onComplete: () -> Unit) {
       0 -> {
         Button(
           onClick = {
+            coroutineScope.launch {
+              pagerState.animateScrollToPage(1)
+            }
+          },
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Text(stringResource(R.string.onboarding_next))
+        }
+      }
+
+      1 -> {
+        Button(
+          onClick = {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
           },
           modifier = Modifier.fillMaxWidth()
@@ -118,7 +147,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         TextButton(
           onClick = {
             coroutineScope.launch {
-              pagerState.animateScrollToPage(1)
+              pagerState.animateScrollToPage(2)
             }
           },
           modifier = Modifier.fillMaxWidth()
@@ -127,7 +156,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         }
       }
 
-      1 -> {
+      2 -> {
         Button(
           onClick = {
             locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -147,6 +176,90 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     }
 
     Spacer(modifier = Modifier.height(16.dp))
+  }
+}
+
+@Composable
+private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(24.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center
+  ) {
+    Icon(
+      imageVector = Icons.Filled.CloudDownload,
+      contentDescription = null,
+      modifier = Modifier.size(96.dp),
+      tint = MaterialTheme.colorScheme.primary
+    )
+    Spacer(modifier = Modifier.height(24.dp))
+    Text(
+      text = stringResource(R.string.onboarding_download_title),
+      style = MaterialTheme.typography.headlineMedium,
+      textAlign = TextAlign.Center
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+
+    when (downloadState) {
+      is ModelDownloader.DownloadState.Idle -> {
+        Text(
+          text = stringResource(R.string.onboarding_download_preparing),
+          style = MaterialTheme.typography.bodyLarge,
+          textAlign = TextAlign.Center
+        )
+      }
+
+      is ModelDownloader.DownloadState.Downloading -> {
+        Text(
+          text = downloadState.filename,
+          style = MaterialTheme.typography.bodyLarge,
+          textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        if (downloadState.progress >= 0) {
+          LinearProgressIndicator(
+            progress = { downloadState.progress / 100f },
+            modifier = Modifier.fillMaxWidth()
+          )
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(
+            text = "${downloadState.progress}%",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+        } else {
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+      }
+
+      is ModelDownloader.DownloadState.Completed -> {
+        Text(
+          text = stringResource(R.string.onboarding_download_done),
+          style = MaterialTheme.typography.bodyLarge,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.primary
+        )
+      }
+
+      is ModelDownloader.DownloadState.Error -> {
+        Text(
+          text = downloadState.message,
+          style = MaterialTheme.typography.bodyLarge,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.error
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(
+      text = stringResource(R.string.onboarding_download_hint),
+      style = MaterialTheme.typography.bodyMedium,
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
   }
 }
 
