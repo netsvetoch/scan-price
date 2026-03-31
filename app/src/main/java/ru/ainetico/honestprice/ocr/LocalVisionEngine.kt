@@ -109,10 +109,9 @@ class LocalVisionEngine(private val appContext: Context) {
 
         return withContext(Dispatchers.IO) {
             try {
-                // Preprocess: crop to frame area, grayscale, downscale, WebP
+                // Preprocess: crop to frame area, downscale
                 val cropped = cropToPriceTag(bitmap)
-                val grayscale = toGrayscale(cropped)
-                val resized = downscale(grayscale, 640)
+                val resized = downscale(cropped, 640)
                 val imageBytes = bitmapToJpeg(resized, quality = 60)
                 Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB")
 
