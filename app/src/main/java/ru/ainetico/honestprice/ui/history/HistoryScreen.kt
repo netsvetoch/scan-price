@@ -32,7 +32,7 @@ fun HistoryScreen(
     cameraViewModel: CameraViewModel,
     showSheet: Boolean,
     onShowSheetChange: (Boolean) -> Unit,
-    onScanClick: (Long) -> Unit,
+    onScanClick: (ru.ainetico.honestprice.data.Scan) -> Unit,
     onNavigateToResult: (Long, AnalysisResult) -> Unit,
     onNavigateToManualEntry: () -> Unit
 ) {
@@ -112,7 +112,7 @@ fun HistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(scans, key = { it.id }) { scan ->
-                    ScanCard(scan = scan, onClick = { onScanClick(scan.id) })
+                    ScanCard(scan = scan, onClick = { onScanClick(scan) })
                 }
             }
         }

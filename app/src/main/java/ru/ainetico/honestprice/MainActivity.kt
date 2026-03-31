@@ -86,6 +86,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
     var showCameraSheet by remember { mutableStateOf(true) }
     var pendingResult by remember { mutableStateOf<Pair<Long, ru.ainetico.honestprice.model.AnalysisResult>?>(null) }
+    var pendingScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
 
     NavHost(
         navController = navController,
@@ -110,7 +111,10 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                 cameraViewModel = cameraViewModel,
                 showSheet = showCameraSheet,
                 onShowSheetChange = { showCameraSheet = it },
-                onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
+                onScanClick = { scan ->
+                    pendingScan = scan
+                    navController.navigate(Screen.Result.createRoute(scan.id))
+                },
                 onNavigateToResult = { scanId, result ->
                     pendingResult = Pair(scanId, result)
                     navController.navigate(Screen.Result.createRoute(scanId))
@@ -124,19 +128,17 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
         ) { backStackEntry ->
             val scanId = backStackEntry.arguments?.getLong("scanId") ?: 0L
             val pending = pendingResult
+            val scan = pendingScan
             val isFreshScan = pending?.first == scanId
             val viewModel = remember(scanId) {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator()).also { vm ->
                     if (isFreshScan && pending != null) {
-                        // Synchronous — fills state before first composition
                         val imagePath = kotlinx.coroutines.runBlocking { repository.getById(scanId)?.imagePath }
                         vm.loadFromAnalysis(scanId, pending.second, imagePath)
+                    } else if (scan != null && scan.id == scanId) {
+                        vm.loadScan(scan)
                     }
                 }
-            }
-            // For history items — load async (no pending result)
-            if (!isFreshScan) {
-                LaunchedEffect(scanId) { viewModel.loadScan(scanId) }
             }
             ResultScreen(
                 viewModel = viewModel,

@@ -55,26 +55,23 @@ class ResultViewModel(
     private val _event = MutableStateFlow<ResultEvent?>(null)
     val event: StateFlow<ResultEvent?> = _event
 
-    fun loadScan(scanId: Long) {
-        viewModelScope.launch {
-            val scan = scanRepository.getById(scanId) ?: return@launch
-            val unit = scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
-            val availableUnits = listOf(WeightUnit.G, WeightUnit.KG, WeightUnit.ML, WeightUnit.L, WeightUnit.PCS)
-            _state.value = ResultState(
-                scanId = scanId,
-                productName = scan.productName ?: "",
-                priceRegular = scan.priceRegular ?: "",
-                priceDiscount = scan.priceDiscount ?: "",
-                weightValue = scan.weightValue ?: "",
-                weightUnit = unit ?: WeightUnit.PCS,
-                availableUnits = availableUnits,
-                storeName = scan.storeName ?: "",
-                barcode = scan.barcode ?: "",
-                imagePath = scan.imagePath,
-                isManualEntry = false
-            )
-            recalculatePrice()
-        }
+    fun loadScan(scan: ru.ainetico.honestprice.data.Scan) {
+        val unit = scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
+        val availableUnits = listOf(WeightUnit.G, WeightUnit.KG, WeightUnit.ML, WeightUnit.L, WeightUnit.PCS)
+        _state.value = ResultState(
+            scanId = scan.id,
+            productName = scan.productName ?: "",
+            priceRegular = scan.priceRegular ?: "",
+            priceDiscount = scan.priceDiscount ?: "",
+            weightValue = scan.weightValue ?: "",
+            weightUnit = unit ?: WeightUnit.PCS,
+            availableUnits = availableUnits,
+            storeName = scan.storeName ?: "",
+            barcode = scan.barcode ?: "",
+            imagePath = scan.imagePath,
+            isManualEntry = false
+        )
+        recalculatePrice()
     }
 
     fun loadFromAnalysis(scanId: Long, result: ru.ainetico.honestprice.model.AnalysisResult, imagePath: String?) {
