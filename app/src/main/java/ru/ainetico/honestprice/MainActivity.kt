@@ -133,10 +133,21 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             val viewModel = remember(scanId) {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator()).also { vm ->
                     if (isFreshScan && pending != null) {
-                        val imagePath = kotlinx.coroutines.runBlocking { repository.getById(scanId)?.imagePath }
-                        vm.loadFromAnalysis(scanId, pending.second, imagePath)
+                        // imagePath loaded async inside ResultScreen
+                        vm.loadFromAnalysis(scanId, pending.second, null)
                     } else if (scan != null && scan.id == scanId) {
                         vm.loadScan(scan)
+                    }
+                }
+            }
+            // Load imagePath asynchronously for fresh scans
+            if (isFreshScan) {
+                LaunchedEffect(scanId) {
+                    val imagePath = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        repository.getById(scanId)?.imagePath
+                    }
+                    if (imagePath != null) {
+                        viewModel.updateImagePath(imagePath)
                     }
                 }
             }
