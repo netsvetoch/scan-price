@@ -22,6 +22,7 @@ import java.io.FileOutputStream
 sealed class CameraState {
     object Preview : CameraState()
     data class Scanning(val previewBitmap: Bitmap) : CameraState()
+    data class Error(val message: String, val previewBitmap: Bitmap) : CameraState()
 }
 
 sealed class CameraEvent {
@@ -45,32 +46,47 @@ class CameraViewModel(
     private var lastScanId: Long? = null
     private var lastImagePath: String? = null
 
+    companion object {
+        private const val SCAN_TIMEOUT_MS = 120_000L  // 2 minutes for on-device inference
+    }
+
     fun capture(bitmap: Bitmap, cropRect: Rect?) {
         _state.value = CameraState.Scanning(bitmap)
         scanningJob = viewModelScope.launch {
             try {
-                val (scanId, result) = processImage(bitmap, cropRect)
+                val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
+                    processImage(bitmap, cropRect)
+                }
                 _event.value = CameraEvent.NavigateToResult(scanId, result)
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                Log.e("CameraViewModel", "Scan timed out", e)
+                _state.value = CameraState.Error("Превышено время ожидания. Попробуйте ещё раз.", bitmap)
             } catch (e: Exception) {
                 Log.e("CameraViewModel", "Processing failed", e)
-                _state.value = CameraState.Preview
+                _state.value = CameraState.Error("Ошибка распознавания: ${e.message}", bitmap)
             }
         }
     }
 
     fun importFromGallery(uri: Uri, context: Context) {
         viewModelScope.launch {
+            var bitmap: Bitmap? = null
             try {
-                val bitmap = withContext(Dispatchers.IO) {
+                bitmap = withContext(Dispatchers.IO) {
                     @Suppress("DEPRECATION")
                     MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
                 }
                 _state.value = CameraState.Scanning(bitmap)
-                val (scanId, result) = processImage(bitmap, cropRect = null)
+                val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
+                    processImage(bitmap, cropRect = null)
+                }
                 _event.value = CameraEvent.NavigateToResult(scanId, result)
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                Log.e("CameraViewModel", "Gallery scan timed out", e)
+                _state.value = CameraState.Error("Превышено время ожидания. Попробуйте ещё раз.", bitmap ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
             } catch (e: Exception) {
                 Log.e("CameraViewModel", "Gallery import failed", e)
-                _state.value = CameraState.Preview
+                _state.value = CameraState.Error("Ошибка: ${e.message}", bitmap ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
             }
         }
     }
@@ -100,6 +116,10 @@ class CameraViewModel(
     }
 
     fun resetToPreview() {
+        _state.value = CameraState.Preview
+    }
+
+    fun dismissError() {
         _state.value = CameraState.Preview
     }
 

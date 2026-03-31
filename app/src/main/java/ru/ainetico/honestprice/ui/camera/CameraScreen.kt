@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -127,6 +128,48 @@ fun CameraScreen(
       .background(Color.Black)
   ) {
     when {
+      state is CameraState.Error -> {
+        val error = state as CameraState.Error
+
+        Column(
+          modifier = Modifier.fillMaxSize(),
+          verticalArrangement = Arrangement.Center,
+          horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+          Box(
+            modifier = Modifier
+              .padding(24.dp)
+              .clip(RoundedCornerShape(16.dp))
+              .border(2.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(16.dp))
+          ) {
+            Image(
+              bitmap = error.previewBitmap.asImageBitmap(),
+              contentDescription = null,
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp)),
+              contentScale = ContentScale.Fit,
+              alpha = 0.5f
+            )
+          }
+
+          Spacer(modifier = Modifier.height(16.dp))
+
+          Text(
+            text = error.message,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+          )
+
+          Spacer(modifier = Modifier.height(16.dp))
+
+          Button(onClick = { viewModel.dismissError() }) {
+            Text("Попробовать снова")
+          }
+        }
+      }
+
       state is CameraState.Scanning -> {
         // Frozen bitmap + scanning animation + retake button
         val scanning = state as CameraState.Scanning
