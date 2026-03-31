@@ -94,18 +94,17 @@ class CameraViewModel(
   }
 
   /**
-   * Called after user aligns the image. offsetX/offsetY are the drag offsets
-   * relative to the image (in pixels of the displayed image).
+   * Called after user aligns the image.
+   * @param viewWidth/viewHeight — size of the composable displaying the image
+   * @param offsetX/offsetY — drag offset in screen pixels
+   * @param zoom — pinch zoom factor
    */
-  fun confirmAdjustment(bitmap: Bitmap, offsetX: Float, offsetY: Float, displayScale: Float) {
+  fun confirmAdjustment(bitmap: Bitmap, viewWidth: Float, viewHeight: Float, offsetX: Float, offsetY: Float, zoom: Float) {
     _state.value = CameraState.Scanning(null, "Кадрирование…")
     scanningJob = viewModelScope.launch {
       try {
-        // Apply offset to crop: shift the frame position on the original image
-        val scale = bitmap.width.toFloat() / (bitmap.width * displayScale)
-        val adjustedBitmap = bitmap // offset applied during crop in processImage
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
-          processImageWithOffset(adjustedBitmap, offsetX / displayScale, offsetY / displayScale)
+          processImageWithAlignment(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
         }
         _event.value = CameraEvent.NavigateToResult(scanId, result)
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
@@ -180,18 +179,17 @@ class CameraViewModel(
     return Pair(scanId, analysisResult)
   }
 
-  private suspend fun processImageWithOffset(
-    bitmap: Bitmap, dragOffsetX: Float, dragOffsetY: Float
+  private suspend fun processImageWithAlignment(
+    bitmap: Bitmap, viewWidth: Float, viewHeight: Float,
+    offsetX: Float, offsetY: Float, zoom: Float
   ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
     val timestamp = System.currentTimeMillis()
 
-    // Step 1: Crop with offset
     val cropped = withContext(Dispatchers.Default) {
-      cropToFrameWithOffset(bitmap, dragOffsetX, dragOffsetY)
+      cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
     }
     _state.value = CameraState.Scanning(cropped, "Сжатие…")
 
-    // Step 2: Save
     val imagePath = withContext(Dispatchers.IO) {
       val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
       val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
@@ -203,7 +201,6 @@ class CameraViewModel(
     lastImagePath = imagePath
     _state.value = CameraState.Scanning(cropped, "Анализ…")
 
-    // Step 3: Analyze
     val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
     lastScanId = scanId
     val analysisResult = imageAnalyzer.analyze(cropped, null)
@@ -211,18 +208,48 @@ class CameraViewModel(
     return Pair(scanId, analysisResult)
   }
 
-  private fun cropToFrameWithOffset(bitmap: Bitmap, dragOffsetX: Float, dragOffsetY: Float): Bitmap {
-    val frameWidth = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
-    val frameHeight = (frameWidth / FrameConfig.ASPECT_RATIO).toInt()
-    // Center of frame, adjusted by user drag (drag moves image, so frame moves opposite)
-    val left = ((bitmap.width - frameWidth) / 2f - dragOffsetX).toInt().coerceIn(0, bitmap.width - frameWidth)
-    val top = ((bitmap.height - frameHeight) / 2f - bitmap.height * FrameConfig.VERTICAL_OFFSET_FRACTION - dragOffsetY)
-      .toInt().coerceIn(0, bitmap.height - frameHeight)
+  /**
+   * Crop the area visible inside the frame, accounting for ContentScale.Crop + pan + zoom.
+   *
+   * ContentScale.Crop scales bitmap to fill the view, cropping overflow.
+   * The user then applies pan (offset) and zoom on top.
+   * We need to find which bitmap pixels are inside the frame rectangle.
+   */
+  private fun cropAligned(
+    bitmap: Bitmap, viewW: Float, viewH: Float,
+    panX: Float, panY: Float, zoom: Float
+  ): Bitmap {
+    // Step 1: ContentScale.Crop — scale to fill, center
+    val scaleToFill = maxOf(viewW / bitmap.width, viewH / bitmap.height)
+    // Effective scale after user zoom
+    val totalScale = scaleToFill * zoom
 
-    if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
-      return bitmap
-    }
-    return Bitmap.createBitmap(bitmap, left, top, frameWidth, frameHeight)
+    // Step 2: Image center in view coordinates (before pan)
+    val imgCenterX = viewW / 2f
+    val imgCenterY = viewH / 2f
+
+    // Step 3: Frame rectangle in view coordinates
+    val frameW = viewW * FrameConfig.WIDTH_FRACTION
+    val frameH = frameW / FrameConfig.ASPECT_RATIO
+    val frameLeft = (viewW - frameW) / 2f
+    val frameTop = (viewH - frameH) / 2f - viewH * FrameConfig.VERTICAL_OFFSET_FRACTION
+
+    // Step 4: Convert frame corners to bitmap coordinates
+    // View point → bitmap: bmpX = (viewX - imgCenterX - panX) / totalScale + bmpWidth/2
+    fun viewToBmpX(vx: Float) = ((vx - imgCenterX - panX) / totalScale + bitmap.width / 2f)
+    fun viewToBmpY(vy: Float) = ((vy - imgCenterY - panY) / totalScale + bitmap.height / 2f)
+
+    val bmpLeft = viewToBmpX(frameLeft).toInt().coerceIn(0, bitmap.width - 1)
+    val bmpTop = viewToBmpY(frameTop).toInt().coerceIn(0, bitmap.height - 1)
+    val bmpRight = viewToBmpX(frameLeft + frameW).toInt().coerceIn(bmpLeft + 1, bitmap.width)
+    val bmpBottom = viewToBmpY(frameTop + frameH).toInt().coerceIn(bmpTop + 1, bitmap.height)
+
+    val cropW = bmpRight - bmpLeft
+    val cropH = bmpBottom - bmpTop
+
+    Log.d("CameraViewModel", "cropAligned: view=${viewW}x${viewH} pan=$panX,$panY zoom=$zoom → bmp crop ($bmpLeft,$bmpTop ${cropW}x${cropH})")
+
+    return Bitmap.createBitmap(bitmap, bmpLeft, bmpTop, cropW, cropH)
   }
 
   private fun cropToFrame(bitmap: Bitmap): Bitmap {

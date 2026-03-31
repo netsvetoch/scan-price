@@ -51,6 +51,7 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -169,7 +170,16 @@ fun CameraScreen(
         var offsetY by remember { mutableStateOf(0f) }
         var zoom by remember { mutableStateOf(1f) }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        var viewWidth by remember { mutableStateOf(0f) }
+        var viewHeight by remember { mutableStateOf(0f) }
+
+        Box(modifier = Modifier
+          .fillMaxSize()
+          .onGloballyPositioned { coords ->
+            viewWidth = coords.size.width.toFloat()
+            viewHeight = coords.size.height.toFloat()
+          }
+        ) {
           Image(
             bitmap = adjusting.bitmap.asImageBitmap(),
             contentDescription = null,
@@ -222,7 +232,7 @@ fun CameraScreen(
             contentAlignment = Alignment.Center
           ) {
             Button(onClick = {
-              viewModel.confirmAdjustment(adjusting.bitmap, offsetX, offsetY, zoom)
+              viewModel.confirmAdjustment(adjusting.bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
             }) {
               Text("Сканировать")
             }
