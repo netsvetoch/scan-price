@@ -228,36 +228,32 @@ fun CameraScreen(
                     }
                 }
 
-                // Bottom controls — gallery and manual always available
+                // Bottom controls — same layout as camera mode (gallery left, manual right)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 48.dp, start = 32.dp, end = 32.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                        .padding(bottom = 48.dp, start = 48.dp, end = 48.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Button(
-                            onClick = { galleryLauncher.launch("image/*") },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
-                            modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = CircleShape
-                        ) {
-                            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
-                        }
+                    Button(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+                        modifier = Modifier.size(56.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Button(
-                            onClick = { viewModel.onManualEntry() },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
-                            modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = CircleShape
-                        ) {
-                            Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
-                        }
+                    Button(
+                        onClick = { viewModel.onManualEntry() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+                        modifier = Modifier.size(56.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
                     }
                 }
             }
