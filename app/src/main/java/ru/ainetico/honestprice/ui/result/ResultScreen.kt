@@ -39,6 +39,15 @@ fun ResultScreen(
         }
     }
 
+    // Colors for auto-recognized fields
+    val autoFilledColors = OutlinedTextFieldDefaults.colors(
+        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+        unfocusedLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+    )
+    val defaultColors = OutlinedTextFieldDefaults.colors()
+
+    fun colorsFor(value: String) = if (value.isNotBlank() && !state.isManualEntry) autoFilledColors else defaultColors
+
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -74,7 +83,8 @@ fun ResultScreen(
                 onValueChange = { viewModel.updateProductName(it) },
                 label = { Text(stringResource(R.string.result_product_name)) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = colorsFor(state.productName)
             )
 
             // Prices row
@@ -89,7 +99,8 @@ fun ResultScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
-                    suffix = { Text("₽") }
+                    suffix = { Text("₽") },
+                    colors = colorsFor(state.priceRegular)
                 )
                 OutlinedTextField(
                     value = state.priceDiscount,
@@ -98,7 +109,8 @@ fun ResultScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
-                    suffix = { Text("₽") }
+                    suffix = { Text("₽") },
+                    colors = colorsFor(state.priceDiscount)
                 )
             }
 
@@ -113,7 +125,8 @@ fun ResultScreen(
                     label = { Text(stringResource(R.string.result_weight)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true
+                    singleLine = true,
+                    colors = colorsFor(state.weightValue)
                 )
             }
 
