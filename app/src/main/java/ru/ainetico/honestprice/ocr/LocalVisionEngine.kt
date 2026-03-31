@@ -113,7 +113,7 @@ class LocalVisionEngine(private val appContext: Context) {
                 val cropped = cropToPriceTag(bitmap)
                 val grayscale = toGrayscale(cropped)
                 val resized = downscale(grayscale, 640)
-                val imageBytes = bitmapToWebP(resized, quality = 60)
+                val imageBytes = bitmapToJpeg(resized, quality = 60)
                 Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB")
 
                 val response = eng.analyzeImage(imageBytes, PROMPT)
@@ -214,9 +214,9 @@ class LocalVisionEngine(private val appContext: Context) {
         return Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true)
     }
 
-    private fun bitmapToWebP(bitmap: Bitmap, quality: Int): ByteArray {
+    private fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray {
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, quality, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
         return stream.toByteArray()
     }
 
