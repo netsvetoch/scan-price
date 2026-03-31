@@ -27,7 +27,9 @@ class ModelDownloader(
   companion object {
     private const val TAG = "ModelDownloader"
     private const val CHANNEL_ID = "model_download"
+    private const val CHANNEL_ID_READY = "model_ready"
     private const val NOTIFICATION_ID = 1001
+    private const val NOTIFICATION_ID_READY = 1002
 
     // TODO: replace with actual URLs
     var MODEL_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
@@ -87,10 +89,7 @@ class ModelDownloader(
         showNotification("Модели загружены", "Инициализация…", -1)
         onModelsReady?.invoke()
         notificationManager.cancel(NOTIFICATION_ID)
-        showNotification("Модели загружены", "Автоматическое распознавание работает", -1)
-        // Auto-dismiss after 5 seconds
-        kotlinx.coroutines.delay(5000)
-        notificationManager.cancel(NOTIFICATION_ID)
+        showHeadsUpNotification("Модели загружены", "Автоматическое распознавание работает")
       } catch (e: Exception) {
         Log.e(TAG, "Download failed", e)
         _state.value = DownloadState.Error("Ошибка загрузки: ${e.message}")
@@ -153,14 +152,23 @@ class ModelDownloader(
 
   private fun createNotificationChannel() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channel = NotificationChannel(
+      val downloadChannel = NotificationChannel(
         CHANNEL_ID,
         "Загрузка моделей",
         NotificationManager.IMPORTANCE_LOW
       ).apply {
         description = "Прогресс загрузки моделей ИИ"
       }
-      notificationManager.createNotificationChannel(channel)
+      notificationManager.createNotificationChannel(downloadChannel)
+
+      val readyChannel = NotificationChannel(
+        CHANNEL_ID_READY,
+        "Готовность модели",
+        NotificationManager.IMPORTANCE_HIGH
+      ).apply {
+        description = "Уведомление о готовности ИИ-модели"
+      }
+      notificationManager.createNotificationChannel(readyChannel)
     }
   }
 
@@ -181,5 +189,16 @@ class ModelDownloader(
     }
 
     notificationManager.notify(NOTIFICATION_ID, builder.build())
+  }
+
+  private fun showHeadsUpNotification(title: String, text: String) {
+    val builder = NotificationCompat.Builder(context, CHANNEL_ID_READY)
+      .setSmallIcon(android.R.drawable.stat_sys_download_done)
+      .setContentTitle(title)
+      .setContentText(text)
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setAutoCancel(true)
+
+    notificationManager.notify(NOTIFICATION_ID_READY, builder.build())
   }
 }
