@@ -75,6 +75,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator()) }
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
     var showCameraSheet by remember { mutableStateOf(true) }
+    var pendingResult by remember { mutableStateOf<Pair<Long, ru.ainetico.honestprice.model.AnalysisResult>?>(null) }
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Onboarding.route) {
@@ -90,12 +91,13 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             HistoryScreen(
                 viewModel = historyViewModel,
                 cameraViewModel = cameraViewModel,
-                repository = repository,
-                storeDao = db.storeDao(),
-                locationProvider = LocationProvider(context),
                 showSheet = showCameraSheet,
                 onShowSheetChange = { showCameraSheet = it },
                 onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
+                onNavigateToResult = { scanId, result ->
+                    pendingResult = Pair(scanId, result)
+                    navController.navigate(Screen.Result.createRoute(scanId))
+                },
                 onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) }
             )
         }
@@ -103,26 +105,46 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             route = Screen.Result.route,
             arguments = listOf(navArgument("scanId") { type = NavType.LongType })
         ) { backStackEntry ->
-            // Viewing existing scan from history
             val scanId = backStackEntry.arguments?.getLong("scanId") ?: 0L
+            val isFreshScan = pendingResult?.first == scanId
             val viewModel = remember {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
             }
-            LaunchedEffect(scanId) { viewModel.loadScan(scanId) }
+            LaunchedEffect(scanId) {
+                val pending = pendingResult
+                if (pending != null && pending.first == scanId) {
+                    val imagePath = repository.getById(scanId)?.imagePath
+                    viewModel.loadFromAnalysis(scanId, pending.second, imagePath)
+                } else {
+                    viewModel.loadScan(scanId)
+                }
+            }
             ResultScreen(
                 viewModel = viewModel,
                 onSaved = {
+                    pendingResult = null
+                    showCameraSheet = false
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
                 },
-                onCancel = { navController.popBackStack() },
-                onDelete = {
+                onCancel = {
+                    if (isFreshScan) {
+                        kotlinx.coroutines.MainScope().launch {
+                            repository.delete(scanId)
+                        }
+                        pendingResult = null
+                    }
+                    showCameraSheet = false
+                    navController.popBackStack()
+                },
+                onDelete = if (!isFreshScan) { {
                     kotlinx.coroutines.MainScope().launch {
                         repository.delete(scanId)
                     }
+                    showCameraSheet = false
                     navController.popBackStack()
-                }
+                } } else null
             )
         }
         composable(Screen.ResultManual.route) {
