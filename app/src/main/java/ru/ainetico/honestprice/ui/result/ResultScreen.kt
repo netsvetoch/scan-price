@@ -73,7 +73,7 @@ fun ResultScreen(
                 value = state.productName,
                 onValueChange = { viewModel.updateProductName(it) },
                 label = { Text(stringResource(R.string.result_product_name), style = MaterialTheme.typography.bodySmall) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyMedium
             )
@@ -87,7 +87,7 @@ fun ResultScreen(
                     value = state.priceRegular,
                     onValueChange = { viewModel.updatePriceRegular(it) },
                     label = { Text(stringResource(R.string.result_price_regular), style = MaterialTheme.typography.bodySmall) },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -97,7 +97,7 @@ fun ResultScreen(
                     value = state.priceDiscount,
                     onValueChange = { viewModel.updatePriceDiscount(it) },
                     label = { Text(stringResource(R.string.result_price_discount), style = MaterialTheme.typography.bodySmall) },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -105,33 +105,29 @@ fun ResultScreen(
                 )
             }
 
-            // Weight + unit in one row
-            Row(
+            // Weight
+            OutlinedTextField(
+                value = state.weightValue,
+                onValueChange = { viewModel.updateWeightValue(it) },
+                label = { Text(stringResource(R.string.result_weight), style = MaterialTheme.typography.bodySmall) },
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = state.weightValue,
-                    onValueChange = { viewModel.updateWeightValue(it) },
-                    label = { Text(stringResource(R.string.result_weight), style = MaterialTheme.typography.bodySmall) },
-                    modifier = Modifier.weight(0.4f).height(52.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyMedium
-                )
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(0.6f)) {
-                    state.availableUnits.forEachIndexed { index, unit ->
-                        SegmentedButton(
-                            selected = state.weightUnit == unit,
-                            onClick = { viewModel.selectUnit(unit) },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = state.availableUnits.size
-                            )
-                        ) {
-                            Text(unit.displayName, style = MaterialTheme.typography.bodySmall)
-                        }
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium
+            )
+
+            // Unit selector
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                state.availableUnits.forEachIndexed { index, unit ->
+                    SegmentedButton(
+                        selected = state.weightUnit == unit,
+                        onClick = { viewModel.selectUnit(unit) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = state.availableUnits.size
+                        )
+                    ) {
+                        Text(unit.displayName, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -141,7 +137,7 @@ fun ResultScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Box(modifier = Modifier.weight(1f).height(52.dp)) {
+                Box(modifier = Modifier.weight(1f)) {
                     StoreComboBox(
                         value = state.storeName,
                         suggestions = suggestions,
@@ -152,7 +148,7 @@ fun ResultScreen(
                     value = state.barcode,
                     onValueChange = { viewModel.updateBarcode(it) },
                     label = { Text(stringResource(R.string.result_barcode), style = MaterialTheme.typography.bodySmall) },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier.weight(1f),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
                     readOnly = state.barcode.isNotBlank() && !state.isManualEntry
