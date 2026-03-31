@@ -116,6 +116,9 @@ class ModelDownloader(
     _state.value = DownloadState.Downloading(displayName, 0)
 
     val tmpFile = File(destFile.parent, "${destFile.name}.tmp")
+    // Clean up leftover from previous interrupted download
+    if (tmpFile.exists()) tmpFile.delete()
+
     val url = URL(urlStr)
     val connection = url.openConnection() as HttpURLConnection
     connection.connectTimeout = 30_000
@@ -137,24 +140,19 @@ class ModelDownloader(
           val buffer = ByteArray(8192)
           var bytesRead: Int
 
-          var lastReportedProgress = -1
           while (input.read(buffer).also { bytesRead = it } != -1) {
             output.write(buffer, 0, bytesRead)
             downloadedBytes += bytesRead
 
             val progress = if (totalBytes > 0) ((downloadedBytes * 100) / totalBytes).toInt() else -1
-            // Update only when progress changes by at least 1%
-            if (progress != lastReportedProgress) {
-              lastReportedProgress = progress
-              _state.value = DownloadState.Downloading(displayName, progress)
+            _state.value = DownloadState.Downloading(displayName, progress)
 
-              if (progress >= 0) {
-                showNotification(
-                  "Загрузка модели",
-                  "$displayName — ${downloadedBytes / 1024 / 1024}MB / ${totalBytes / 1024 / 1024}MB",
-                  progress
-                )
-              }
+            if (progress >= 0) {
+              showNotification(
+                "Загрузка модели",
+                "$displayName — ${downloadedBytes / 1024 / 1024}MB / ${totalBytes / 1024 / 1024}MB",
+                progress
+              )
             }
           }
         }
