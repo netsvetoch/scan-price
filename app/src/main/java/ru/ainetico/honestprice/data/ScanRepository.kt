@@ -19,6 +19,7 @@ interface ScanRepository {
     )
     fun getAllScansFlow(): Flow<List<Scan>>
     suspend fun getById(scanId: Long): Scan?
+    suspend fun delete(scanId: Long)
 }
 
 class ScanRepositoryImpl(private val scanDao: ScanDao) : ScanRepository {
@@ -92,5 +93,9 @@ class ScanRepositoryImpl(private val scanDao: ScanDao) : ScanRepository {
 
     override suspend fun getById(scanId: Long): Scan? {
         return scanDao.getById(scanId)
+    }
+
+    override suspend fun delete(scanId: Long) {
+        scanDao.deleteById(scanId)
     }
 }

@@ -42,6 +42,8 @@ class CameraViewModel(
     val event: StateFlow<CameraEvent?> = _event
 
     private var scanningJob: Job? = null
+    private var lastScanId: Long? = null
+    private var lastImagePath: String? = null
 
     fun capture(bitmap: Bitmap, cropRect: Rect?) {
         _state.value = CameraState.Scanning(bitmap)
@@ -75,6 +77,17 @@ class CameraViewModel(
 
     fun retake() {
         scanningJob?.cancel()
+        // Clean up incomplete scan
+        val scanId = lastScanId
+        val imagePath = lastImagePath
+        lastScanId = null
+        lastImagePath = null
+        if (scanId != null || imagePath != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                scanId?.let { scanRepository.delete(it) }
+                imagePath?.let { File(it).delete() }
+            }
+        }
         _state.value = CameraState.Preview
     }
 
@@ -95,8 +108,10 @@ class CameraViewModel(
             FileOutputStream(imagePath).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
+            lastImagePath = imagePath
 
             val scanId = scanRepository.createProcessing(imagePath)
+            lastScanId = scanId
             val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
             scanRepository.markCompleted(scanId, analysisResult.tag, analysisResult.price)
 

@@ -25,4 +25,7 @@ interface ScanDao {
 
     @Query("SELECT * FROM scans WHERE status != 'PROCESSING' ORDER BY createdAt DESC")
     fun getAllScansFlow(): Flow<List<Scan>>
+
+    @Query("DELETE FROM scans WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
