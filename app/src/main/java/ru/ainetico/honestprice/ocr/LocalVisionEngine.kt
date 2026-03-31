@@ -26,12 +26,17 @@ class LocalVisionEngine(private val appContext: Context) {
         private const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
         private const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
 
-        private const val PROMPT = "Analyze this price tag from a Russian store. " +
-                "Extract data and return ONLY JSON without markdown:\n" +
-                "{\"product_name\": \"name\", \"price_regular\": number_or_null, " +
-                "\"price_discount\": number_or_null, \"weight_value\": number_or_null, " +
-                "\"weight_unit\": \"г/кг/мл/л/шт or null\"}\n" +
-                "If a field is not found, use null. Prices in rubles, numbers without currency symbol."
+        private const val PROMPT = "This is a photo of a price tag from a Russian store. " +
+                "Return ONLY a JSON object, no markdown, no explanation.\n" +
+                "Example: {\"product_name\":\"Молоко 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":0.9,\"weight_unit\":\"л\"}\n" +
+                "Rules:\n" +
+                "- product_name: full product name from the tag\n" +
+                "- price_regular: regular price as a number\n" +
+                "- price_discount: discounted/card price as a number, or null if none\n" +
+                "- weight_value: weight or volume as a number\n" +
+                "- weight_unit: exactly one of: г, кг, мл, л, шт\n" +
+                "- Use null for missing fields. No currency symbols in prices.\n" +
+                "JSON:"
     }
 
     private var engine: InferenceEngine? = null
