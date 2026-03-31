@@ -94,7 +94,7 @@ class ModelDownloader(
         // Poll and update combined state
         while (job1?.isActive == true || job2?.isActive == true) {
           _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
-          delay(500)
+          delay(2000)
         }
 
         job1?.join()
@@ -202,7 +202,7 @@ class ModelDownloader(
       }
 
       if (!completed) {
-        delay(500) // Poll every 500ms
+        delay(2000) // Poll every 500ms
       }
     }
   }
