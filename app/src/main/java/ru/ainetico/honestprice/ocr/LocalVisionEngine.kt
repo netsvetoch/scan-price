@@ -183,7 +183,7 @@ class LocalVisionEngine(private val appContext: Context) {
         val frameWidth = (bitmap.width * 0.85f).toInt()
         val frameHeight = (frameWidth * 2f / 3f).toInt()  // 3:2 aspect ratio
         val left = (bitmap.width - frameWidth) / 2
-        val top = ((bitmap.height - frameHeight) / 2f - bitmap.height * 0.15f).toInt().coerceAtLeast(0)
+        val top = ((bitmap.height - frameHeight) / 2f).toInt().coerceAtLeast(0)
 
         if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
             return bitmap

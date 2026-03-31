@@ -365,7 +365,7 @@ private fun FrameOverlay(modifier: Modifier = Modifier) {
     val frameWidth = size.width * 0.85f
     val frameHeight = frameWidth * 2f / 3f  // 3:2 aspect ratio
     val left = (size.width - frameWidth) / 2f
-    val top = (size.height - frameHeight) / 2f - size.height * 0.15f
+    val top = (size.height - frameHeight) / 2f
     val cornerRadius = 16.dp.toPx()
 
     // Outer border (dark) for contrast on light backgrounds
