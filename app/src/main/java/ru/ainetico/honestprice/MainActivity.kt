@@ -25,7 +25,6 @@ import ru.ainetico.honestprice.navigation.Screen
 import ru.ainetico.honestprice.ocr.BarcodeEngine
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.location.LocationProvider
-import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 import ru.ainetico.honestprice.ui.history.HistoryScreen
 import ru.ainetico.honestprice.ui.history.HistoryViewModel
@@ -42,7 +41,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize local vision engine in background
         localVisionEngine = LocalVisionEngine(applicationContext)
         lifecycleScope.launch {
             Log.i("MainActivity", "Initializing local vision engine...")
@@ -67,41 +65,30 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     }
     val onboardingCompleted = prefs.getBoolean("onboarding_completed", false)
     val db = remember { AppDatabase.getInstance(context) }
-    val startDestination = if (onboardingCompleted) Screen.Camera.route else Screen.Onboarding.route
+    val startDestination = if (onboardingCompleted) Screen.History.route else Screen.Onboarding.route
+
+    // Shared instances
+    val repository = remember { ScanRepositoryImpl(db.scanDao()) }
+    val analyzer = remember { ImageAnalyzer(localVisionEngine, BarcodeEngine(), PriceCalculator()) }
+    val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Onboarding.route) {
             OnboardingScreen(onComplete = {
-                navController.navigate(Screen.Camera.createRoute()) {
+                navController.navigate(Screen.History.route) {
                     popUpTo(Screen.Onboarding.route) { inclusive = true }
                 }
             })
         }
-        composable(
-            route = Screen.Camera.route,
-            arguments = listOf(
-                navArgument("openGallery") {
-                    type = NavType.BoolType
-                    defaultValue = false
-                }
-            )
-        ) { backStackEntry ->
-            val openGallery = backStackEntry.arguments?.getBoolean("openGallery") ?: false
-            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
-            val analyzer = remember {
-                ImageAnalyzer(localVisionEngine, BarcodeEngine(), PriceCalculator())
-            }
-            val viewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
+        composable(Screen.History.route) {
+            val historyViewModel = remember { HistoryViewModel(repository) }
 
-            CameraScreen(
-                viewModel = viewModel,
-                openGallery = openGallery,
-                onNavigateToResult = { scanId ->
-                    navController.navigate(Screen.Result.createRoute(scanId))
-                },
-                onNavigateToManualEntry = {
-                    navController.navigate(Screen.ResultManual.route)
-                }
+            HistoryScreen(
+                viewModel = historyViewModel,
+                cameraViewModel = cameraViewModel,
+                onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
+                onNavigateToResult = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
+                onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) }
             )
         }
         composable(
@@ -109,7 +96,6 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             arguments = listOf(navArgument("scanId") { type = NavType.LongType })
         ) { backStackEntry ->
             val scanId = backStackEntry.arguments?.getLong("scanId") ?: 0L
-            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
             val viewModel = remember {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
             }
@@ -118,13 +104,12 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                 viewModel = viewModel,
                 onSaved = {
                     navController.navigate(Screen.History.route) {
-                        popUpTo(Screen.Camera.route) { inclusive = true }
+                        popUpTo(Screen.History.route) { inclusive = true }
                     }
                 }
             )
         }
         composable(Screen.ResultManual.route) {
-            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
             val viewModel = remember {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
             }
@@ -133,21 +118,9 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                 viewModel = viewModel,
                 onSaved = {
                     navController.navigate(Screen.History.route) {
-                        popUpTo(Screen.Camera.route) { inclusive = true }
+                        popUpTo(Screen.History.route) { inclusive = true }
                     }
                 }
-            )
-        }
-        composable(Screen.History.route) {
-            val repository = remember { ScanRepositoryImpl(db.scanDao()) }
-            val viewModel = remember { HistoryViewModel(repository) }
-
-            HistoryScreen(
-                viewModel = viewModel,
-                onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
-                onCameraClick = { navController.navigate(Screen.Camera.createRoute(openGallery = false)) },
-                onGalleryClick = { navController.navigate(Screen.Camera.createRoute(openGallery = true)) },
-                onManualClick = { navController.navigate(Screen.ResultManual.route) }
             )
         }
     }
