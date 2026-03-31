@@ -35,7 +35,7 @@ fun HistoryScreen(
     val scans by viewModel.scans.collectAsState()
     val context = LocalContext.current
 
-    var showCameraSheet by remember { mutableStateOf(false) }
+    var showCameraSheet by remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Gallery picker
