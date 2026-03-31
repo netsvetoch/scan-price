@@ -159,7 +159,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     std::string user_content = std::string(mtmd_default_marker()) + "\n" + prompt_cstr;
     env->ReleaseStringUTFChars(jprompt, prompt_cstr);
 
-    // Format with chat template for proper Qwen3.5 formatting
+    // Format with chat template + disable thinking by prefilling assistant response
     std::string formatted_prompt;
     const bool has_tmpl = common_chat_templates_was_explicit(g_chat_templates.get());
     if (has_tmpl) {
@@ -169,7 +169,12 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
         user_msg.content = user_content;
         formatted_prompt = common_chat_format_single(
             g_chat_templates.get(), msgs, user_msg, true, false);
-        LOGi("Formatted prompt (%d chars): %.100s", (int)formatted_prompt.size(), formatted_prompt.c_str());
+        // Append empty think block to skip reasoning
+        formatted_prompt += "<think>\n</think>\n";
+        LOGi("Formatted prompt (%d chars): %.100s...%.50s",
+             (int)formatted_prompt.size(),
+             formatted_prompt.substr(0, 100).c_str(),
+             formatted_prompt.substr(formatted_prompt.size() > 50 ? formatted_prompt.size() - 50 : 0).c_str());
     } else {
         formatted_prompt = user_content;
     }
