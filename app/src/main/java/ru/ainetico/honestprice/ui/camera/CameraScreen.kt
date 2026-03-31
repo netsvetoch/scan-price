@@ -175,8 +175,6 @@ fun CameraScreen(
                 contentScale = ContentScale.FillWidth
               )
               ScanningOverlay(modifier = Modifier.matchParentSize())
-            } else {
-              ru.ainetico.honestprice.ui.common.ShimmerImageSkeleton()
             }
           }
         }
