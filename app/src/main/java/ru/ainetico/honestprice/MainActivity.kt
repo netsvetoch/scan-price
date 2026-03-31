@@ -8,7 +8,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
@@ -71,6 +74,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     val repository = remember { ScanRepositoryImpl(db.scanDao()) }
     val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator()) }
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
+    var showCameraSheet by remember { mutableStateOf(true) }
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Onboarding.route) {
@@ -89,6 +93,8 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                 repository = repository,
                 storeDao = db.storeDao(),
                 locationProvider = LocationProvider(context),
+                showSheet = showCameraSheet,
+                onShowSheetChange = { showCameraSheet = it },
                 onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
                 onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) }
             )

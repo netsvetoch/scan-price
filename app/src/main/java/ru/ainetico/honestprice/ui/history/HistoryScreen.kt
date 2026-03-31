@@ -41,36 +41,28 @@ fun HistoryScreen(
     repository: ScanRepository,
     storeDao: StoreDao,
     locationProvider: LocationProvider,
+    showSheet: Boolean,
+    onShowSheetChange: (Boolean) -> Unit,
     onScanClick: (Long) -> Unit,
-    onNavigateToManualEntry: () -> Unit,
-    openCameraOnStart: Boolean = true
+    onNavigateToManualEntry: () -> Unit
 ) {
     val scans by viewModel.scans.collectAsState()
     val context = LocalContext.current
 
-    var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Open camera on first composition only
-    LaunchedEffect(Unit) {
-        if (openCameraOnStart) showSheet = true
-    }
-
-    // After camera scans, holds the result until user saves or cancels
     var pendingResult by remember { mutableStateOf<Triple<Long, AnalysisResult, String?>?>(null) }
     val showingResult = pendingResult != null
 
-    // Gallery picker
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             cameraViewModel.importFromGallery(it, context)
-            showSheet = true
+            onShowSheetChange(true)
         }
     }
 
-    // Listen for camera navigation events
     val cameraEvent by cameraViewModel.event.collectAsState()
     LaunchedEffect(cameraEvent) {
         when (val e = cameraEvent) {
@@ -81,7 +73,7 @@ fun HistoryScreen(
             }
             is CameraEvent.NavigateToManualEntry -> {
                 cameraViewModel.eventConsumed()
-                showSheet = false
+                onShowSheetChange(false)
                 cameraViewModel.resetToPreview()
                 onNavigateToManualEntry()
             }
@@ -98,7 +90,7 @@ fun HistoryScreen(
                 SmallFloatingActionButton(onClick = { galleryLauncher.launch("image/*") }) {
                     Icon(Icons.Filled.Collections, stringResource(R.string.history_fab_gallery))
                 }
-                LargeFloatingActionButton(onClick = { showSheet = true }) {
+                LargeFloatingActionButton(onClick = { onShowSheetChange(true) }) {
                     Icon(Icons.Filled.CameraAlt, stringResource(R.string.history_fab_camera))
                 }
             }
@@ -120,7 +112,7 @@ fun HistoryScreen(
             ) {
                 items(scans, key = { it.id }) { scan ->
                     ScanCard(scan = scan, onClick = {
-                        showSheet = false
+                        onShowSheetChange(false)
                         cameraViewModel.resetToPreview()
                         onScanClick(scan.id)
                     })
@@ -129,12 +121,10 @@ fun HistoryScreen(
         }
     }
 
-    // BottomSheet — shows Camera or Result seamlessly
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = {
                 if (showingResult) {
-                    // Cancel the pending scan
                     pendingResult?.let { (scanId, _, _) ->
                         CoroutineScope(Dispatchers.IO).launch {
                             repository.delete(scanId)
@@ -142,13 +132,12 @@ fun HistoryScreen(
                     }
                     pendingResult = null
                 }
-                showSheet = false
+                onShowSheetChange(false)
                 cameraViewModel.resetToPreview()
             },
             sheetState = sheetState
         ) {
             if (showingResult) {
-                // Show result form inside the same BottomSheet
                 val (scanId, result, imagePath) = pendingResult!!
                 val resultViewModel = remember(scanId) {
                     ResultViewModel(repository, storeDao, locationProvider, PriceCalculator())
@@ -160,7 +149,7 @@ fun HistoryScreen(
                     viewModel = resultViewModel,
                     onSaved = {
                         pendingResult = null
-                        showSheet = false
+                        onShowSheetChange(false)
                         cameraViewModel.resetToPreview()
                     },
                     onCancel = {
@@ -172,12 +161,11 @@ fun HistoryScreen(
                     }
                 )
             } else {
-                // Show camera
                 Box(modifier = Modifier.height(500.dp)) {
                     CameraScreen(
                         viewModel = cameraViewModel,
-                        onNavigateToResult = { _, _ -> },  // handled via LaunchedEffect above
-                        onNavigateToManualEntry = { }       // handled via LaunchedEffect above
+                        onNavigateToResult = { _, _ -> },
+                        onNavigateToManualEntry = { }
                     )
                 }
             }
