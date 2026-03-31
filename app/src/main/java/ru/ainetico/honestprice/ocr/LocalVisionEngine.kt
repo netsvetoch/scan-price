@@ -23,7 +23,7 @@ class LocalVisionEngine(private val appContext: Context) {
 
     companion object {
         private const val TAG = "LocalVisionEngine"
-        private const val MODEL_FILENAME = "Qwen3.5-2B-Q4_K_M.gguf"
+        private const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
         private const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
 
         private const val PROMPT = "This is a photo of a price tag from a Russian store. " +

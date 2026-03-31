@@ -169,8 +169,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
         user_msg.content = user_content;
         formatted_prompt = common_chat_format_single(
             g_chat_templates.get(), msgs, user_msg, true, false);
-        // Disable thinking mode
-        formatted_prompt += "/no_think\n";
+        // Let the model think for better accuracy on small models
         LOGi("Formatted prompt (%d chars): %.100s...%.50s",
              (int)formatted_prompt.size(),
              formatted_prompt.substr(0, 100).c_str(),
