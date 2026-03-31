@@ -247,8 +247,6 @@ fun CameraScreen(
                         ) {
                             Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(stringResource(R.string.camera_gallery), color = Color.White, fontSize = 12.sp)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Button(
@@ -260,8 +258,6 @@ fun CameraScreen(
                         ) {
                             Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(stringResource(R.string.camera_manual), color = Color.White, fontSize = 12.sp)
                     }
                 }
             }
@@ -300,12 +296,6 @@ fun CameraScreen(
                         ) {
                             Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.camera_gallery),
-                            color = Color.White,
-                            fontSize = 12.sp
-                        )
                     }
 
                     // Capture button (big white circle)
@@ -355,12 +345,6 @@ fun CameraScreen(
                         ) {
                             Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.camera_manual),
-                            color = Color.White,
-                            fontSize = 12.sp
-                        )
                     }
                 }
             }
