@@ -41,15 +41,20 @@ class ModelDownloader(
     private const val KEY_MMPROJ_DL_ID = "mmproj_download_id"
   }
 
+  data class FileProgress(val label: String, val progress: Int, val done: Boolean = false)
+
   sealed class DownloadState {
     object Idle : DownloadState()
-    data class Downloading(val filename: String, val progress: Int) : DownloadState()
+    data class Downloading(val file1: FileProgress, val file2: FileProgress) : DownloadState()
     object Completed : DownloadState()
     data class Error(val message: String) : DownloadState()
   }
 
   private val _state = MutableStateFlow<DownloadState>(DownloadState.Idle)
   val state: StateFlow<DownloadState> = _state
+
+  private val file1Progress = MutableStateFlow(FileProgress("Файл 1 из 2", 0))
+  private val file2Progress = MutableStateFlow(FileProgress("Файл 2 из 2", 0))
 
   private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
   private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -69,21 +74,38 @@ class ModelDownloader(
     scope.launch {
       try {
         val modelsDir = File(context.filesDir, "models").apply { mkdirs() }
+        val needModel = !File(modelsDir, MODEL_FILENAME).exists()
+        val needMmproj = !File(modelsDir, MMPROJ_FILENAME).exists()
 
-        // Download model file
-        if (!File(modelsDir, MODEL_FILENAME).exists()) {
-          downloadFileWithManager(MODEL_URL, MODEL_FILENAME, "Файл 1 из 2")
+        if (!needModel) file1Progress.value = FileProgress("Файл 1 из 2", 100, done = true)
+        if (!needMmproj) file2Progress.value = FileProgress("Файл 2 из 2", 100, done = true)
+
+        _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
+
+        // Launch both downloads in parallel
+        val job1 = if (needModel) {
+          scope.launch { downloadFileWithManager(MODEL_URL, MODEL_FILENAME, file1Progress) }
+        } else null
+
+        val job2 = if (needMmproj) {
+          scope.launch { downloadFileWithManager(MMPROJ_URL, MMPROJ_FILENAME, file2Progress) }
+        } else null
+
+        // Poll and update combined state
+        while (job1?.isActive == true || job2?.isActive == true) {
+          _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
+          delay(500)
         }
 
-        // Download mmproj file
-        if (!File(modelsDir, MMPROJ_FILENAME).exists()) {
-          downloadFileWithManager(MMPROJ_URL, MMPROJ_FILENAME, "Файл 2 из 2")
-        }
+        job1?.join()
+        job2?.join()
 
         if (isModelDownloaded()) {
           _state.value = DownloadState.Completed
           Log.i(TAG, "All models downloaded, initializing engine...")
           onModelsReady?.invoke()
+        } else {
+          _state.value = DownloadState.Error("Загрузка не завершена")
         }
       } catch (e: Exception) {
         Log.e(TAG, "Download failed", e)
@@ -96,16 +118,17 @@ class ModelDownloader(
    * Download file using system DownloadManager and poll progress.
    * Blocks until download completes or fails.
    */
-  private suspend fun downloadFileWithManager(url: String, filename: String, displayName: String) {
+  private suspend fun downloadFileWithManager(url: String, filename: String, progressFlow: MutableStateFlow<FileProgress>) {
     val modelsDir = File(context.filesDir, "models")
     val destFile = File(modelsDir, filename)
 
-    Log.i(TAG, "Starting download: $displayName → $url")
-    _state.value = DownloadState.Downloading(displayName, 0)
+    Log.i(TAG, "Starting download: ${progressFlow.value.label} → $url")
+
+    val label = progressFlow.value.label
 
     // Enqueue download — downloads to public Downloads dir first (DownloadManager limitation)
     val request = DownloadManager.Request(Uri.parse(url))
-      .setTitle("ЧестнаяЦена — $displayName")
+      .setTitle("ЧестнаяЦена — $label")
       .setDescription("Загрузка модели для распознавания ценников")
       .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
       .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "honestprice_$filename")
@@ -133,7 +156,7 @@ class ModelDownloader(
         when (status) {
           DownloadManager.STATUS_RUNNING, DownloadManager.STATUS_PENDING -> {
             val progress = if (totalBytes > 0) ((bytesDownloaded * 100) / totalBytes).toInt() else 0
-            _state.value = DownloadState.Downloading(displayName, progress)
+            progressFlow.value = progressFlow.value.copy(progress = progress)
           }
 
           DownloadManager.STATUS_SUCCESSFUL -> {
@@ -146,7 +169,8 @@ class ModelDownloader(
             if (downloadedFile.exists()) {
               downloadedFile.copyTo(destFile, overwrite = true)
               downloadedFile.delete()
-              Log.i(TAG, "$displayName downloaded: ${destFile.length() / 1024 / 1024}MB")
+              progressFlow.value = progressFlow.value.copy(progress = 100, done = true)
+              Log.i(TAG, "$label downloaded: ${destFile.length() / 1024 / 1024}MB")
             }
           }
 

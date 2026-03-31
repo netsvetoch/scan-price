@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -241,27 +242,9 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
       }
 
       is ModelDownloader.DownloadState.Downloading -> {
-        Text(
-          text = downloadState.filename,
-          style = MaterialTheme.typography.bodyMedium,
-          textAlign = TextAlign.Center,
-          color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        if (downloadState.progress >= 0) {
-          LinearProgressIndicator(
-            progress = { downloadState.progress / 100f },
-            modifier = Modifier.fillMaxWidth()
-          )
-          Spacer(modifier = Modifier.height(8.dp))
-          Text(
-            text = "${downloadState.progress}%",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-        } else {
-          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
+        FileProgressRow(downloadState.file1)
+        Spacer(modifier = Modifier.height(8.dp))
+        FileProgressRow(downloadState.file2)
       }
 
       is ModelDownloader.DownloadState.Completed -> {
@@ -291,6 +274,32 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
+  }
+}
+
+@Composable
+private fun FileProgressRow(fp: ModelDownloader.FileProgress) {
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+      Text(
+        text = fp.label,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface
+      )
+      Text(
+        text = if (fp.done) "✓" else "${fp.progress}%",
+        style = MaterialTheme.typography.bodySmall,
+        color = if (fp.done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+      )
+    }
+    Spacer(modifier = Modifier.height(4.dp))
+    LinearProgressIndicator(
+      progress = { fp.progress / 100f },
+      modifier = Modifier.fillMaxWidth()
+    )
   }
 }
 
