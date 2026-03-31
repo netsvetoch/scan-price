@@ -69,6 +69,14 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
     }
   }
 
+  val notificationPermissionLauncher = rememberLauncherForActivityResult(
+    ActivityResultContracts.RequestPermission()
+  ) { _ ->
+    coroutineScope.launch {
+      pagerState.animateScrollToPage(1)
+    }
+  }
+
   val cameraPermissionLauncher = rememberLauncherForActivityResult(
     ActivityResultContracts.RequestPermission()
   ) { _ ->
@@ -127,13 +135,24 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
       0 -> {
         Button(
           onClick = {
-            coroutineScope.launch {
-              pagerState.animateScrollToPage(1)
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+              notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+              coroutineScope.launch { pagerState.animateScrollToPage(1) }
             }
           },
           modifier = Modifier.fillMaxWidth()
         ) {
-          Text(stringResource(R.string.onboarding_next))
+          Text(stringResource(R.string.onboarding_allow_notifications))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        TextButton(
+          onClick = {
+            coroutineScope.launch { pagerState.animateScrollToPage(1) }
+          },
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Text(stringResource(R.string.onboarding_skip))
         }
       }
 
@@ -184,13 +203,6 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
 
 @Composable
 private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
-  val context = LocalContext.current
-  var notificationRequested by remember { mutableStateOf(false) }
-
-  val notificationPermissionLauncher = rememberLauncherForActivityResult(
-    ActivityResultContracts.RequestPermission()
-  ) { notificationRequested = true }
-
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -280,16 +292,6 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
-    if (android.os.Build.VERSION.SDK_INT >= 33 && !notificationRequested) {
-      Spacer(modifier = Modifier.height(16.dp))
-      Button(
-        onClick = {
-          notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-        }
-      ) {
-        Text(stringResource(R.string.onboarding_allow_notifications))
-      }
-    }
   }
 }
 
