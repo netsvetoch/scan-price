@@ -22,6 +22,7 @@ import java.io.FileOutputStream
 
 sealed class CameraState {
   object Preview : CameraState()
+  data class Adjusting(val bitmap: Bitmap) : CameraState()  // gallery image — user aligns price tag
   data class Scanning(
     val displayBitmap: Bitmap?,  // null = skeleton
     val status: String = ""
@@ -79,29 +80,40 @@ class CameraViewModel(
 
   fun importFromGallery(uri: Uri, context: Context) {
     viewModelScope.launch {
-      var bitmap: Bitmap? = null
       try {
-        bitmap = withContext(Dispatchers.IO) {
+        val bitmap = withContext(Dispatchers.IO) {
           @Suppress("DEPRECATION")
           MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
         }
-        _state.value = CameraState.Scanning(null, "Кадрирование…")
+        _state.value = CameraState.Adjusting(bitmap)
+      } catch (e: Exception) {
+        Log.e("CameraViewModel", "Gallery import failed", e)
+        _state.value = CameraState.Preview
+      }
+    }
+  }
+
+  /**
+   * Called after user aligns the image. offsetX/offsetY are the drag offsets
+   * relative to the image (in pixels of the displayed image).
+   */
+  fun confirmAdjustment(bitmap: Bitmap, offsetX: Float, offsetY: Float, displayScale: Float) {
+    _state.value = CameraState.Scanning(null, "Кадрирование…")
+    scanningJob = viewModelScope.launch {
+      try {
+        // Apply offset to crop: shift the frame position on the original image
+        val scale = bitmap.width.toFloat() / (bitmap.width * displayScale)
+        val adjustedBitmap = bitmap // offset applied during crop in processImage
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
-          processImage(bitmap, cropRect = null)
+          processImageWithOffset(adjustedBitmap, offsetX / displayScale, offsetY / displayScale)
         }
         _event.value = CameraEvent.NavigateToResult(scanId, result)
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-        Log.e("CameraViewModel", "Gallery scan timed out", e)
-        _state.value = CameraState.Error(
-          "Превышено время ожидания. Попробуйте ещё раз.",
-          bitmap ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        )
+        Log.e("CameraViewModel", "Scan timed out", e)
+        _state.value = CameraState.Error("Превышено время ожидания.", bitmap)
       } catch (e: Exception) {
-        Log.e("CameraViewModel", "Gallery import failed", e)
-        _state.value = CameraState.Error(
-          "Ошибка: ${e.message}",
-          bitmap ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        )
+        Log.e("CameraViewModel", "Processing failed", e)
+        _state.value = CameraState.Error("Ошибка: ${e.message}", bitmap)
       }
     }
   }
@@ -166,6 +178,51 @@ class CameraViewModel(
     val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
 
     return Pair(scanId, analysisResult)
+  }
+
+  private suspend fun processImageWithOffset(
+    bitmap: Bitmap, dragOffsetX: Float, dragOffsetY: Float
+  ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
+    val timestamp = System.currentTimeMillis()
+
+    // Step 1: Crop with offset
+    val cropped = withContext(Dispatchers.Default) {
+      cropToFrameWithOffset(bitmap, dragOffsetX, dragOffsetY)
+    }
+    _state.value = CameraState.Scanning(cropped, "Сжатие…")
+
+    // Step 2: Save
+    val imagePath = withContext(Dispatchers.IO) {
+      val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
+      val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
+      FileOutputStream(path).use { out ->
+        cropped.compress(Bitmap.CompressFormat.JPEG, 80, out)
+      }
+      path
+    }
+    lastImagePath = imagePath
+    _state.value = CameraState.Scanning(cropped, "Анализ…")
+
+    // Step 3: Analyze
+    val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
+    lastScanId = scanId
+    val analysisResult = imageAnalyzer.analyze(cropped, null)
+
+    return Pair(scanId, analysisResult)
+  }
+
+  private fun cropToFrameWithOffset(bitmap: Bitmap, dragOffsetX: Float, dragOffsetY: Float): Bitmap {
+    val frameWidth = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
+    val frameHeight = (frameWidth / FrameConfig.ASPECT_RATIO).toInt()
+    // Center of frame, adjusted by user drag (drag moves image, so frame moves opposite)
+    val left = ((bitmap.width - frameWidth) / 2f - dragOffsetX).toInt().coerceIn(0, bitmap.width - frameWidth)
+    val top = ((bitmap.height - frameHeight) / 2f - bitmap.height * FrameConfig.VERTICAL_OFFSET_FRACTION - dragOffsetY)
+      .toInt().coerceIn(0, bitmap.height - frameHeight)
+
+    if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
+      return bitmap
+    }
+    return Bitmap.createBitmap(bitmap, left, top, frameWidth, frameHeight)
   }
 
   private fun cropToFrame(bitmap: Bitmap): Bitmap {

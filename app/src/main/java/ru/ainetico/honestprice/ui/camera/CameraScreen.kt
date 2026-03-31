@@ -47,7 +47,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -155,6 +158,75 @@ fun CameraScreen(
 
           Button(onClick = { viewModel.dismissError() }) {
             Text("Попробовать снова")
+          }
+        }
+      }
+
+      state is CameraState.Adjusting -> {
+        // User drags the gallery image to align price tag within frame
+        val adjusting = state as CameraState.Adjusting
+        var offsetX by remember { mutableStateOf(0f) }
+        var offsetY by remember { mutableStateOf(0f) }
+
+        // Calculate display scale
+        val density = androidx.compose.ui.platform.LocalDensity.current
+
+        Box(modifier = Modifier.fillMaxSize()) {
+          // Draggable image
+          Image(
+            bitmap = adjusting.bitmap.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier
+              .fillMaxSize()
+              .graphicsLayer(
+                translationX = offsetX,
+                translationY = offsetY
+              )
+              .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                  change.consume()
+                  offsetX += dragAmount.x
+                  offsetY += dragAmount.y
+                }
+              },
+            contentScale = ContentScale.Crop
+          )
+
+          // Frame overlay on top
+          FrameOverlay(modifier = Modifier.fillMaxSize())
+
+          // Hint text
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .align(Alignment.TopCenter)
+              .padding(top = 16.dp),
+            contentAlignment = Alignment.Center
+          ) {
+            Text(
+              text = "Передвиньте изображение, чтобы ценник попал в рамку",
+              color = Color.White,
+              fontSize = 14.sp,
+              textAlign = TextAlign.Center,
+              modifier = Modifier
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+          }
+
+          // Confirm button
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .align(Alignment.BottomCenter)
+              .padding(bottom = 32.dp),
+            contentAlignment = Alignment.Center
+          ) {
+            Button(onClick = {
+              viewModel.confirmAdjustment(adjusting.bitmap, offsetX, offsetY, 1f)
+            }) {
+              Text("Сканировать")
+            }
           }
         }
       }
