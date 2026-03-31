@@ -28,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -369,37 +370,23 @@ fun CameraScreen(
  */
 @Composable
 private fun FrameOverlay(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
+    Canvas(modifier = modifier.graphicsLayer(alpha = 0.99f)) {
         val frameWidth = size.width * 0.85f
         val frameHeight = frameWidth * 0.5f
         val left = (size.width - frameWidth) / 2f
         val top = (size.height - frameHeight) / 2f - size.height * 0.05f
         val cornerRadius = 16.dp.toPx()
 
-        // Draw semi-transparent black around the frame
-        // Top region
-        drawRect(
-            color = Color(0xAA000000),
-            topLeft = Offset(0f, 0f),
-            size = Size(size.width, top)
-        )
-        // Bottom region
-        drawRect(
-            color = Color(0xAA000000),
-            topLeft = Offset(0f, top + frameHeight),
-            size = Size(size.width, size.height - top - frameHeight)
-        )
-        // Left region
-        drawRect(
-            color = Color(0xAA000000),
-            topLeft = Offset(0f, top),
-            size = Size(left, frameHeight)
-        )
-        // Right region
-        drawRect(
-            color = Color(0xAA000000),
-            topLeft = Offset(left + frameWidth, top),
-            size = Size(size.width - left - frameWidth, frameHeight)
+        // Draw full-screen dimming, then cut out the frame with rounded corners
+        drawRect(color = Color(0xAA000000))
+
+        // Cut out the frame (transparent hole)
+        drawRoundRect(
+            color = Color.Transparent,
+            topLeft = Offset(left, top),
+            size = Size(frameWidth, frameHeight),
+            cornerRadius = CornerRadius(cornerRadius),
+            blendMode = androidx.compose.ui.graphics.BlendMode.Clear
         )
 
         // Draw rounded white border around the frame
