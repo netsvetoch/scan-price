@@ -126,31 +126,35 @@ class CameraViewModel(
     private suspend fun processImage(bitmap: Bitmap, cropRect: Rect?): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
         return withContext(Dispatchers.IO) {
             val timestamp = System.currentTimeMillis()
-            val imagesDir = File(appContext.filesDir, "images/originals").apply { mkdirs() }
-            val imagePath = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
 
+            // Crop to price tag frame area (matches FrameOverlay)
+            val cropped = cropToFrame(bitmap)
+
+            // Save cropped image only
+            val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
+            val imagePath = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
             FileOutputStream(imagePath).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                cropped.compress(Bitmap.CompressFormat.JPEG, 80, out)
             }
             lastImagePath = imagePath
 
             val scanId = scanRepository.createProcessing(imagePath)
             lastScanId = scanId
             val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
-            // Don't markCompleted here — stays PROCESSING until user explicitly saves
-            // ResultViewModel.save() will call updateUserFields which sets COMPLETED
-            // PROCESSING records are hidden from history list
-
-            val thumbDir = File(appContext.filesDir, "images/thumbnails").apply { mkdirs() }
-            val thumbPath = File(thumbDir, "thumb_${scanId}_${timestamp}.jpg").absolutePath
-            val thumbWidth = 200
-            val scale = thumbWidth.toFloat() / bitmap.width
-            val thumb = Bitmap.createScaledBitmap(bitmap, thumbWidth, (bitmap.height * scale).toInt(), true)
-            FileOutputStream(thumbPath).use { out ->
-                thumb.compress(Bitmap.CompressFormat.JPEG, 80, out)
-            }
 
             Pair(scanId, analysisResult)
         }
+    }
+
+    private fun cropToFrame(bitmap: Bitmap): Bitmap {
+        val frameWidth = (bitmap.width * 0.85f).toInt()
+        val frameHeight = (frameWidth * 2f / 3f).toInt()
+        val left = (bitmap.width - frameWidth) / 2
+        val top = ((bitmap.height - frameHeight) / 2f).toInt().coerceAtLeast(0)
+
+        if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
+            return bitmap
+        }
+        return Bitmap.createBitmap(bitmap, left, top, frameWidth, frameHeight)
     }
 }

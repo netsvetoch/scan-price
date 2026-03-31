@@ -73,7 +73,6 @@ fun ResultScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
@@ -81,9 +80,12 @@ fun ResultScreen(
                         Image(
                             bitmap = bitmap!!.asImageBitmap(),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            modifier = Modifier.fillMaxWidth(),
+                            contentScale = ContentScale.FillWidth
                         )
+                    } else {
+                        // Skeleton with 3:2 aspect ratio
+                        Spacer(modifier = Modifier.fillMaxWidth().aspectRatio(3f / 2f))
                     }
                 }
             }
