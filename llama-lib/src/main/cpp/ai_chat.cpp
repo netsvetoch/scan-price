@@ -194,7 +194,8 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     common_sampler_reset(g_sampler);
     std::ostringstream response;
 
-    for (int i = 0; i < 512; i++) {
+    const int max_tokens = 2048;  // enough for thinking + JSON response
+    for (int i = 0; i < max_tokens; i++) {
         auto tok = common_sampler_sample(g_sampler, g_context, -1);
         common_sampler_accept(g_sampler, tok, true);
 
@@ -212,7 +213,25 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     }
 
     std::string result = response.str();
-    LOGi("Generated %d chars: %.200s", (int)result.size(), result.c_str());
+    LOGi("Raw response %d chars: %.300s", (int)result.size(), result.c_str());
+
+    // Strip <think>...</think> block — keep only the actual answer
+    auto think_start = result.find("<think>");
+    auto think_end = result.find("</think>");
+    if (think_start != std::string::npos && think_end != std::string::npos) {
+        std::string thinking = result.substr(think_start + 7, think_end - think_start - 7);
+        LOGi("Thinking (%d chars): %.200s", (int)thinking.size(), thinking.c_str());
+        result = result.substr(0, think_start) + result.substr(think_end + 8);
+    }
+
+    // Trim whitespace
+    auto first = result.find_first_not_of(" \n\r\t");
+    auto last = result.find_last_not_of(" \n\r\t");
+    if (first != std::string::npos) {
+        result = result.substr(first, last - first + 1);
+    }
+
+    LOGi("Final response %d chars: %.200s", (int)result.size(), result.c_str());
     return env->NewStringUTF(result.c_str());
 }
 
