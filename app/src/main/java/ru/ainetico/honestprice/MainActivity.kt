@@ -67,16 +67,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     }
     val onboardingCompleted = prefs.getBoolean("onboarding_completed", false)
     val db = remember { AppDatabase.getInstance(context) }
-    val hasScans = remember {
-        kotlinx.coroutines.runBlocking {
-            db.scanDao().getAllScans().isNotEmpty()
-        }
-    }
-    val startDestination = when {
-        !onboardingCompleted -> Screen.Onboarding.route
-        hasScans -> Screen.History.route
-        else -> Screen.Camera.route
-    }
+    val startDestination = if (onboardingCompleted) Screen.Camera.route else Screen.Onboarding.route
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Onboarding.route) {
