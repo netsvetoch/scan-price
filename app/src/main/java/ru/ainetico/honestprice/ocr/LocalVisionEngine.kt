@@ -29,10 +29,11 @@ class LocalVisionEngine(private val appContext: Context) {
         private const val PROMPT = "This is a photo of a price tag from a Russian store. " +
                 "Return ONLY a JSON object, no markdown, no explanation.\n" +
                 "Example: {\"product_name\":\"Молоко 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}\n" +
+                "Example without discount: {\"product_name\":\"Хлеб\",\"price_regular\":45.00,\"price_discount\":null,\"weight_value\":500,\"weight_unit\":\"г\"}\n" +
                 "Rules:\n" +
                 "- product_name: full product name from the tag\n" +
                 "- price_regular: regular price number\n" +
-                "- price_discount: discounted/card price number, or null\n" +
+                "- price_discount: discounted/card price number. Use null if there is NO discount. Never use 0.\n" +
                 "- weight_value: weight or volume number EXACTLY as written on the tag (e.g. 500 for 500г, 1 for 1кг)\n" +
                 "- weight_unit: exactly one of: г, кг, мл, л, шт\n" +
                 "- null for missing fields\n" +
@@ -158,10 +159,12 @@ class LocalVisionEngine(private val appContext: Context) {
                 }
             }
 
+            val discount = json.optStringOrNull("price_discount")?.toBigDecimalSafe()
+
             ParsedPriceTag(
                 productName = json.optStringOrNull("product_name"),
                 priceRegular = json.optStringOrNull("price_regular")?.toBigDecimalSafe(),
-                priceDiscount = json.optStringOrNull("price_discount")?.toBigDecimalSafe(),
+                priceDiscount = if (discount != null && discount.compareTo(java.math.BigDecimal.ZERO) == 0) null else discount,
                 weightValue = json.optStringOrNull("weight_value")?.toBigDecimalSafe(),
                 weightUnit = unit
             ).also {
