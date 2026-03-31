@@ -109,14 +109,14 @@ class LocalVisionEngine(private val appContext: Context) {
 
         return withContext(Dispatchers.IO) {
             try {
-                // Preprocess: crop to frame area, posterize palette, downscale
+                // Preprocess: crop to frame area, grayscale, downscale, WebP
                 val cropped = cropToPriceTag(bitmap)
-                val posterized = posterize(cropped, levels = 8)
-                val resized = downscale(posterized, 640)
-                val jpegBytes = bitmapToJpeg(resized, quality = 70)
-                Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${jpegBytes.size / 1024}KB")
+                val grayscale = toGrayscale(cropped)
+                val resized = downscale(grayscale, 640)
+                val imageBytes = bitmapToWebP(resized, quality = 60)
+                Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB")
 
-                val response = eng.analyzeImage(jpegBytes, PROMPT)
+                val response = eng.analyzeImage(imageBytes, PROMPT)
                 Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
 
                 if (response.isBlank()) {
@@ -182,7 +182,7 @@ class LocalVisionEngine(private val appContext: Context) {
      */
     private fun cropToPriceTag(bitmap: Bitmap): Bitmap {
         val frameWidth = (bitmap.width * 0.85f).toInt()
-        val frameHeight = (frameWidth * 0.5f).toInt()
+        val frameHeight = (frameWidth * 2f / 3f).toInt()  // 3:2 aspect ratio
         val left = (bitmap.width - frameWidth) / 2
         val top = ((bitmap.height - frameHeight) / 2f - bitmap.height * 0.15f).toInt().coerceAtLeast(0)
 
@@ -194,25 +194,17 @@ class LocalVisionEngine(private val appContext: Context) {
     }
 
     /**
-     * Posterize — reduce color palette to speed up JPEG compression.
-     * Each color channel is quantized to fewer levels.
+     * Convert to grayscale — reduces image complexity and size significantly.
      */
-    private fun posterize(bitmap: Bitmap, levels: Int = 8): Bitmap {
-        val result = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val pixels = IntArray(result.width * result.height)
-        result.getPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
-
-        val step = 256 / levels
-        for (i in pixels.indices) {
-            val pixel = pixels[i]
-            val r = ((android.graphics.Color.red(pixel) / step) * step).coerceIn(0, 255)
-            val g = ((android.graphics.Color.green(pixel) / step) * step).coerceIn(0, 255)
-            val b = ((android.graphics.Color.blue(pixel) / step) * step).coerceIn(0, 255)
-            pixels[i] = android.graphics.Color.argb(255, r, g, b)
-        }
-
-        result.setPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
-        return result
+    private fun toGrayscale(bitmap: Bitmap): Bitmap {
+        val grayscale = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(grayscale)
+        val paint = android.graphics.Paint()
+        val colorMatrix = android.graphics.ColorMatrix()
+        colorMatrix.setSaturation(0f)
+        paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        return grayscale
     }
 
     private fun downscale(bitmap: Bitmap, maxSide: Int): Bitmap {
@@ -222,9 +214,9 @@ class LocalVisionEngine(private val appContext: Context) {
         return Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true)
     }
 
-    private fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray {
+    private fun bitmapToWebP(bitmap: Bitmap, quality: Int): ByteArray {
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, quality, stream)
         return stream.toByteArray()
     }
 
