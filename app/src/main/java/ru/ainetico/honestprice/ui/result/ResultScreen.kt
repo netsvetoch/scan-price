@@ -140,15 +140,15 @@ fun ResultScreen(
                 onValueChange = { viewModel.updateStoreName(it) }
             )
 
-            // Barcode
-            OutlinedTextField(
+            // TODO: Barcode — add separate barcode scanner later
+            /*OutlinedTextField(
                 value = state.barcode,
                 onValueChange = { viewModel.updateBarcode(it) },
                 label = { Text(stringResource(R.string.result_barcode)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 readOnly = state.barcode.isNotBlank() && !state.isManualEntry
-            )
+            )*/
 
             // Price card
             PriceCard(

@@ -22,7 +22,7 @@ import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.data.ScanRepositoryImpl
 import ru.ainetico.honestprice.navigation.Screen
-import ru.ainetico.honestprice.ocr.BarcodeEngine
+// import ru.ainetico.honestprice.ocr.BarcodeEngine  // TODO: add barcode scanner separately
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.location.LocationProvider
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
@@ -69,7 +69,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
 
     // Shared instances
     val repository = remember { ScanRepositoryImpl(db.scanDao()) }
-    val analyzer = remember { ImageAnalyzer(localVisionEngine, BarcodeEngine(), PriceCalculator()) }
+    val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator()) }
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
 
     NavHost(navController = navController, startDestination = startDestination) {
