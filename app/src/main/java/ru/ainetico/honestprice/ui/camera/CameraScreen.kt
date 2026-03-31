@@ -322,12 +322,6 @@ fun CameraScreen(
                                     .border(2.dp, Color.Black.copy(alpha = 0.2f), CircleShape)
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.camera_capture),
-                            color = Color.White,
-                            fontSize = 12.sp
-                        )
                     }
 
                     // Manual entry button
