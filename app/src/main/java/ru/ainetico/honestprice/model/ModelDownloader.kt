@@ -156,12 +156,16 @@ class ModelDownloader(
         when (status) {
           DownloadManager.STATUS_RUNNING, DownloadManager.STATUS_PENDING -> {
             val progress = if (totalBytes > 0) ((bytesDownloaded * 100) / totalBytes).toInt() else 0
-            progressFlow.value = progressFlow.value.copy(progress = progress)
+            // Only update if progress increased — prevents jitter
+            if (progress > progressFlow.value.progress) {
+              progressFlow.value = progressFlow.value.copy(progress = progress)
+            }
           }
 
           DownloadManager.STATUS_SUCCESSFUL -> {
             completed = true
-            // Copy from DownloadManager's URI to app's filesDir
+            progressFlow.value = progressFlow.value.copy(progress = 100)
+            // Copy from DownloadManager's URI to app's filesDir (done=true only after copy)
             try {
               val uri = downloadManager.getUriForDownloadedFile(downloadId)
               if (uri != null) {
