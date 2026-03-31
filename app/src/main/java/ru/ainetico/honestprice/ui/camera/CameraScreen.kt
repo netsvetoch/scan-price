@@ -228,12 +228,12 @@ fun CameraScreen(
                     }
                 }
 
-                // Bottom controls — same layout as camera mode (gallery left, manual right)
+                // Bottom controls — exact same layout as camera mode
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 48.dp, start = 48.dp, end = 48.dp),
+                        .padding(bottom = 48.dp, start = 32.dp, end = 32.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -246,6 +246,8 @@ fun CameraScreen(
                     ) {
                         Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
                     }
+                    // Invisible placeholder matching capture button size
+                    Spacer(modifier = Modifier.size(72.dp))
                     Button(
                         onClick = { viewModel.onManualEntry() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
