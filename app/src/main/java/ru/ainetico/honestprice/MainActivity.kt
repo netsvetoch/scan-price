@@ -48,6 +48,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Request max display refresh rate (120Hz+)
+        window.attributes = window.attributes.apply {
+            preferredDisplayModeId = display?.supportedModes
+                ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
+        }
+
         localVisionEngine = LocalVisionEngine(applicationContext)
         lifecycleScope.launch {
             Log.i("MainActivity", "Initializing local vision engine...")
