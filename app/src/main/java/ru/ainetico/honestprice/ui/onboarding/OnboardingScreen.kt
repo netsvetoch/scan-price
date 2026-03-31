@@ -246,7 +246,8 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
         Text(
           text = downloadState.filename,
           style = MaterialTheme.typography.bodyMedium,
-          textAlign = TextAlign.Center
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(12.dp))
         if (downloadState.progress >= 0) {
