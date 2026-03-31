@@ -47,7 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -167,12 +167,9 @@ fun CameraScreen(
         val adjusting = state as CameraState.Adjusting
         var offsetX by remember { mutableStateOf(0f) }
         var offsetY by remember { mutableStateOf(0f) }
-
-        // Calculate display scale
-        val density = androidx.compose.ui.platform.LocalDensity.current
+        var zoom by remember { mutableStateOf(1f) }
 
         Box(modifier = Modifier.fillMaxSize()) {
-          // Draggable image
           Image(
             bitmap = adjusting.bitmap.asImageBitmap(),
             contentDescription = null,
@@ -180,13 +177,15 @@ fun CameraScreen(
               .fillMaxSize()
               .graphicsLayer(
                 translationX = offsetX,
-                translationY = offsetY
+                translationY = offsetY,
+                scaleX = zoom,
+                scaleY = zoom
               )
               .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                  change.consume()
-                  offsetX += dragAmount.x
-                  offsetY += dragAmount.y
+                detectTransformGestures { _, pan, gestureZoom, _ ->
+                  offsetX += pan.x
+                  offsetY += pan.y
+                  zoom = (zoom * gestureZoom).coerceIn(0.5f, 5f)
                 }
               },
             contentScale = ContentScale.Crop
@@ -223,7 +222,7 @@ fun CameraScreen(
             contentAlignment = Alignment.Center
           ) {
             Button(onClick = {
-              viewModel.confirmAdjustment(adjusting.bitmap, offsetX, offsetY, 1f)
+              viewModel.confirmAdjustment(adjusting.bitmap, offsetX, offsetY, zoom)
             }) {
               Text("Сканировать")
             }
