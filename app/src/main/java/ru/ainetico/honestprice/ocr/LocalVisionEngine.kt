@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.arm.aichat.AiChat
 import com.arm.aichat.InferenceEngine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.model.ParsedPriceTag
@@ -48,17 +49,10 @@ class LocalVisionEngine(private val appContext: Context) {
                 val eng = AiChat.getInferenceEngine(appContext)
                 engine = eng
 
-                // Wait for native lib to initialize
-                var attempts = 0
-                while (eng.state.value !is InferenceEngine.State.Initialized && attempts < 50) {
-                    kotlinx.coroutines.delay(100)
-                    attempts++
-                }
-
-                if (eng.state.value !is InferenceEngine.State.Initialized) {
-                    Log.e(TAG, "Engine failed to initialize, state: ${eng.state.value}")
-                    return@withContext
-                }
+                // Wait for native lib to initialize via Flow
+                Log.i(TAG, "Waiting for engine to initialize...")
+                eng.state.first { it is InferenceEngine.State.Initialized }
+                Log.i(TAG, "Engine initialized!")
 
                 // Find model files
                 val modelsDir = File(appContext.filesDir, "models")
