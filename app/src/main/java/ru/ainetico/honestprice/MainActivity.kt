@@ -123,18 +123,20 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             arguments = listOf(navArgument("scanId") { type = NavType.LongType })
         ) { backStackEntry ->
             val scanId = backStackEntry.arguments?.getLong("scanId") ?: 0L
-            val isFreshScan = pendingResult?.first == scanId
-            val viewModel = remember {
-                ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
-            }
-            LaunchedEffect(scanId) {
-                val pending = pendingResult
-                if (pending != null && pending.first == scanId) {
-                    val imagePath = repository.getById(scanId)?.imagePath
-                    viewModel.loadFromAnalysis(scanId, pending.second, imagePath)
-                } else {
-                    viewModel.loadScan(scanId)
+            val pending = pendingResult
+            val isFreshScan = pending?.first == scanId
+            val viewModel = remember(scanId) {
+                ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator()).also { vm ->
+                    if (isFreshScan && pending != null) {
+                        // Synchronous — fills state before first composition
+                        val imagePath = kotlinx.coroutines.runBlocking { repository.getById(scanId)?.imagePath }
+                        vm.loadFromAnalysis(scanId, pending.second, imagePath)
+                    }
                 }
+            }
+            // For history items — load async (no pending result)
+            if (!isFreshScan) {
+                LaunchedEffect(scanId) { viewModel.loadScan(scanId) }
             }
             ResultScreen(
                 viewModel = viewModel,
