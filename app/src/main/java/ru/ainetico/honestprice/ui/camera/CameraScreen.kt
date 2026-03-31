@@ -370,26 +370,23 @@ fun CameraScreen(
  */
 @Composable
 private fun FrameOverlay(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.graphicsLayer(alpha = 0.99f)) {
+    Canvas(modifier = modifier) {
         val frameWidth = size.width * 0.85f
         val frameHeight = frameWidth * 0.5f
         val left = (size.width - frameWidth) / 2f
         val top = (size.height - frameHeight) / 2f - size.height * 0.05f
         val cornerRadius = 16.dp.toPx()
 
-        // Draw full-screen dimming, then cut out the frame with rounded corners
-        drawRect(color = Color(0xAA000000))
-
-        // Cut out the frame (transparent hole)
+        // Outer border (dark) for contrast on light backgrounds
         drawRoundRect(
-            color = Color.Transparent,
-            topLeft = Offset(left, top),
-            size = Size(frameWidth, frameHeight),
-            cornerRadius = CornerRadius(cornerRadius),
-            blendMode = androidx.compose.ui.graphics.BlendMode.Clear
+            color = Color(0xAA000000),
+            topLeft = Offset(left - 1.dp.toPx(), top - 1.dp.toPx()),
+            size = Size(frameWidth + 2.dp.toPx(), frameHeight + 2.dp.toPx()),
+            cornerRadius = CornerRadius(cornerRadius + 1.dp.toPx()),
+            style = Stroke(width = 3.dp.toPx())
         )
 
-        // Draw rounded white border around the frame
+        // Inner border (white) for contrast on dark backgrounds
         drawRoundRect(
             color = Color.White,
             topLeft = Offset(left, top),
