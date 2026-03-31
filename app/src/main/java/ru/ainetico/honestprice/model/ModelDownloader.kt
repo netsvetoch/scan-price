@@ -130,7 +130,7 @@ class ModelDownloader(
     val request = DownloadManager.Request(Uri.parse(url))
       .setTitle("ЧестнаяЦена — $label")
       .setDescription("Загрузка модели для распознавания ценников")
-      .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+      .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
       .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "honestprice_$filename")
       .setAllowedOverMetered(true)
       .setAllowedOverRoaming(false)
