@@ -86,7 +86,7 @@ fun HistoryScreen(
 
     Scaffold(
         floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 FloatingActionButton(
                     onClick = onNavigateToManualEntry,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
