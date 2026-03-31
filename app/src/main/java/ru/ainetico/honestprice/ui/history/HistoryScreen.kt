@@ -52,26 +52,26 @@ fun HistoryScreen(
         }
     }
 
-    // Listen for camera events — navigate to Result via NavHost
-    val cameraEvent by cameraViewModel.event.collectAsState()
-    LaunchedEffect(cameraEvent) {
-        when (val e = cameraEvent) {
-            is CameraEvent.NavigateToResult -> {
-                cameraViewModel.eventConsumed()
-                // Close sheet with animation, then navigate
-                sheetState.hide()
-                onShowSheetChange(false)
-                cameraViewModel.resetToPreview()
-                onNavigateToResult(e.scanId, e.result)
-            }
-            is CameraEvent.NavigateToManualEntry -> {
-                cameraViewModel.eventConsumed()
-                sheetState.hide()
-                onShowSheetChange(false)
-                cameraViewModel.resetToPreview()
-                onNavigateToManualEntry()
-            }
+    // Listen for camera events via Flow collect (not collectAsState)
+    LaunchedEffect(cameraViewModel) {
+        cameraViewModel.event.collect { e ->
+            when (e) {
+                is CameraEvent.NavigateToResult -> {
+                    cameraViewModel.eventConsumed()
+                    sheetState.hide()
+                    onShowSheetChange(false)
+                    cameraViewModel.resetToPreview()
+                    onNavigateToResult(e.scanId, e.result)
+                }
+                is CameraEvent.NavigateToManualEntry -> {
+                    cameraViewModel.eventConsumed()
+                    sheetState.hide()
+                    onShowSheetChange(false)
+                    cameraViewModel.resetToPreview()
+                    onNavigateToManualEntry()
+                }
             null -> {}
+            }
         }
     }
 
