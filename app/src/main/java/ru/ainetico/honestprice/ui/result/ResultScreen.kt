@@ -36,19 +36,15 @@ fun ResultScreen(
     }
 
     Scaffold { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = androidx.compose.ui.Alignment.BottomCenter
-        ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Photo preview
             if (state.imagePath != null) {
@@ -61,8 +57,8 @@ fun ResultScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(80.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -72,51 +68,52 @@ fun ResultScreen(
             OutlinedTextField(
                 value = state.productName,
                 onValueChange = { viewModel.updateProductName(it) },
-                label = { Text(stringResource(R.string.result_product_name), style = MaterialTheme.typography.bodySmall) },
+                label = { Text(stringResource(R.string.result_product_name)) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium
+                singleLine = true
             )
 
             // Prices row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
                     value = state.priceRegular,
                     onValueChange = { viewModel.updatePriceRegular(it) },
-                    label = { Text(stringResource(R.string.result_price_regular), style = MaterialTheme.typography.bodySmall) },
+                    label = { Text(stringResource(R.string.result_price_regular)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyMedium,
                     suffix = { Text("₽") }
                 )
                 OutlinedTextField(
                     value = state.priceDiscount,
                     onValueChange = { viewModel.updatePriceDiscount(it) },
-                    label = { Text(stringResource(R.string.result_price_discount), style = MaterialTheme.typography.bodySmall) },
+                    label = { Text(stringResource(R.string.result_price_discount)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyMedium,
                     suffix = { Text("₽") }
                 )
             }
 
-            // Weight
-            OutlinedTextField(
-                value = state.weightValue,
-                onValueChange = { viewModel.updateWeightValue(it) },
-                label = { Text(stringResource(R.string.result_weight), style = MaterialTheme.typography.bodySmall) },
+            // Weight + unit
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium
-            )
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = state.weightValue,
+                    onValueChange = { viewModel.updateWeightValue(it) },
+                    label = { Text(stringResource(R.string.result_weight)) },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true
+                )
+            }
 
-            // Unit selector
+            // Unit selector - Segmented Button
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 state.availableUnits.forEachIndexed { index, unit ->
                     SegmentedButton(
@@ -127,33 +124,27 @@ fun ResultScreen(
                             count = state.availableUnits.size
                         )
                     ) {
-                        Text(unit.displayName, style = MaterialTheme.typography.bodySmall)
+                        Text(unit.displayName)
                     }
                 }
             }
 
-            // Store + Barcode in one row
-            Row(
+            // Store
+            StoreComboBox(
+                value = state.storeName,
+                suggestions = suggestions,
+                onValueChange = { viewModel.updateStoreName(it) }
+            )
+
+            // Barcode
+            OutlinedTextField(
+                value = state.barcode,
+                onValueChange = { viewModel.updateBarcode(it) },
+                label = { Text(stringResource(R.string.result_barcode)) },
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    StoreComboBox(
-                        value = state.storeName,
-                        suggestions = suggestions,
-                        onValueChange = { viewModel.updateStoreName(it) }
-                    )
-                }
-                OutlinedTextField(
-                    value = state.barcode,
-                    onValueChange = { viewModel.updateBarcode(it) },
-                    label = { Text(stringResource(R.string.result_barcode), style = MaterialTheme.typography.bodySmall) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                    readOnly = state.barcode.isNotBlank() && !state.isManualEntry
-                )
-            }
+                singleLine = true,
+                readOnly = state.barcode.isNotBlank() && !state.isManualEntry
+            )
 
             // Price card
             PriceCard(
@@ -167,7 +158,7 @@ fun ResultScreen(
                 onClick = { viewModel.save() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                    .padding(vertical = 8.dp),
                 enabled = !state.isSaving
             ) {
                 Text(
@@ -176,8 +167,7 @@ fun ResultScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
