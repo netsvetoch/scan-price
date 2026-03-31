@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
+import ru.ainetico.honestprice.FrameConfig
 import ru.ainetico.honestprice.data.ScanRepository
 import java.io.File
 import java.io.FileOutputStream
@@ -154,10 +155,10 @@ class CameraViewModel(
     }
 
     private fun cropToFrame(bitmap: Bitmap): Bitmap {
-        val frameWidth = (bitmap.width * 0.85f).toInt()
-        val frameHeight = (frameWidth * 2f / 3f).toInt()
+        val frameWidth = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
+        val frameHeight = (frameWidth / FrameConfig.ASPECT_RATIO).toInt()
         val left = (bitmap.width - frameWidth) / 2
-        val top = ((bitmap.height - frameHeight) / 2f).toInt().coerceAtLeast(0)
+        val top = ((bitmap.height - frameHeight) / 2f - bitmap.height * FrameConfig.VERTICAL_OFFSET_FRACTION).toInt().coerceAtLeast(0)
 
         if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
             return bitmap

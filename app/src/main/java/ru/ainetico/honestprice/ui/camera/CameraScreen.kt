@@ -370,10 +370,10 @@ fun CameraScreen(
 @Composable
 private fun FrameOverlay(modifier: Modifier = Modifier) {
   Canvas(modifier = modifier) {
-    val frameWidth = size.width * 0.85f
-    val frameHeight = frameWidth * 2f / 3f  // 3:2 aspect ratio
+    val frameWidth = size.width * ru.ainetico.honestprice.FrameConfig.WIDTH_FRACTION
+    val frameHeight = frameWidth / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
     val left = (size.width - frameWidth) / 2f
-    val top = (size.height - frameHeight) / 2f - size.height * 0.15f
+    val top = (size.height - frameHeight) / 2f - size.height * ru.ainetico.honestprice.FrameConfig.VERTICAL_OFFSET_FRACTION
     val cornerRadius = 16.dp.toPx()
 
     // Outer border (dark) for contrast on light backgrounds
