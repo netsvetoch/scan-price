@@ -41,8 +41,8 @@ fun ResultScreen(
 
     // Colors for auto-recognized fields
     val autoFilledColors = OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-        unfocusedLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+        unfocusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.primary
     )
     val defaultColors = OutlinedTextFieldDefaults.colors()
 
