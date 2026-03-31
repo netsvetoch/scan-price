@@ -65,9 +65,6 @@ dependencies {
     // ML Kit - Barcode only
     implementation(libs.mlkit.barcode.scanning)
 
-    // HTTP client for Vision API
-    implementation(libs.okhttp)
-
     // CameraX
     implementation(libs.camerax.core)
     implementation(libs.camerax.camera2)

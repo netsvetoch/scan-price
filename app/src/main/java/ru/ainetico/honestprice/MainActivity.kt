@@ -6,24 +6,24 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.arm.aichat.AiChat
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.data.ScanRepositoryImpl
 import ru.ainetico.honestprice.navigation.Screen
 import ru.ainetico.honestprice.ocr.BarcodeEngine
-import ru.ainetico.honestprice.ocr.VisionApiClient
+import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.location.LocationProvider
 import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
@@ -35,33 +35,31 @@ import ru.ainetico.honestprice.ui.result.ResultViewModel
 import ru.ainetico.honestprice.ui.theme.ЧестнаяЦенаTheme
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var localVisionEngine: LocalVisionEngine
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Test llama.cpp native library loading
-        try {
-            val engine = AiChat.getInferenceEngine(this)
-            Log.i("LlamaTest", "InferenceEngine created, observing state...")
-            kotlinx.coroutines.MainScope().launch {
-                engine.state.collect { state ->
-                    Log.i("LlamaTest", "Engine state: ${state.javaClass.simpleName}")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("LlamaTest", "Failed to init llama.cpp", e)
+        // Initialize local vision engine in background
+        localVisionEngine = LocalVisionEngine(applicationContext)
+        lifecycleScope.launch {
+            Log.i("MainActivity", "Initializing local vision engine...")
+            localVisionEngine.initialize()
+            Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
         }
 
         setContent {
             ЧестнаяЦенаTheme {
-                HonestPriceApp()
+                HonestPriceApp(localVisionEngine)
             }
         }
     }
 }
 
 @Composable
-fun HonestPriceApp() {
+fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val prefs = remember {
@@ -98,14 +96,9 @@ fun HonestPriceApp() {
             )
         ) { backStackEntry ->
             val openGallery = backStackEntry.arguments?.getBoolean("openGallery") ?: false
-            val db = remember { AppDatabase.getInstance(context) }
             val repository = remember { ScanRepositoryImpl(db.scanDao()) }
             val analyzer = remember {
-                ImageAnalyzer(
-                    VisionApiClient(),
-                    BarcodeEngine(),
-                    PriceCalculator()
-                )
+                ImageAnalyzer(localVisionEngine, BarcodeEngine(), PriceCalculator())
             }
             val viewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
 
@@ -125,7 +118,6 @@ fun HonestPriceApp() {
             arguments = listOf(navArgument("scanId") { type = NavType.LongType })
         ) { backStackEntry ->
             val scanId = backStackEntry.arguments?.getLong("scanId") ?: 0L
-            val db = remember { AppDatabase.getInstance(context) }
             val repository = remember { ScanRepositoryImpl(db.scanDao()) }
             val viewModel = remember {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
@@ -141,7 +133,6 @@ fun HonestPriceApp() {
             )
         }
         composable(Screen.ResultManual.route) {
-            val db = remember { AppDatabase.getInstance(context) }
             val repository = remember { ScanRepositoryImpl(db.scanDao()) }
             val viewModel = remember {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
@@ -157,7 +148,6 @@ fun HonestPriceApp() {
             )
         }
         composable(Screen.History.route) {
-            val db = remember { AppDatabase.getInstance(context) }
             val repository = remember { ScanRepositoryImpl(db.scanDao()) }
             val viewModel = remember { HistoryViewModel(repository) }
 

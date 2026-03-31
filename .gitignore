@@ -16,3 +16,6 @@ local.properties
 .superpowers/
 .kotlin/
 .idea/
+models/
+*.tar.gz
+*.gguf
