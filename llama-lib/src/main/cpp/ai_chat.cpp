@@ -154,15 +154,30 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     if (!bitmap) { LOGe("Failed to create bitmap!"); return env->NewStringUTF(""); }
     LOGi("Bitmap: %dx%d", mtmd_bitmap_get_nx(bitmap), mtmd_bitmap_get_ny(bitmap));
 
-    // Build prompt: <media_marker>\n<user_prompt>
-    const auto *prompt = env->GetStringUTFChars(jprompt, nullptr);
-    std::string full_prompt = std::string(mtmd_default_marker()) + "\n" + prompt;
-    env->ReleaseStringUTFChars(jprompt, prompt);
+    // Build prompt with chat template
+    const auto *prompt_cstr = env->GetStringUTFChars(jprompt, nullptr);
+    std::string user_content = std::string(mtmd_default_marker()) + "\n" + prompt_cstr;
+    env->ReleaseStringUTFChars(jprompt, prompt_cstr);
+
+    // Format with chat template for proper Qwen3.5 formatting
+    std::string formatted_prompt;
+    const bool has_tmpl = common_chat_templates_was_explicit(g_chat_templates.get());
+    if (has_tmpl) {
+        std::vector<common_chat_msg> msgs;
+        common_chat_msg user_msg;
+        user_msg.role = "user";
+        user_msg.content = user_content;
+        formatted_prompt = common_chat_format_single(
+            g_chat_templates.get(), msgs, user_msg, true, false);
+        LOGi("Formatted prompt (%d chars): %.100s", (int)formatted_prompt.size(), formatted_prompt.c_str());
+    } else {
+        formatted_prompt = user_content;
+    }
 
     // Tokenize with image
     mtmd_input_text input_text;
-    input_text.text = full_prompt.c_str();
-    input_text.add_special = true;
+    input_text.text = formatted_prompt.c_str();
+    input_text.add_special = !has_tmpl;
     input_text.parse_special = true;
 
     const mtmd_bitmap *bitmaps[] = { bitmap };

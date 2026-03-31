@@ -111,7 +111,12 @@ class LocalVisionEngine(private val appContext: Context) {
                 Log.i(TAG, "Sending ${jpegBytes.size} bytes to local model")
 
                 val response = eng.analyzeImage(jpegBytes, PROMPT)
-                Log.i(TAG, "Response: ${response.take(300)}")
+                Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
+
+                if (response.isBlank()) {
+                    Log.w(TAG, "Empty response from model")
+                    return@withContext ParsedPriceTag()
+                }
 
                 parseResponse(response)
             } catch (e: Exception) {
