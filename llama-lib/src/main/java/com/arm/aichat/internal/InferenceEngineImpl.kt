@@ -129,15 +129,19 @@ internal class InferenceEngineImpl private constructor(
     private val llamaScope = CoroutineScope(llamaDispatcher + SupervisorJob())
 
     init {
+        Log.i(TAG, "init{} block starting, state=${_state.value.javaClass.simpleName}")
         llamaScope.launch {
             try {
+                Log.i(TAG, "init coroutine running, state=${_state.value.javaClass.simpleName}")
                 check(_state.value is InferenceEngine.State.Uninitialized) {
                     "Cannot load native library in ${_state.value.javaClass.simpleName}!"
                 }
                 _state.value = InferenceEngine.State.Initializing
                 Log.i(TAG, "Loading native library...")
                 System.loadLibrary("ai-chat")
+                Log.i(TAG, "System.loadLibrary done, calling init($nativeLibDir)")
                 init(nativeLibDir)
+                Log.i(TAG, "init() JNI done, setting Initialized")
                 _state.value = InferenceEngine.State.Initialized
                 Log.i(TAG, "Native library loaded! System info: \n${systemInfo()}")
 

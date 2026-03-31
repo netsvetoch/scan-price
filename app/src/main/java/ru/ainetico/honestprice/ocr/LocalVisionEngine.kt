@@ -49,9 +49,17 @@ class LocalVisionEngine(private val appContext: Context) {
             engine = eng
 
             // Wait for native lib to initialize via StateFlow
-            Log.i(TAG, "Waiting for engine to initialize...")
-            eng.state.first { it is InferenceEngine.State.Initialized }
+            Log.i(TAG, "Waiting for engine to initialize, current state: ${eng.state.value}")
+            eng.state.first { state ->
+                Log.i(TAG, "State transition: ${state.javaClass.simpleName}")
+                state is InferenceEngine.State.Initialized
+            }
             Log.i(TAG, "Engine initialized!")
+
+            // List available .so files for debugging
+            val nativeLibDir = File(appContext.applicationInfo.nativeLibraryDir)
+            Log.i(TAG, "Native libs in ${nativeLibDir.absolutePath}:")
+            nativeLibDir.listFiles()?.forEach { Log.i(TAG, "  ${it.name} (${it.length() / 1024}KB)") }
 
             // Find model files
             val modelsDir = File(appContext.filesDir, "models")
