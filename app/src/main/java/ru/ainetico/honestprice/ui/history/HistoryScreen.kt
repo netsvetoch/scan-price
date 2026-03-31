@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.ScanRepository
@@ -50,9 +51,18 @@ fun HistoryScreen(
     val context = LocalContext.current
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
 
     var pendingResult by remember { mutableStateOf<Triple<Long, AnalysisResult, String?>?>(null) }
     val showingResult = pendingResult != null
+
+    // Helper to close sheet with animation
+    fun closeSheet() {
+        scope.launch {
+            sheetState.hide()
+            onShowSheetChange(false)
+        }
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -73,6 +83,7 @@ fun HistoryScreen(
             }
             is CameraEvent.NavigateToManualEntry -> {
                 cameraViewModel.eventConsumed()
+                sheetState.hide()
                 onShowSheetChange(false)
                 cameraViewModel.resetToPreview()
                 onNavigateToManualEntry()
@@ -149,8 +160,8 @@ fun HistoryScreen(
                     viewModel = resultViewModel,
                     onSaved = {
                         pendingResult = null
-                        onShowSheetChange(false)
                         cameraViewModel.resetToPreview()
+                        closeSheet()
                     },
                     onCancel = {
                         CoroutineScope(Dispatchers.IO).launch {
