@@ -209,9 +209,9 @@ class CameraViewModel(
   }
 
   /**
-   * Crop the area visible inside the frame, accounting for ContentScale.Crop + pan + zoom.
+   * Crop the area visible inside the frame, accounting for ContentScale.FillWidth + pan + zoom.
    *
-   * ContentScale.Crop scales bitmap to fill the view, cropping overflow.
+   * ContentScale.FillWidth scales bitmap to match view width, preserving aspect ratio.
    * The user then applies pan (offset) and zoom on top.
    * We need to find which bitmap pixels are inside the frame rectangle.
    */
@@ -219,8 +219,8 @@ class CameraViewModel(
     bitmap: Bitmap, viewW: Float, viewH: Float,
     panX: Float, panY: Float, zoom: Float
   ): Bitmap {
-    // Step 1: ContentScale.Crop — scale to fill, center
-    val scaleToFill = maxOf(viewW / bitmap.width, viewH / bitmap.height)
+    // Step 1: ContentScale.FillWidth — scale to match view width
+    val scaleToFill = viewW / bitmap.width
     // Effective scale after user zoom
     val totalScale = scaleToFill * zoom
 

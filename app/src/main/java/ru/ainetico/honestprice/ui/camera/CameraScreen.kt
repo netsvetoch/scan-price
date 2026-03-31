@@ -198,7 +198,7 @@ fun CameraScreen(
                   zoom = (zoom * gestureZoom).coerceIn(0.5f, 5f)
                 }
               },
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.FillWidth
           )
 
           // Frame overlay on top
