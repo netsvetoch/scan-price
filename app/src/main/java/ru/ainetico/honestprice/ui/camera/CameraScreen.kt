@@ -19,6 +19,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -239,9 +243,9 @@ fun CameraScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
                             modifier = Modifier.size(56.dp),
                             contentPadding = PaddingValues(0.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = CircleShape
                         ) {
-                            Text("🖼", fontSize = 22.sp)
+                            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(stringResource(R.string.camera_gallery), color = Color.White, fontSize = 12.sp)
@@ -252,9 +256,9 @@ fun CameraScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
                             modifier = Modifier.size(56.dp),
                             contentPadding = PaddingValues(0.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = CircleShape
                         ) {
-                            Text("✏️", fontSize = 22.sp)
+                            Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(stringResource(R.string.camera_manual), color = Color.White, fontSize = 12.sp)
@@ -292,9 +296,9 @@ fun CameraScreen(
                             ),
                             modifier = Modifier.size(56.dp),
                             contentPadding = PaddingValues(0.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = CircleShape
                         ) {
-                            Text("🖼", fontSize = 22.sp)
+                            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -347,9 +351,9 @@ fun CameraScreen(
                             ),
                             modifier = Modifier.size(56.dp),
                             contentPadding = PaddingValues(0.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = CircleShape
                         ) {
-                            Text("✏️", fontSize = 22.sp)
+                            Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
