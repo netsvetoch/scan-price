@@ -158,7 +158,6 @@ fun HistoryScreen(
                             repository.delete(scanId)
                         }
                         pendingResult = null
-                        showSheet = false
                         cameraViewModel.resetToPreview()
                     }
                 )
