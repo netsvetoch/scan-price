@@ -43,7 +43,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.model.AnalysisResult
+import androidx.compose.foundation.layout.wrapContentHeight
 import ru.ainetico.honestprice.ui.camera.CameraEvent
+import ru.ainetico.honestprice.ui.camera.CameraState
 import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 
@@ -199,8 +201,14 @@ fun HistoryScreen(
     }
   }
 
-  // Camera BottomSheet — only camera, no result form
+  // Camera BottomSheet
   if (showSheet) {
+    val cameraState by cameraViewModel.state.collectAsState()
+    val sheetModifier = when (cameraState) {
+      is CameraState.Preview, is CameraState.Adjusting, is CameraState.Error -> Modifier.fillMaxHeight(0.85f)
+      is CameraState.Scanning -> Modifier.wrapContentHeight()
+    }
+
     ModalBottomSheet(
       onDismissRequest = {
         onShowSheetChange(false)
@@ -208,7 +216,7 @@ fun HistoryScreen(
       },
       sheetState = sheetState
     ) {
-      Box(modifier = Modifier.fillMaxHeight(0.85f)) {
+      Box(modifier = sheetModifier) {
         CameraScreen(
           viewModel = cameraViewModel
         )
