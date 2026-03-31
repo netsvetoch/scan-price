@@ -2,7 +2,6 @@ package ru.ainetico.honestprice.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,15 +19,15 @@ import com.valentinilk.shimmer.shimmer
  */
 @Composable
 fun ShimmerBox(
-    modifier: Modifier = Modifier,
-    cornerRadius: Dp = 12.dp
+  modifier: Modifier = Modifier,
+  cornerRadius: Dp = 12.dp
 ) {
-    Box(
-        modifier = modifier
-            .shimmer()
-            .clip(RoundedCornerShape(cornerRadius))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-    )
+  Box(
+    modifier = modifier
+      .shimmer()
+      .clip(RoundedCornerShape(cornerRadius))
+      .background(MaterialTheme.colorScheme.surfaceVariant)
+  )
 }
 
 /**
@@ -36,14 +35,14 @@ fun ShimmerBox(
  */
 @Composable
 fun ShimmerImageSkeleton(
-    modifier: Modifier = Modifier,
-    aspectRatio: Float = 3f / 2f
+  modifier: Modifier = Modifier,
+  aspectRatio: Float = 3f / 2f
 ) {
-    ShimmerBox(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(aspectRatio)
-    )
+  ShimmerBox(
+    modifier = modifier
+      .fillMaxWidth()
+      .aspectRatio(aspectRatio)
+  )
 }
 
 /**
@@ -51,13 +50,13 @@ fun ShimmerImageSkeleton(
  */
 @Composable
 fun ShimmerLine(
-    modifier: Modifier = Modifier,
-    height: Dp = 16.dp
+  modifier: Modifier = Modifier,
+  height: Dp = 16.dp
 ) {
-    ShimmerBox(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height),
-        cornerRadius = 4.dp
-    )
+  ShimmerBox(
+    modifier = modifier
+      .fillMaxWidth()
+      .height(height),
+    cornerRadius = 4.dp
+  )
 }
