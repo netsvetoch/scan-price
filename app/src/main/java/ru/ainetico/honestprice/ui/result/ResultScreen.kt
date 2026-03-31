@@ -45,9 +45,9 @@ fun ResultScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 12.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
 
             // Photo preview
@@ -61,8 +61,8 @@ fun ResultScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(120.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+                            .height(80.dp)
+                            .clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -72,83 +72,92 @@ fun ResultScreen(
             OutlinedTextField(
                 value = state.productName,
                 onValueChange = { viewModel.updateProductName(it) },
-                label = { Text(stringResource(R.string.result_product_name)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                label = { Text(stringResource(R.string.result_product_name), style = MaterialTheme.typography.bodySmall) },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium
             )
 
             // Prices row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 OutlinedTextField(
                     value = state.priceRegular,
                     onValueChange = { viewModel.updatePriceRegular(it) },
-                    label = { Text(stringResource(R.string.result_price_regular)) },
-                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.result_price_regular), style = MaterialTheme.typography.bodySmall) },
+                    modifier = Modifier.weight(1f).height(52.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium,
                     suffix = { Text("₽") }
                 )
                 OutlinedTextField(
                     value = state.priceDiscount,
                     onValueChange = { viewModel.updatePriceDiscount(it) },
-                    label = { Text(stringResource(R.string.result_price_discount)) },
-                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.result_price_discount), style = MaterialTheme.typography.bodySmall) },
+                    modifier = Modifier.weight(1f).height(52.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium,
                     suffix = { Text("₽") }
                 )
             }
 
-            // Weight + unit
+            // Weight + unit in one row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = state.weightValue,
                     onValueChange = { viewModel.updateWeightValue(it) },
-                    label = { Text(stringResource(R.string.result_weight)) },
-                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.result_weight), style = MaterialTheme.typography.bodySmall) },
+                    modifier = Modifier.weight(0.4f).height(52.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium
                 )
-            }
-
-            // Unit selector - Segmented Button
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                state.availableUnits.forEachIndexed { index, unit ->
-                    SegmentedButton(
-                        selected = state.weightUnit == unit,
-                        onClick = { viewModel.selectUnit(unit) },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = state.availableUnits.size
-                        )
-                    ) {
-                        Text(unit.displayName)
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(0.6f)) {
+                    state.availableUnits.forEachIndexed { index, unit ->
+                        SegmentedButton(
+                            selected = state.weightUnit == unit,
+                            onClick = { viewModel.selectUnit(unit) },
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = state.availableUnits.size
+                            )
+                        ) {
+                            Text(unit.displayName, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }
 
-            // Store
-            StoreComboBox(
-                value = state.storeName,
-                suggestions = suggestions,
-                onValueChange = { viewModel.updateStoreName(it) }
-            )
-
-            // Barcode
-            OutlinedTextField(
-                value = state.barcode,
-                onValueChange = { viewModel.updateBarcode(it) },
-                label = { Text(stringResource(R.string.result_barcode)) },
+            // Store + Barcode in one row
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                readOnly = state.barcode.isNotBlank() && !state.isManualEntry
-            )
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f).height(52.dp)) {
+                    StoreComboBox(
+                        value = state.storeName,
+                        suggestions = suggestions,
+                        onValueChange = { viewModel.updateStoreName(it) }
+                    )
+                }
+                OutlinedTextField(
+                    value = state.barcode,
+                    onValueChange = { viewModel.updateBarcode(it) },
+                    label = { Text(stringResource(R.string.result_barcode), style = MaterialTheme.typography.bodySmall) },
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    readOnly = state.barcode.isNotBlank() && !state.isManualEntry
+                )
+            }
 
             // Price card
             PriceCard(
@@ -162,7 +171,7 @@ fun ResultScreen(
                 onClick = { viewModel.save() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 4.dp),
                 enabled = !state.isSaving
             ) {
                 Text(
@@ -171,7 +180,7 @@ fun ResultScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         }
     }
