@@ -1,14 +1,14 @@
 package ru.ainetico.honestprice.model
 
 import android.app.DownloadManager
-import android.content.BroadcastReceiver
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,6 +29,10 @@ class ModelDownloader(
 
   companion object {
     private const val TAG = "ModelDownloader"
+    private const val CHANNEL_SILENT = "model_download"
+    private const val CHANNEL_ALERT = "model_ready"
+    private const val NOTIF_SILENT = 1001
+    private const val NOTIF_ALERT = 1002
 
     var MODEL_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
     var MMPROJ_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
@@ -36,9 +40,6 @@ class ModelDownloader(
     const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
     const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
 
-    private const val PREFS_NAME = "model_download_prefs"
-    private const val KEY_MODEL_DL_ID = "model_download_id"
-    private const val KEY_MMPROJ_DL_ID = "mmproj_download_id"
   }
 
   data class FileProgress(val label: String, val progress: Int, val done: Boolean = false)
@@ -57,8 +58,50 @@ class ModelDownloader(
   private val file2Progress = MutableStateFlow(FileProgress("Файл 2 из 2", 0))
 
   private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-  private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+  private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
   private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+  init {
+    createNotificationChannels()
+  }
+
+  private fun createNotificationChannels() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      notificationManager.createNotificationChannel(
+        NotificationChannel(CHANNEL_SILENT, "Загрузка моделей", NotificationManager.IMPORTANCE_LOW)
+      )
+      notificationManager.createNotificationChannel(
+        NotificationChannel(CHANNEL_ALERT, "Готовность модели", NotificationManager.IMPORTANCE_HIGH)
+      )
+    }
+  }
+
+  private fun showSilentNotification(title: String, text: String, progress: Int) {
+    val builder = NotificationCompat.Builder(context, CHANNEL_SILENT)
+      .setSmallIcon(android.R.drawable.stat_sys_download)
+      .setContentTitle(title)
+      .setContentText(text)
+      .setPriority(NotificationCompat.PRIORITY_LOW)
+      .setOngoing(true)
+      .setProgress(100, progress.coerceIn(0, 100), false)
+    notificationManager.notify(NOTIF_SILENT, builder.build())
+  }
+
+  private fun cancelSilentNotification() {
+    notificationManager.cancel(NOTIF_SILENT)
+  }
+
+  private fun showHeadsUpNotification(title: String, text: String) {
+    notificationManager.notify(NOTIF_ALERT,
+      NotificationCompat.Builder(context, CHANNEL_ALERT)
+        .setSmallIcon(android.R.drawable.stat_sys_download_done)
+        .setContentTitle(title)
+        .setContentText(text)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setAutoCancel(true)
+        .build()
+    )
+  }
 
   fun isModelDownloaded(): Boolean {
     val modelsDir = File(context.filesDir, "models")
@@ -91,9 +134,15 @@ class ModelDownloader(
           scope.launch { downloadFileWithManager(MMPROJ_URL, MMPROJ_FILENAME, file2Progress) }
         } else null
 
-        // Poll and update combined state
+        // Poll, update UI state and silent notification
         while (job1?.isActive == true || job2?.isActive == true) {
-          _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
+          val f1 = file1Progress.value
+          val f2 = file2Progress.value
+          _state.value = DownloadState.Downloading(f1, f2)
+
+          val totalProgress = (f1.progress + f2.progress) / 2
+          showSilentNotification("Загрузка моделей", "$totalProgress%", totalProgress)
+
           delay(2000)
         }
 
@@ -101,9 +150,12 @@ class ModelDownloader(
         job2?.join()
 
         if (isModelDownloaded()) {
+          showSilentNotification("Загрузка моделей", "Инициализация…", 100)
           _state.value = DownloadState.Completed
           Log.i(TAG, "All models downloaded, initializing engine...")
           onModelsReady?.invoke()
+          cancelSilentNotification()
+          showHeadsUpNotification("Модели загружены", "Автоматическое распознавание ценников работает")
         } else {
           _state.value = DownloadState.Error("Загрузка не завершена")
         }
