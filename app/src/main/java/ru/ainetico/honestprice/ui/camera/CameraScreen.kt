@@ -58,7 +58,7 @@ import ru.ainetico.honestprice.R
 fun CameraScreen(
   viewModel: CameraViewModel,
   openGallery: Boolean = false,
-  onNavigateToResult: (Long) -> Unit,
+  onNavigateToResult: (Long, ru.ainetico.honestprice.model.AnalysisResult) -> Unit,
   onNavigateToManualEntry: () -> Unit
 ) {
   val context = LocalContext.current
@@ -70,7 +70,7 @@ fun CameraScreen(
     when (val e = event) {
       is CameraEvent.NavigateToResult -> {
         viewModel.eventConsumed()
-        onNavigateToResult(e.scanId)
+        onNavigateToResult(e.scanId, e.result)
       }
 
       is CameraEvent.NavigateToManualEntry -> {

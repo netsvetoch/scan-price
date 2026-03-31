@@ -81,6 +81,29 @@ class ResultViewModel(
         }
     }
 
+    fun loadFromAnalysis(scanId: Long, result: ru.ainetico.honestprice.model.AnalysisResult, imagePath: String?) {
+        val tag = result.tag
+        val unit = tag.weightUnit
+        val availableUnits = when (unit) {
+            WeightUnit.G, WeightUnit.KG -> listOf(WeightUnit.G, WeightUnit.KG)
+            WeightUnit.ML, WeightUnit.L -> listOf(WeightUnit.ML, WeightUnit.L)
+            else -> listOf(WeightUnit.G, WeightUnit.KG, WeightUnit.ML, WeightUnit.L, WeightUnit.PCS)
+        }
+        _state.value = ResultState(
+            scanId = scanId,
+            productName = tag.productName ?: "",
+            priceRegular = tag.priceRegular?.toPlainString() ?: "",
+            priceDiscount = tag.priceDiscount?.toPlainString() ?: "",
+            weightValue = tag.weightValue?.toPlainString() ?: "",
+            weightUnit = unit ?: WeightUnit.PCS,
+            availableUnits = availableUnits,
+            barcode = tag.barcode ?: "",
+            imagePath = imagePath,
+            isManualEntry = false
+        )
+        recalculatePrice()
+    }
+
     fun loadManual() {
         _state.value = ResultState(isManualEntry = true)
     }

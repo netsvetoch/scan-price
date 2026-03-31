@@ -29,7 +29,7 @@ fun HistoryScreen(
     viewModel: HistoryViewModel,
     cameraViewModel: CameraViewModel,
     onScanClick: (Long) -> Unit,
-    onNavigateToResult: (Long) -> Unit,
+    onNavigateToResult: (Long, ru.ainetico.honestprice.model.AnalysisResult) -> Unit,
     onNavigateToManualEntry: () -> Unit
 ) {
     val scans by viewModel.scans.collectAsState()
@@ -96,9 +96,9 @@ fun HistoryScreen(
             Box(modifier = Modifier.height(500.dp)) {
                 CameraScreen(
                     viewModel = cameraViewModel,
-                    onNavigateToResult = { scanId ->
+                    onNavigateToResult = { scanId, result ->
                         showCameraSheet = false
-                        onNavigateToResult(scanId)
+                        onNavigateToResult(scanId, result)
                     },
                     onNavigateToManualEntry = {
                         showCameraSheet = false

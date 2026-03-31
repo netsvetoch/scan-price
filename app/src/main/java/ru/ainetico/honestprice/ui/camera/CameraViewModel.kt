@@ -25,7 +25,7 @@ sealed class CameraState {
 }
 
 sealed class CameraEvent {
-    data class NavigateToResult(val scanId: Long) : CameraEvent()
+    data class NavigateToResult(val scanId: Long, val result: ru.ainetico.honestprice.model.AnalysisResult) : CameraEvent()
     object NavigateToManualEntry : CameraEvent()
 }
 
@@ -49,8 +49,8 @@ class CameraViewModel(
         _state.value = CameraState.Scanning(bitmap)
         scanningJob = viewModelScope.launch {
             try {
-                val scanId = processImage(bitmap, cropRect)
-                _event.value = CameraEvent.NavigateToResult(scanId)
+                val (scanId, result) = processImage(bitmap, cropRect)
+                _event.value = CameraEvent.NavigateToResult(scanId, result)
             } catch (e: Exception) {
                 Log.e("CameraViewModel", "Processing failed", e)
                 _state.value = CameraState.Preview
@@ -66,8 +66,8 @@ class CameraViewModel(
                     MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
                 }
                 _state.value = CameraState.Scanning(bitmap)
-                val scanId = processImage(bitmap, cropRect = null)
-                _event.value = CameraEvent.NavigateToResult(scanId)
+                val (scanId, result) = processImage(bitmap, cropRect = null)
+                _event.value = CameraEvent.NavigateToResult(scanId, result)
             } catch (e: Exception) {
                 Log.e("CameraViewModel", "Gallery import failed", e)
                 _state.value = CameraState.Preview
@@ -99,7 +99,7 @@ class CameraViewModel(
         _event.value = null
     }
 
-    private suspend fun processImage(bitmap: Bitmap, cropRect: Rect?): Long {
+    private suspend fun processImage(bitmap: Bitmap, cropRect: Rect?): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
         return withContext(Dispatchers.IO) {
             val timestamp = System.currentTimeMillis()
             val imagesDir = File(appContext.filesDir, "images/originals").apply { mkdirs() }
@@ -113,7 +113,9 @@ class CameraViewModel(
             val scanId = scanRepository.createProcessing(imagePath)
             lastScanId = scanId
             val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
-            scanRepository.markCompleted(scanId, analysisResult.tag, analysisResult.price)
+            // Don't markCompleted here — stays PROCESSING until user explicitly saves
+            // ResultViewModel.save() will call updateUserFields which sets COMPLETED
+            // PROCESSING records are hidden from history list
 
             val thumbDir = File(appContext.filesDir, "images/thumbnails").apply { mkdirs() }
             val thumbPath = File(thumbDir, "thumb_${scanId}_${timestamp}.jpg").absolutePath
@@ -124,7 +126,7 @@ class CameraViewModel(
                 thumb.compress(Bitmap.CompressFormat.JPEG, 80, out)
             }
 
-            scanId
+            Pair(scanId, analysisResult)
         }
     }
 }

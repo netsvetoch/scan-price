@@ -8,7 +8,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
@@ -72,6 +75,9 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     val analyzer = remember { ImageAnalyzer(localVisionEngine, BarcodeEngine(), PriceCalculator()) }
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
 
+    // Pending analysis result (from camera to result screen)
+    var pendingResult by remember { mutableStateOf<Pair<Long, ru.ainetico.honestprice.model.AnalysisResult>?>(null) }
+
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Onboarding.route) {
             OnboardingScreen(onComplete = {
@@ -86,8 +92,14 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             HistoryScreen(
                 viewModel = historyViewModel,
                 cameraViewModel = cameraViewModel,
-                onScanClick = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
-                onNavigateToResult = { scanId -> navController.navigate(Screen.Result.createRoute(scanId)) },
+                onScanClick = { scanId ->
+                    pendingResult = null
+                    navController.navigate(Screen.Result.createRoute(scanId))
+                },
+                onNavigateToResult = { scanId, result ->
+                    pendingResult = Pair(scanId, result)
+                    navController.navigate(Screen.Result.createRoute(scanId))
+                },
                 onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) }
             )
         }
@@ -99,15 +111,35 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             val viewModel = remember {
                 ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
             }
-            LaunchedEffect(scanId) { viewModel.loadScan(scanId) }
+            LaunchedEffect(scanId) {
+                val pending = pendingResult
+                if (pending != null && pending.first == scanId) {
+                    // Fresh scan from camera — load from AnalysisResult (not yet saved to Room)
+                    val imagePath = repository.getById(scanId)?.imagePath
+                    viewModel.loadFromAnalysis(scanId, pending.second, imagePath)
+                } else {
+                    // Existing scan from history — load from Room
+                    viewModel.loadScan(scanId)
+                }
+            }
             ResultScreen(
                 viewModel = viewModel,
                 onSaved = {
+                    pendingResult = null
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onCancel = {
+                    // Delete PROCESSING record if cancelling a fresh scan
+                    if (pendingResult?.first == scanId) {
+                        kotlinx.coroutines.MainScope().launch {
+                            repository.delete(scanId)
+                        }
+                        pendingResult = null
+                    }
+                    navController.popBackStack()
+                }
             )
         }
         composable(Screen.ResultManual.route) {
