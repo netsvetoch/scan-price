@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -90,20 +91,21 @@ fun HistoryScreen(
                 showCameraSheet = false
                 cameraViewModel.retake()
             },
-            sheetState = sheetState,
-            modifier = Modifier.fillMaxHeight(0.8f)
+            sheetState = sheetState
         ) {
-            CameraScreen(
-                viewModel = cameraViewModel,
-                onNavigateToResult = { scanId ->
-                    showCameraSheet = false
-                    onNavigateToResult(scanId)
-                },
-                onNavigateToManualEntry = {
-                    showCameraSheet = false
-                    onNavigateToManualEntry()
-                }
-            )
+            Box(modifier = Modifier.height(500.dp)) {
+                CameraScreen(
+                    viewModel = cameraViewModel,
+                    onNavigateToResult = { scanId ->
+                        showCameraSheet = false
+                        onNavigateToResult(scanId)
+                    },
+                    onNavigateToManualEntry = {
+                        showCameraSheet = false
+                        onNavigateToManualEntry()
+                    }
+                )
+            }
         }
     }
 }
