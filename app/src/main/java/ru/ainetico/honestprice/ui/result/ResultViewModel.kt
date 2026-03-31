@@ -59,11 +59,7 @@ class ResultViewModel(
         viewModelScope.launch {
             val scan = scanRepository.getById(scanId) ?: return@launch
             val unit = scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
-            val availableUnits = when (unit) {
-                WeightUnit.G, WeightUnit.KG -> listOf(WeightUnit.G, WeightUnit.KG)
-                WeightUnit.ML, WeightUnit.L -> listOf(WeightUnit.ML, WeightUnit.L)
-                else -> listOf(WeightUnit.G, WeightUnit.KG, WeightUnit.ML, WeightUnit.L, WeightUnit.PCS)
-            }
+            val availableUnits = listOf(WeightUnit.G, WeightUnit.KG, WeightUnit.ML, WeightUnit.L, WeightUnit.PCS)
             _state.value = ResultState(
                 scanId = scanId,
                 productName = scan.productName ?: "",
