@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -77,7 +79,14 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
     var showCameraSheet by remember { mutableStateOf(true) }
     var pendingResult by remember { mutableStateOf<Pair<Long, ru.ainetico.honestprice.model.AnalysisResult>?>(null) }
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+        exitTransition = { slideOutHorizontally(targetOffsetX = { -it / 3 }) },
+        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it / 3 }) },
+        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
+    ) {
         composable(Screen.Onboarding.route) {
             OnboardingScreen(onComplete = {
                 navController.navigate(Screen.History.route) {
