@@ -91,7 +91,7 @@ fun HistoryScreen(
                 cameraViewModel.retake()
             },
             sheetState = sheetState,
-            modifier = Modifier.fillMaxHeight(0.92f)
+            modifier = Modifier.fillMaxHeight(0.8f)
         ) {
             CameraScreen(
                 viewModel = cameraViewModel,
