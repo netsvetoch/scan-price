@@ -2,7 +2,9 @@ package ru.ainetico.honestprice.ui.result
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -60,21 +62,29 @@ fun ResultScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Photo preview
+            // Photo preview — async loading with skeleton
             if (state.imagePath != null) {
-                val bitmap = remember(state.imagePath) {
-                    BitmapFactory.decodeFile(state.imagePath)
+                var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+                LaunchedEffect(state.imagePath) {
+                    bitmap = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        BitmapFactory.decodeFile(state.imagePath)
+                    }
                 }
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap!!.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
 
