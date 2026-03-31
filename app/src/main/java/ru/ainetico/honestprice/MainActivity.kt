@@ -126,18 +126,19 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                 viewModel = viewModel,
                 onSaved = {
                     pendingResult = null
+                    cameraViewModel.resetToPreview()
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
                 },
                 onCancel = {
-                    // Delete PROCESSING record if cancelling a fresh scan
                     if (pendingResult?.first == scanId) {
                         kotlinx.coroutines.MainScope().launch {
                             repository.delete(scanId)
                         }
                         pendingResult = null
                     }
+                    cameraViewModel.resetToPreview()
                     navController.popBackStack()
                 }
             )
@@ -150,11 +151,15 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
             ResultScreen(
                 viewModel = viewModel,
                 onSaved = {
+                    cameraViewModel.resetToPreview()
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onCancel = {
+                    cameraViewModel.resetToPreview()
+                    navController.popBackStack()
+                }
             )
         }
     }

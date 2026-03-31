@@ -99,6 +99,10 @@ class CameraViewModel(
         _event.value = null
     }
 
+    fun resetToPreview() {
+        _state.value = CameraState.Preview
+    }
+
     private suspend fun processImage(bitmap: Bitmap, cropRect: Rect?): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
         return withContext(Dispatchers.IO) {
             val timestamp = System.currentTimeMillis()
