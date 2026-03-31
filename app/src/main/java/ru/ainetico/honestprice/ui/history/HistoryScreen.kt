@@ -48,8 +48,13 @@ fun HistoryScreen(
     val scans by viewModel.scans.collectAsState()
     val context = LocalContext.current
 
-    var showSheet by remember { mutableStateOf(openCameraOnStart) }
+    var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Open camera on first composition only
+    LaunchedEffect(Unit) {
+        if (openCameraOnStart) showSheet = true
+    }
 
     // After camera scans, holds the result until user saves or cancels
     var pendingResult by remember { mutableStateOf<Triple<Long, AnalysisResult, String?>?>(null) }
