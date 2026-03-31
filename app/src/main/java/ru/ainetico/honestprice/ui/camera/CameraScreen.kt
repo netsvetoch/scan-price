@@ -248,9 +248,26 @@ fun CameraScreen(
           verticalArrangement = Arrangement.Center,
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
+          // Status above image
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 12.dp)
+          ) {
+            CircularProgressIndicator(
+              modifier = Modifier.size(18.dp),
+              color = MaterialTheme.colorScheme.primary,
+              strokeWidth = 2.dp
+            )
+            Text(
+              text = scanning.status,
+              style = MaterialTheme.typography.bodyMedium
+            )
+          }
+
           Box(
             modifier = Modifier
-              .padding(24.dp)
+              .padding(horizontal = 24.dp)
               .clip(RoundedCornerShape(16.dp))
               .border(2.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
               .background(Color.DarkGray)
@@ -266,31 +283,6 @@ fun CameraScreen(
               )
               ScanningOverlay(modifier = Modifier.matchParentSize())
             }
-          }
-        }
-
-        // Scanning label
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.TopCenter)
-            .padding(top = 64.dp),
-          contentAlignment = Alignment.Center
-        ) {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-          ) {
-            CircularProgressIndicator(
-              modifier = Modifier.size(20.dp),
-              color = Color(0xFF00E676),
-              strokeWidth = 2.dp
-            )
-            Text(
-              text = scanning.status,
-              color = Color.White,
-              fontSize = 16.sp
-            )
           }
         }
 
