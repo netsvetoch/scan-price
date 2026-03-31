@@ -156,7 +156,7 @@ fun HistoryScreen(
             },
             sheetState = sheetState
         ) {
-            Box(modifier = Modifier.height(500.dp)) {
+            Box(modifier = Modifier.fillMaxHeight(0.85f)) {
                 CameraScreen(
                     viewModel = cameraViewModel
                 )
