@@ -44,39 +44,37 @@ class LocalVisionEngine(private val appContext: Context) {
     suspend fun initialize() {
         if (isReady) return
 
-        withContext(Dispatchers.IO) {
-            try {
-                val eng = AiChat.getInferenceEngine(appContext)
-                engine = eng
+        try {
+            val eng = AiChat.getInferenceEngine(appContext)
+            engine = eng
 
-                // Wait for native lib to initialize via Flow
-                Log.i(TAG, "Waiting for engine to initialize...")
-                eng.state.first { it is InferenceEngine.State.Initialized }
-                Log.i(TAG, "Engine initialized!")
+            // Wait for native lib to initialize via StateFlow
+            Log.i(TAG, "Waiting for engine to initialize...")
+            eng.state.first { it is InferenceEngine.State.Initialized }
+            Log.i(TAG, "Engine initialized!")
 
-                // Find model files
-                val modelsDir = File(appContext.filesDir, "models")
-                val modelFile = File(modelsDir, MODEL_FILENAME)
-                val mmprojFile = File(modelsDir, MMPROJ_FILENAME)
+            // Find model files
+            val modelsDir = File(appContext.filesDir, "models")
+            val modelFile = File(modelsDir, MODEL_FILENAME)
+            val mmprojFile = File(modelsDir, MMPROJ_FILENAME)
 
-                if (!modelFile.exists() || !mmprojFile.exists()) {
-                    Log.e(TAG, "Model files not found in ${modelsDir.absolutePath}")
-                    Log.e(TAG, "  Model: ${modelFile.exists()} (${MODEL_FILENAME})")
-                    Log.e(TAG, "  Mmproj: ${mmprojFile.exists()} (${MMPROJ_FILENAME})")
-                    return@withContext
-                }
-
-                Log.i(TAG, "Loading model: ${modelFile.absolutePath}")
-                eng.loadModel(modelFile.absolutePath)
-
-                Log.i(TAG, "Loading mmproj: ${mmprojFile.absolutePath}")
-                eng.loadVisionProjector(mmprojFile.absolutePath)
-
-                isReady = true
-                Log.i(TAG, "Local vision engine ready!")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to initialize", e)
+            if (!modelFile.exists() || !mmprojFile.exists()) {
+                Log.e(TAG, "Model files not found in ${modelsDir.absolutePath}")
+                Log.e(TAG, "  Model: ${modelFile.exists()} (${MODEL_FILENAME})")
+                Log.e(TAG, "  Mmproj: ${mmprojFile.exists()} (${MMPROJ_FILENAME})")
+                return
             }
+
+            Log.i(TAG, "Loading model: ${modelFile.absolutePath}")
+            eng.loadModel(modelFile.absolutePath)
+
+            Log.i(TAG, "Loading mmproj: ${mmprojFile.absolutePath}")
+            eng.loadVisionProjector(mmprojFile.absolutePath)
+
+            isReady = true
+            Log.i(TAG, "Local vision engine ready!")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize", e)
         }
     }
 
