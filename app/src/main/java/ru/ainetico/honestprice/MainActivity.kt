@@ -62,15 +62,22 @@ class MainActivity : ComponentActivity() {
                 ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
         }
 
-        modelDownloader = ModelDownloader(applicationContext)
-
         localVisionEngine = LocalVisionEngine(applicationContext)
-        lifecycleScope.launch {
-            // Wait for models to be available before initializing engine
-            modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed || modelDownloader.isModelDownloaded() }
-            Log.i("MainActivity", "Initializing local vision engine...")
+
+        modelDownloader = ModelDownloader(applicationContext) {
+            // Called after models downloaded — initialize vision engine
+            Log.i("MainActivity", "Models ready, initializing vision engine...")
             localVisionEngine.initialize()
             Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
+        }
+
+        // If models already downloaded, init engine immediately
+        if (modelDownloader.isModelDownloaded()) {
+            lifecycleScope.launch {
+                Log.i("MainActivity", "Models already present, initializing vision engine...")
+                localVisionEngine.initialize()
+                Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
+            }
         }
 
         setContent {

@@ -19,7 +19,10 @@ import java.net.URL
  * Downloads GGUF model files with progress notification.
  * URLs will be configured later.
  */
-class ModelDownloader(private val context: Context) {
+class ModelDownloader(
+  private val context: Context,
+  private val onModelsReady: (suspend () -> Unit)? = null
+) {
 
   companion object {
     private const val TAG = "ModelDownloader"
@@ -78,8 +81,16 @@ class ModelDownloader(private val context: Context) {
         }
 
         _state.value = DownloadState.Completed
-        showNotification("Модели загружены", "Приложение готово к работе", -1)
         Log.i(TAG, "All models downloaded successfully")
+
+        // Try to init vision engine and show final notification
+        showNotification("Модели загружены", "Инициализация…", -1)
+        onModelsReady?.invoke()
+        notificationManager.cancel(NOTIFICATION_ID)
+        showNotification("Модели загружены", "Автоматическое распознавание работает", -1)
+        // Auto-dismiss after 5 seconds
+        kotlinx.coroutines.delay(5000)
+        notificationManager.cancel(NOTIFICATION_ID)
       } catch (e: Exception) {
         Log.e(TAG, "Download failed", e)
         _state.value = DownloadState.Error("Ошибка загрузки: ${e.message}")
