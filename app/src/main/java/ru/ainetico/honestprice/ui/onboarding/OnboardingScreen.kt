@@ -208,13 +208,15 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
     Text(
       text = stringResource(R.string.onboarding_download_title),
       style = MaterialTheme.typography.headlineMedium,
-      textAlign = TextAlign.Center
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(12.dp))
     Text(
       text = stringResource(R.string.onboarding_download_description),
       style = MaterialTheme.typography.bodyLarge,
-      textAlign = TextAlign.Center
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -310,13 +312,15 @@ private fun CameraPage() {
     Text(
       text = stringResource(R.string.onboarding_camera_title),
       style = MaterialTheme.typography.headlineMedium,
-      textAlign = TextAlign.Center
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
       text = stringResource(R.string.onboarding_camera_text),
       style = MaterialTheme.typography.bodyLarge,
-      textAlign = TextAlign.Center
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(12.dp))
     Text(
@@ -347,13 +351,15 @@ private fun LocationPage() {
     Text(
       text = stringResource(R.string.onboarding_location_title),
       style = MaterialTheme.typography.headlineMedium,
-      textAlign = TextAlign.Center
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
       text = stringResource(R.string.onboarding_location_text),
       style = MaterialTheme.typography.bodyLarge,
-      textAlign = TextAlign.Center
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface
     )
   }
 }
