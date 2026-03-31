@@ -105,9 +105,7 @@ fun CameraScreen(
   var previewViewRef by remember { mutableStateOf<PreviewView?>(null) }
 
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(Color.Black)
+    modifier = Modifier.fillMaxSize()
   ) {
     when {
       state is CameraState.Error -> {
