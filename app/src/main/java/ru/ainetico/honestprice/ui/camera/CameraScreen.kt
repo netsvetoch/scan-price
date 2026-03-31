@@ -153,7 +153,6 @@ fun CameraScreen(
       }
 
       state is CameraState.Scanning -> {
-        // Frozen bitmap + scanning animation + retake button
         val scanning = state as CameraState.Scanning
 
         Column(
@@ -166,17 +165,26 @@ fun CameraScreen(
               .padding(24.dp)
               .clip(RoundedCornerShape(16.dp))
               .border(2.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+              .background(Color.DarkGray)
           ) {
-            Image(
-              bitmap = scanning.previewBitmap.asImageBitmap(),
-              contentDescription = null,
-              modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp)),
-              contentScale = ContentScale.Fit
-            )
-
-            ScanningOverlay(modifier = Modifier.matchParentSize())
+            if (scanning.displayBitmap != null) {
+              Image(
+                bitmap = scanning.displayBitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.FillWidth
+              )
+              ScanningOverlay(modifier = Modifier.matchParentSize())
+            } else {
+              // Skeleton 3:2
+              Spacer(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .aspectRatio(3f / 2f)
+              )
+            }
           }
         }
 
@@ -198,7 +206,7 @@ fun CameraScreen(
               strokeWidth = 2.dp
             )
             Text(
-              text = stringResource(R.string.camera_scanning),
+              text = scanning.status,
               color = Color.White,
               fontSize = 16.sp
             )

@@ -21,7 +21,10 @@ import java.io.FileOutputStream
 
 sealed class CameraState {
     object Preview : CameraState()
-    data class Scanning(val previewBitmap: Bitmap) : CameraState()
+    data class Scanning(
+        val displayBitmap: Bitmap?,  // null = skeleton
+        val status: String = ""
+    ) : CameraState()
     data class Error(val message: String, val previewBitmap: Bitmap) : CameraState()
 }
 
@@ -51,7 +54,7 @@ class CameraViewModel(
     }
 
     fun capture(bitmap: Bitmap, cropRect: Rect?) {
-        _state.value = CameraState.Scanning(bitmap)
+        _state.value = CameraState.Scanning(null, "Кадрирование…")
         scanningJob = viewModelScope.launch {
             try {
                 val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
@@ -76,7 +79,7 @@ class CameraViewModel(
                     @Suppress("DEPRECATION")
                     MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
                 }
-                _state.value = CameraState.Scanning(bitmap)
+                _state.value = CameraState.Scanning(null, "Кадрирование…")
                 val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
                     processImage(bitmap, cropRect = null)
                 }
@@ -124,26 +127,30 @@ class CameraViewModel(
     }
 
     private suspend fun processImage(bitmap: Bitmap, cropRect: Rect?): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
-        return withContext(Dispatchers.IO) {
-            val timestamp = System.currentTimeMillis()
+        val timestamp = System.currentTimeMillis()
 
-            // Crop to price tag frame area (matches FrameOverlay)
-            val cropped = cropToFrame(bitmap)
+        // Step 1: Crop
+        val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
+        _state.value = CameraState.Scanning(cropped, "Сжатие…")
 
-            // Save cropped image only
+        // Step 2: Save
+        val imagePath = withContext(Dispatchers.IO) {
             val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
-            val imagePath = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
-            FileOutputStream(imagePath).use { out ->
+            val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
+            FileOutputStream(path).use { out ->
                 cropped.compress(Bitmap.CompressFormat.JPEG, 80, out)
             }
-            lastImagePath = imagePath
-
-            val scanId = scanRepository.createProcessing(imagePath)
-            lastScanId = scanId
-            val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
-
-            Pair(scanId, analysisResult)
+            path
         }
+        lastImagePath = imagePath
+        _state.value = CameraState.Scanning(cropped, "Анализ…")
+
+        // Step 3: Analyze
+        val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
+        lastScanId = scanId
+        val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
+
+        return Pair(scanId, analysisResult)
     }
 
     private fun cropToFrame(bitmap: Bitmap): Bitmap {
