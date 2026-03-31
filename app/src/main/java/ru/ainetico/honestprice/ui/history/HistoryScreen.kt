@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -86,14 +87,32 @@ fun HistoryScreen(
     Scaffold(
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SmallFloatingActionButton(onClick = onNavigateToManualEntry) {
+                FloatingActionButton(
+                    onClick = onNavigateToManualEntry,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(48.dp)
+                ) {
                     Icon(Icons.Filled.Edit, stringResource(R.string.history_fab_manual))
                 }
-                SmallFloatingActionButton(onClick = { galleryLauncher.launch("image/*") }) {
+                FloatingActionButton(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(48.dp)
+                ) {
                     Icon(Icons.Filled.Collections, stringResource(R.string.history_fab_gallery))
                 }
-                LargeFloatingActionButton(onClick = { onShowSheetChange(true) }) {
-                    Icon(Icons.Filled.CameraAlt, stringResource(R.string.history_fab_camera))
+                FloatingActionButton(
+                    onClick = { onShowSheetChange(true) },
+                    shape = CircleShape,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.CameraAlt,
+                        stringResource(R.string.history_fab_camera),
+                        modifier = Modifier.size(32.dp)
+                    )
                 }
             }
         }
