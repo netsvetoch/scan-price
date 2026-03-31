@@ -106,7 +106,8 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
-                }
+                },
+                onCancel = { navController.popBackStack() }
             )
         }
         composable(Screen.ResultManual.route) {
@@ -120,7 +121,8 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine) {
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
-                }
+                },
+                onCancel = { navController.popBackStack() }
             )
         }
     }

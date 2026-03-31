@@ -24,6 +24,7 @@
     <string name="result_barcode">Штрихкод</string>
     <string name="result_honest_price">Честная цена</string>
     <string name="result_regular_per_unit">обычная: %s ₽/%s</string>
+    <string name="result_cancel">Отмена</string>
     <string name="result_save">Сохранить</string>
     <string name="result_saving">Сохранение…</string>
     <string name="history_empty">Нет сканирований</string>

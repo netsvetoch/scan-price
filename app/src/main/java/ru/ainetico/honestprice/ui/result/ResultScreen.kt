@@ -22,11 +22,15 @@ import ru.ainetico.honestprice.model.WeightUnit
 @Composable
 fun ResultScreen(
     viewModel: ResultViewModel,
-    onSaved: () -> Unit
+    onSaved: () -> Unit,
+    onCancel: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val suggestions by viewModel.storeSuggestions.collectAsState()
     val event by viewModel.event.collectAsState()
+
+    // Handle back button — cancel without saving
+    androidx.activity.compose.BackHandler { onCancel() }
 
     LaunchedEffect(event) {
         if (event is ResultEvent.Saved) {
@@ -153,18 +157,29 @@ fun ResultScreen(
                 displayUnit = state.displayUnit
             )
 
-            // Save button
-            Button(
-                onClick = { viewModel.save() },
+            // Save + Cancel buttons
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                enabled = !state.isSaving
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    if (state.isSaving) stringResource(R.string.result_saving)
-                    else stringResource(R.string.result_save)
-                )
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.result_cancel))
+                }
+                Button(
+                    onClick = { viewModel.save() },
+                    modifier = Modifier.weight(1f),
+                    enabled = !state.isSaving
+                ) {
+                    Text(
+                        if (state.isSaving) stringResource(R.string.result_saving)
+                        else stringResource(R.string.result_save)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
