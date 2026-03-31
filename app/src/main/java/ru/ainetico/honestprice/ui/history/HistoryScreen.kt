@@ -42,12 +42,13 @@ fun HistoryScreen(
     storeDao: StoreDao,
     locationProvider: LocationProvider,
     onScanClick: (Long) -> Unit,
-    onNavigateToManualEntry: () -> Unit
+    onNavigateToManualEntry: () -> Unit,
+    openCameraOnStart: Boolean = true
 ) {
     val scans by viewModel.scans.collectAsState()
     val context = LocalContext.current
 
-    var showSheet by remember { mutableStateOf(true) }
+    var showSheet by remember { mutableStateOf(openCameraOnStart) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // After camera scans, holds the result until user saves or cancels
@@ -113,7 +114,11 @@ fun HistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(scans, key = { it.id }) { scan ->
-                    ScanCard(scan = scan, onClick = { onScanClick(scan.id) })
+                    ScanCard(scan = scan, onClick = {
+                        showSheet = false
+                        cameraViewModel.resetToPreview()
+                        onScanClick(scan.id)
+                    })
                 }
             }
         }
