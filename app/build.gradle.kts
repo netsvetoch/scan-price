@@ -59,6 +59,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // llama.cpp local inference
+    implementation(project(":llama-lib"))
+
     // ML Kit - Barcode only
     implementation(libs.mlkit.barcode.scanning)
 
