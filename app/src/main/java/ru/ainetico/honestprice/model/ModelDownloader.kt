@@ -70,16 +70,14 @@ class ModelDownloader(
       try {
         val modelsDir = File(context.filesDir, "models").apply { mkdirs() }
 
-        // Download model
         val modelFile = File(modelsDir, MODEL_FILENAME)
         if (!modelFile.exists()) {
-          downloadFile(MODEL_URL, modelFile, MODEL_FILENAME)
+          downloadFile(MODEL_URL, modelFile, "Файл 1 из 2")
         }
 
-        // Download mmproj
         val mmprojFile = File(modelsDir, MMPROJ_FILENAME)
         if (!mmprojFile.exists()) {
-          downloadFile(MMPROJ_URL, mmprojFile, MMPROJ_FILENAME)
+          downloadFile(MMPROJ_URL, mmprojFile, "Файл 2 из 2")
         }
 
         _state.value = DownloadState.Completed
@@ -133,8 +131,8 @@ class ModelDownloader(
 
             if (progress >= 0) {
               showNotification(
-                "Загрузка $displayName",
-                "${downloadedBytes / 1024 / 1024}MB / ${totalBytes / 1024 / 1024}MB",
+                "Загрузка модели",
+                "$displayName — ${downloadedBytes / 1024 / 1024}MB / ${totalBytes / 1024 / 1024}MB",
                 progress
               )
             }
