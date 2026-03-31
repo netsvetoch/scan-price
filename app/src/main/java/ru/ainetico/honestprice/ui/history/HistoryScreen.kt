@@ -36,7 +36,8 @@ fun HistoryScreen(
     onNavigateToResult: (Long, AnalysisResult) -> Unit,
     onNavigateToManualEntry: () -> Unit
 ) {
-    val scans by viewModel.scans.collectAsState()
+    val scansList by viewModel.scans.collectAsState()
+    val scans = scansList
     val context = LocalContext.current
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -97,22 +98,31 @@ fun HistoryScreen(
             }
         }
     ) { padding ->
-        if (scans.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(R.string.history_empty), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.history_empty_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        when {
+            scans == null -> {
+                // Loading
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(scans, key = { it.id }) { scan ->
-                    ScanCard(scan = scan, onClick = { onScanClick(scan) })
+            scans.isEmpty() -> {
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(stringResource(R.string.history_empty), style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(8.dp))
+                        Text(stringResource(R.string.history_empty_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                    }
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(scans, key = { it.id }) { scan ->
+                        ScanCard(scan = scan, onClick = { onScanClick(scan) })
+                    }
                 }
             }
         }
