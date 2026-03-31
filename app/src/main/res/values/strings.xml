@@ -1,9 +1,11 @@
 <resources>
     <string name="app_name">ЧестнаяЦена</string>
     <string name="onboarding_download_title">Загрузка ИИ-модели</string>
+    <string name="onboarding_download_description">Необходимо загрузить модели нейросетей для автоматического распознавания ценников.</string>
     <string name="onboarding_download_preparing">Подготовка к загрузке…</string>
     <string name="onboarding_download_done">Модели загружены!</string>
-    <string name="onboarding_download_hint">Загрузка продолжится в фоне. Вы можете пользоваться приложением — вводите данные вручную.</string>
+    <string name="onboarding_download_hint">Загрузка продолжится в фоне. Разрешите уведомления, чтобы видеть прогресс. Вы можете пользоваться приложением — вводите данные вручную.</string>
+    <string name="onboarding_allow_notifications">Разрешить уведомления</string>
     <string name="onboarding_camera_title">Сканируйте ценник</string>
     <string name="onboarding_camera_text">Наведите камеру на ценник — мы рассчитаем честную цену за кг или литр</string>
     <string name="onboarding_camera_hint">Также можно загрузить фото из галереи или ввести данные вручную</string>

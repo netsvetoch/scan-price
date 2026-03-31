@@ -33,7 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -181,6 +184,13 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
 
 @Composable
 private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
+  val context = LocalContext.current
+  var notificationRequested by remember { mutableStateOf(false) }
+
+  val notificationPermissionLauncher = rememberLauncherForActivityResult(
+    ActivityResultContracts.RequestPermission()
+  ) { notificationRequested = true }
+
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -200,21 +210,28 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
       style = MaterialTheme.typography.headlineMedium,
       textAlign = TextAlign.Center
     )
+    Spacer(modifier = Modifier.height(12.dp))
+    Text(
+      text = stringResource(R.string.onboarding_download_description),
+      style = MaterialTheme.typography.bodyLarge,
+      textAlign = TextAlign.Center
+    )
     Spacer(modifier = Modifier.height(16.dp))
 
     when (downloadState) {
       is ModelDownloader.DownloadState.Idle -> {
         Text(
           text = stringResource(R.string.onboarding_download_preparing),
-          style = MaterialTheme.typography.bodyLarge,
-          textAlign = TextAlign.Center
+          style = MaterialTheme.typography.bodyMedium,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurfaceVariant
         )
       }
 
       is ModelDownloader.DownloadState.Downloading -> {
         Text(
           text = downloadState.filename,
-          style = MaterialTheme.typography.bodyLarge,
+          style = MaterialTheme.typography.bodyMedium,
           textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -260,6 +277,17 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
       textAlign = TextAlign.Center,
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
+
+    if (android.os.Build.VERSION.SDK_INT >= 33 && !notificationRequested) {
+      Spacer(modifier = Modifier.height(16.dp))
+      Button(
+        onClick = {
+          notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+      ) {
+        Text(stringResource(R.string.onboarding_allow_notifications))
+      }
+    }
   }
 }
 
