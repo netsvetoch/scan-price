@@ -28,14 +28,14 @@ class LocalVisionEngine(private val appContext: Context) {
 
         private const val PROMPT = "This is a photo of a price tag from a Russian store. " +
                 "Return ONLY a JSON object, no markdown, no explanation.\n" +
-                "Example: {\"product_name\":\"Молоко 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":0.9,\"weight_unit\":\"л\"}\n" +
+                "Example: {\"product_name\":\"Молоко 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}\n" +
                 "Rules:\n" +
                 "- product_name: full product name from the tag\n" +
-                "- price_regular: regular price as a number\n" +
-                "- price_discount: discounted/card price as a number, or null if none\n" +
-                "- weight_value: weight or volume as a number\n" +
+                "- price_regular: regular price number\n" +
+                "- price_discount: discounted/card price number, or null\n" +
+                "- weight_value: weight or volume number EXACTLY as written on the tag (e.g. 500 for 500г, 1 for 1кг)\n" +
                 "- weight_unit: exactly one of: г, кг, мл, л, шт\n" +
-                "- Use null for missing fields. No currency symbols in prices.\n" +
+                "- null for missing fields\n" +
                 "JSON:"
     }
 
