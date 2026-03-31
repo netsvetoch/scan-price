@@ -109,10 +109,12 @@ class LocalVisionEngine(private val appContext: Context) {
 
         return withContext(Dispatchers.IO) {
             try {
-                // Downscale for performance
-                val resized = downscale(bitmap, 800)
-                val jpegBytes = bitmapToJpeg(resized, quality = 80)
-                Log.i(TAG, "Sending ${jpegBytes.size} bytes to local model")
+                // Preprocess: crop to price tag area, convert to grayscale, downscale
+                val cropped = cropToPriceTag(bitmap)
+                val grayscale = toGrayscale(cropped)
+                val resized = downscale(grayscale, 640)
+                val jpegBytes = bitmapToJpeg(resized, quality = 70)
+                Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → ${resized.width}x${resized.height}, ${jpegBytes.size / 1024}KB")
 
                 val response = eng.analyzeImage(jpegBytes, PROMPT)
                 Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
@@ -171,6 +173,36 @@ class LocalVisionEngine(private val appContext: Context) {
             Log.e(TAG, "Failed to parse: $content", e)
             ParsedPriceTag()
         }
+    }
+
+    /**
+     * Crop to the central region where a price tag is most likely located.
+     * Removes ~15% from each side horizontally and ~20% from top/bottom.
+     */
+    private fun cropToPriceTag(bitmap: Bitmap): Bitmap {
+        val cropLeft = (bitmap.width * 0.10).toInt()
+        val cropTop = (bitmap.height * 0.15).toInt()
+        val cropWidth = bitmap.width - cropLeft * 2
+        val cropHeight = bitmap.height - cropTop * 2
+
+        if (cropWidth <= 0 || cropHeight <= 0) return bitmap
+
+        return Bitmap.createBitmap(bitmap, cropLeft, cropTop, cropWidth, cropHeight)
+    }
+
+    /**
+     * Convert to grayscale — reduces image complexity for the model
+     * and eliminates color distractions on price tags.
+     */
+    private fun toGrayscale(bitmap: Bitmap): Bitmap {
+        val grayscale = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(grayscale)
+        val paint = android.graphics.Paint()
+        val colorMatrix = android.graphics.ColorMatrix()
+        colorMatrix.setSaturation(0f)
+        paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        return grayscale
     }
 
     private fun downscale(bitmap: Bitmap, maxSide: Int): Bitmap {
