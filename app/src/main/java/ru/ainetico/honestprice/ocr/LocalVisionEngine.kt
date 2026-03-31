@@ -109,12 +109,12 @@ class LocalVisionEngine(private val appContext: Context) {
 
         return withContext(Dispatchers.IO) {
             try {
-                // Preprocess: crop to price tag area, convert to grayscale, downscale
+                // Preprocess: crop to frame area, posterize palette, downscale
                 val cropped = cropToPriceTag(bitmap)
-                val grayscale = toGrayscale(cropped)
-                val resized = downscale(grayscale, 640)
+                val posterized = posterize(cropped, levels = 8)
+                val resized = downscale(posterized, 640)
                 val jpegBytes = bitmapToJpeg(resized, quality = 70)
-                Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → ${resized.width}x${resized.height}, ${jpegBytes.size / 1024}KB")
+                Log.i(TAG, "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${jpegBytes.size / 1024}KB")
 
                 val response = eng.analyzeImage(jpegBytes, PROMPT)
                 Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
@@ -176,33 +176,43 @@ class LocalVisionEngine(private val appContext: Context) {
     }
 
     /**
-     * Crop to the central region where a price tag is most likely located.
-     * Removes ~15% from each side horizontally and ~20% from top/bottom.
+     * Crop to the viewfinder frame area — matches FrameOverlay dimensions:
+     * width = 85% of image, height = width * 0.5, centered with 15% vertical offset up.
+     * This is where the user aims the price tag.
      */
     private fun cropToPriceTag(bitmap: Bitmap): Bitmap {
-        val cropLeft = (bitmap.width * 0.10).toInt()
-        val cropTop = (bitmap.height * 0.15).toInt()
-        val cropWidth = bitmap.width - cropLeft * 2
-        val cropHeight = bitmap.height - cropTop * 2
+        val frameWidth = (bitmap.width * 0.85f).toInt()
+        val frameHeight = (frameWidth * 0.5f).toInt()
+        val left = (bitmap.width - frameWidth) / 2
+        val top = ((bitmap.height - frameHeight) / 2f - bitmap.height * 0.15f).toInt().coerceAtLeast(0)
 
-        if (cropWidth <= 0 || cropHeight <= 0) return bitmap
+        if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
+            return bitmap
+        }
 
-        return Bitmap.createBitmap(bitmap, cropLeft, cropTop, cropWidth, cropHeight)
+        return Bitmap.createBitmap(bitmap, left, top, frameWidth, frameHeight)
     }
 
     /**
-     * Convert to grayscale — reduces image complexity for the model
-     * and eliminates color distractions on price tags.
+     * Posterize — reduce color palette to speed up JPEG compression.
+     * Each color channel is quantized to fewer levels.
      */
-    private fun toGrayscale(bitmap: Bitmap): Bitmap {
-        val grayscale = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(grayscale)
-        val paint = android.graphics.Paint()
-        val colorMatrix = android.graphics.ColorMatrix()
-        colorMatrix.setSaturation(0f)
-        paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
-        canvas.drawBitmap(bitmap, 0f, 0f, paint)
-        return grayscale
+    private fun posterize(bitmap: Bitmap, levels: Int = 8): Bitmap {
+        val result = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val pixels = IntArray(result.width * result.height)
+        result.getPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
+
+        val step = 256 / levels
+        for (i in pixels.indices) {
+            val pixel = pixels[i]
+            val r = ((android.graphics.Color.red(pixel) / step) * step).coerceIn(0, 255)
+            val g = ((android.graphics.Color.green(pixel) / step) * step).coerceIn(0, 255)
+            val b = ((android.graphics.Color.blue(pixel) / step) * step).coerceIn(0, 255)
+            pixels[i] = android.graphics.Color.argb(255, r, g, b)
+        }
+
+        result.setPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
+        return result
     }
 
     private fun downscale(bitmap: Bitmap, maxSide: Int): Bitmap {
