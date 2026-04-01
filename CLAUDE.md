@@ -68,9 +68,11 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 - Min SDK 24, Target/Compile SDK 36
 - KSP for annotation processing (Room, Hilt)
 - ProGuard enabled for release builds
+- Release build: R8 minification + resource shrinking enabled. Signing via `keystore.properties` (gitignored) with debug fallback. See `keystore.properties.example` for format.
 
 ### Build Gotchas
 
+- **Gradle KTS imports**: `java.util.Properties` (and similar) must use `import` at top of `.kts` file — inline `java.util.Properties()` fails with "Unresolved reference 'util'"
 - **`BuildConfig` requires opt-in** on AGP 9+: `buildFeatures { buildConfig = true }` in `app/build.gradle.kts`. Needed for `BuildConfig.DEBUG` guards on sensitive logging.
 - **Hilt requires 2.59+** for AGP 9.x compatibility (AGP 9 dropped `BaseExtension`)
 - **Hilt + KSP classloader**: `ksp` plugin must be declared `apply false` in root `build.gradle.kts` alongside `hilt`

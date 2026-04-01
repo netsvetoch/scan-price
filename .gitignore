@@ -19,3 +19,6 @@ local.properties
 models/
 *.tar.gz
 *.gguf
+keystore.properties
+*.jks
+*.keystore
