@@ -90,6 +90,93 @@ class PriceCalculatorTest {
     }
 
     @Test
+    fun `returns null for negative price`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("-50.00"),
+            weightValue = BigDecimal("500"),
+            weightUnit = WeightUnit.G
+        )
+        assertNull(calculator.calculate(tag))
+    }
+
+    @Test
+    fun `returns null for zero price`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal.ZERO,
+            weightValue = BigDecimal("500"),
+            weightUnit = WeightUnit.G
+        )
+        assertNull(calculator.calculate(tag))
+    }
+
+    @Test
+    fun `returns null for negative weight`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("100.00"),
+            weightValue = BigDecimal("-500"),
+            weightUnit = WeightUnit.G
+        )
+        assertNull(calculator.calculate(tag))
+    }
+
+    @Test
+    fun `returns null for zero weight`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("100.00"),
+            weightValue = BigDecimal.ZERO,
+            weightUnit = WeightUnit.G
+        )
+        assertNull(calculator.calculate(tag))
+    }
+
+    @Test
+    fun `ignores discount greater than regular price`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("100.00"),
+            priceDiscount = BigDecimal("150.00"),
+            weightValue = BigDecimal("500"),
+            weightUnit = WeightUnit.G
+        )
+        val result = calculator.calculate(tag)!!
+        assertNull(result.pricePerUnitDiscount)
+    }
+
+    @Test
+    fun `ignores discount equal to regular price`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("100.00"),
+            priceDiscount = BigDecimal("100.00"),
+            weightValue = BigDecimal("500"),
+            weightUnit = WeightUnit.G
+        )
+        val result = calculator.calculate(tag)!!
+        assertNull(result.pricePerUnitDiscount)
+    }
+
+    @Test
+    fun `ignores negative discount`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("100.00"),
+            priceDiscount = BigDecimal("-10.00"),
+            weightValue = BigDecimal("500"),
+            weightUnit = WeightUnit.G
+        )
+        val result = calculator.calculate(tag)!!
+        assertNull(result.pricePerUnitDiscount)
+    }
+
+    @Test
+    fun `ignores discount greater than regular for PCS`() {
+        val tag = ParsedPriceTag(
+            priceRegular = BigDecimal("25.00"),
+            priceDiscount = BigDecimal("30.00"),
+            weightUnit = WeightUnit.PCS
+        )
+        val result = calculator.calculate(tag)!!
+        assertNull(result.pricePerUnitDiscount)
+    }
+
+    @Test
     fun `custom target unit`() {
         val tag = ParsedPriceTag(
             priceRegular = BigDecimal("100.00"),
