@@ -108,7 +108,7 @@ internal class InferenceEngineImpl private constructor(
 
     // Vision / multimodal JNI
     private external fun loadMmproj(mmprojPath: String): Int
-    private external fun analyzeImage(imageData: ByteArray, dataLen: Int, prompt: String): String
+    private external fun analyzeImage(imageData: ByteArray, dataLen: Int, prompt: String, jsonSchema: String?): String
 
     @FastNative
     private external fun shutdown()
@@ -287,15 +287,15 @@ internal class InferenceEngineImpl private constructor(
     /**
      * Analyze image with vision model
      */
-    override suspend fun analyzeImage(imageData: ByteArray, prompt: String): String =
+    override suspend fun analyzeImage(imageData: ByteArray, prompt: String, jsonSchema: String?): String =
         withContext(llamaDispatcher) {
             check(_state.value is InferenceEngine.State.ModelReady) {
                 "Cannot analyze image in ${_state.value.javaClass.simpleName}!"
             }
-            Log.i(TAG, "Analyzing image (${imageData.size} bytes)...")
+            Log.i(TAG, "Analyzing image (${imageData.size} bytes, schema=${jsonSchema != null})...")
             _state.value = InferenceEngine.State.Generating
             try {
-                val result = analyzeImage(imageData, imageData.size, prompt)
+                val result = analyzeImage(imageData, imageData.size, prompt, jsonSchema)
                 Log.i(TAG, "Image analysis complete: ${result.length} chars")
                 result
             } finally {

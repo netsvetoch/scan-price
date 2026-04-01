@@ -39,7 +39,7 @@ interface InferenceEngine {
      * Analyze an image (JPEG/PNG bytes) with a text prompt.
      * Returns the model's text response.
      */
-    suspend fun analyzeImage(imageData: ByteArray, prompt: String): String
+    suspend fun analyzeImage(imageData: ByteArray, prompt: String, jsonSchema: String? = null): String
 
     /**
      * Runs a benchmark with the specified parameters.
