@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+import java.security.MessageDigest
 
 /**
  * Downloads GGUF model files using Android's system DownloadManager.
@@ -34,11 +35,19 @@ class ModelDownloader(
     private const val NOTIF_SILENT = 1001
     private const val NOTIF_ALERT = 1002
 
-    var MODEL_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
-    var MMPROJ_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
+    val MODEL_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
+    val MMPROJ_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
 
     const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
     const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
+
+    private const val MODEL_SHA256 = "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517"
+    private const val MMPROJ_SHA256 = "9922aa6e3425aaa2aa2f0c9fe62ca0f1289318df7da3a4981132f1890391dd28"
+
+    private val EXPECTED_HASHES = mapOf(
+      MODEL_FILENAME to MODEL_SHA256,
+      MMPROJ_FILENAME to MMPROJ_SHA256
+    )
 
   }
 
@@ -231,6 +240,19 @@ class ModelDownloader(
                     }
                   }
                 }
+                // Verify SHA256 before accepting
+                val expectedHash = EXPECTED_HASHES[filename]
+                if (expectedHash != null) {
+                  val actualHash = sha256(destFile)
+                  if (actualHash != expectedHash) {
+                    destFile.delete()
+                    downloadManager.remove(downloadId)
+                    throw SecurityException(
+                      "SHA256 mismatch for $filename: expected $expectedHash, got $actualHash"
+                    )
+                  }
+                  Log.i(TAG, "$label SHA256 verified")
+                }
                 // Remove from Downloads
                 downloadManager.remove(downloadId)
                 progressFlow.value = progressFlow.value.copy(progress = 100, done = true)
@@ -258,5 +280,17 @@ class ModelDownloader(
         delay(2000) // Poll every 500ms
       }
     }
+  }
+
+  private fun sha256(file: File): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().use { input ->
+      val buf = ByteArray(65536)
+      var len: Int
+      while (input.read(buf).also { len = it } > 0) {
+        digest.update(buf, 0, len)
+      }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
   }
 }
