@@ -36,11 +36,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.calculator.PriceCalculator
-import ru.ainetico.honestprice.data.AppDatabase
+
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.data.ScanRepository
-import ru.ainetico.honestprice.location.LocationProvider
+
 import ru.ainetico.honestprice.navigation.AppNavigationViewModel
 import ru.ainetico.honestprice.navigation.Screen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
@@ -65,7 +64,7 @@ class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var appSettings: AppSettings
     @Inject lateinit var modelDownloader: ModelDownloader
-    @Inject lateinit var database: AppDatabase
+
     @Inject lateinit var scanRepository: ScanRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +84,6 @@ class MainActivity : AppCompatActivity() {
                 HonestPriceApp(
                     appSettings = appSettings,
                     modelDownloader = modelDownloader,
-                    database = database,
                     scanRepository = scanRepository,
                     launchAction = launchAction
                 )
@@ -98,7 +96,6 @@ class MainActivity : AppCompatActivity() {
 fun HonestPriceApp(
     appSettings: AppSettings,
     modelDownloader: ModelDownloader,
-    database: AppDatabase,
     scanRepository: ScanRepository,
     launchAction: String? = null
 ) {
@@ -156,7 +153,6 @@ fun HonestPriceApp(
         }
         composable(Screen.History.route) {
             HistoryDestination(
-                db = database,
                 repository = scanRepository,
                 appSettings = appSettings,
                 modelDownloader = modelDownloader,
@@ -179,7 +175,6 @@ fun HonestPriceApp(
                 scanId = scanId,
                 navState = navState,
                 repository = scanRepository,
-                db = database,
                 context = context,
                 navViewModel = navViewModel,
                 onNavigateToHistory = {
@@ -191,9 +186,7 @@ fun HonestPriceApp(
             )
         }
         composable(Screen.ResultManual.route) {
-            val viewModel = remember {
-                ResultViewModel(scanRepository, database.storeDao(), LocationProvider(context), PriceCalculator())
-            }
+            val viewModel: ResultViewModel = hiltViewModel()
             LaunchedEffect(Unit) { viewModel.loadManual() }
             ResultScreen(
                 viewModel = viewModel,
@@ -210,7 +203,6 @@ fun HonestPriceApp(
 
 @Composable
 private fun HistoryDestination(
-    db: AppDatabase,
     repository: ScanRepository,
     appSettings: AppSettings,
     modelDownloader: ModelDownloader,
@@ -242,11 +234,8 @@ private fun HistoryDestination(
 
         overlayScan?.let { scan ->
             val scanId = scan.id
-            val viewModel = remember(scanId) {
-                ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator()).also { vm ->
-                    vm.loadScan(scan)
-                }
-            }
+            val viewModel: ResultViewModel = hiltViewModel(key = "overlay_$scanId")
+            LaunchedEffect(scanId) { viewModel.loadScan(scan) }
             SwipeBackOverlay(
                 onDismiss = { overlayScan = null }
             ) {
@@ -286,7 +275,6 @@ private fun ResultDestination(
     scanId: Long,
     navState: ru.ainetico.honestprice.navigation.AppNavigationState,
     repository: ScanRepository,
-    db: AppDatabase,
     context: Context,
     navViewModel: AppNavigationViewModel,
     onNavigateToHistory: () -> Unit,
@@ -295,13 +283,12 @@ private fun ResultDestination(
     val pending = navState.pendingResult
     val scan = navState.pendingScan
     val isFreshScan = pending?.first == scanId
-    val viewModel = remember(scanId) {
-        ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator()).also { vm ->
-            if (isFreshScan && pending != null) {
-                vm.loadFromAnalysis(scanId, pending.second, null)
-            } else if (scan != null && scan.id == scanId) {
-                vm.loadScan(scan)
-            }
+    val viewModel: ResultViewModel = hiltViewModel()
+    LaunchedEffect(scanId) {
+        if (isFreshScan && pending != null) {
+            viewModel.loadFromAnalysis(scanId, pending.second, null)
+        } else if (scan != null && scan.id == scanId) {
+            viewModel.loadScan(scan)
         }
     }
     // Load imagePath asynchronously for fresh scans
