@@ -45,10 +45,11 @@ sealed class CameraEvent {
   object NavigateToManualEntry : CameraEvent()
 }
 
-class CameraViewModel(
+@dagger.hilt.android.lifecycle.HiltViewModel
+class CameraViewModel @javax.inject.Inject constructor(
   private val imageAnalyzer: ImageAnalyzer,
   private val scanRepository: ScanRepository,
-  private val appContext: Context
+  @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
   private val _state = MutableStateFlow<CameraState>(CameraState.Preview)

@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.stateIn
 import ru.ainetico.honestprice.data.Scan
 import ru.ainetico.honestprice.data.ScanRepository
 
-class HistoryViewModel(
+@dagger.hilt.android.lifecycle.HiltViewModel
+class HistoryViewModel @javax.inject.Inject constructor(
   scanRepository: ScanRepository
 ) : ViewModel() {
   // null = loading, empty list = loaded but no scans

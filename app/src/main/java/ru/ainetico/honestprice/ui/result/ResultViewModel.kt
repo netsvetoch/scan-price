@@ -48,7 +48,8 @@ sealed class ResultEvent {
   object Saved : ResultEvent()
 }
 
-class ResultViewModel(
+@dagger.hilt.android.lifecycle.HiltViewModel
+class ResultViewModel @javax.inject.Inject constructor(
   private val scanRepository: ScanRepository,
   private val storeDao: StoreDao,
   private val locationProvider: LocationProvider,
