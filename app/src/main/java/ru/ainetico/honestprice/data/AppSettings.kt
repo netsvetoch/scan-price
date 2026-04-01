@@ -21,7 +21,7 @@ class AppSettings(context: Context) {
     val apiModel: StateFlow<String> = _apiModel
 
     fun isRemoteModelConfigured(): Boolean {
-        return _apiUrl.value.isNotBlank()
+        return _apiUrl.value.isNotBlank() && _apiModel.value.isNotBlank()
     }
 
     fun setApiUrl(url: String) {
