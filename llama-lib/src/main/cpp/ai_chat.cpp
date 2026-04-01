@@ -12,6 +12,8 @@
 #include "llama.h"
 #include "mtmd.h"
 #include "mtmd-helper.h"
+#include "json-schema-to-grammar.h"
+#include <nlohmann/json.hpp>
 
 template<class T>
 static std::string join(const std::vector<T> &values, const std::string &delim) {
@@ -134,7 +136,7 @@ extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
         JNIEnv *env, jobject,
-        jbyteArray jimageData, jint dataLen, jstring jprompt)
+        jbyteArray jimageData, jint dataLen, jstring jprompt, jstring jsonSchema)
 {
     if (!g_mtmd_ctx || !g_model || !g_context) {
         LOGe("analyzeImage: not initialized!");
@@ -178,6 +180,35 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
         formatted_prompt = user_content;
     }
 
+    // Create grammar-constrained sampler if schema provided
+    common_sampler *local_sampler = nullptr;
+    if (jsonSchema) {
+        const auto *schema_cstr = env->GetStringUTFChars(jsonSchema, nullptr);
+        std::string schema_str(schema_cstr);
+        env->ReleaseStringUTFChars(jsonSchema, schema_cstr);
+
+        if (!schema_str.empty()) {
+            try {
+                auto schema_json = nlohmann::ordered_json::parse(schema_str);
+                std::string gbnf = json_schema_to_grammar(schema_json);
+
+                if (!gbnf.empty()) {
+                    LOGi("Grammar (%d chars): %.200s", (int)gbnf.size(), gbnf.c_str());
+
+                    common_params_sampling sparams;
+                    sparams.temp = DEFAULT_SAMPLER_TEMP;
+                    sparams.grammar = common_grammar(COMMON_GRAMMAR_TYPE_OUTPUT_FORMAT, gbnf);
+                    local_sampler = common_sampler_init(g_model, sparams);
+                } else {
+                    LOGw("json_schema_to_grammar returned empty GBNF, falling back to unconstrained");
+                }
+            } catch (const std::exception &e) {
+                LOGe("Failed to create grammar sampler: %s", e.what());
+            }
+        }
+    }
+    common_sampler *sampler = local_sampler ? local_sampler : g_sampler;
+
     // Tokenize with image
     mtmd_input_text input_text;
     input_text.text = formatted_prompt.c_str();
@@ -192,6 +223,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     if (rc != 0) {
         LOGe("Tokenize failed: %d", rc);
         mtmd_input_chunks_free(chunks);
+        if (local_sampler) common_sampler_free(local_sampler);
         return env->NewStringUTF("");
     }
 
@@ -206,17 +238,17 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     rc = mtmd_helper_eval_chunks(g_mtmd_ctx, g_context, chunks, 0, 0, BATCH_SIZE, true, &n_past);
     mtmd_input_chunks_free(chunks);
 
-    if (rc != 0) { LOGe("Eval failed: %d", rc); return env->NewStringUTF(""); }
+    if (rc != 0) { LOGe("Eval failed: %d", rc); if (local_sampler) common_sampler_free(local_sampler); return env->NewStringUTF(""); }
     LOGi("Eval done, n_past=%d. Generating...", n_past);
 
     // Generate response
-    common_sampler_reset(g_sampler);
+    common_sampler_reset(sampler);
     std::ostringstream response;
 
     const int max_tokens = 2048;  // enough for thinking + JSON response
     for (int i = 0; i < max_tokens; i++) {
-        auto tok = common_sampler_sample(g_sampler, g_context, -1);
-        common_sampler_accept(g_sampler, tok, true);
+        auto tok = common_sampler_sample(sampler, g_context, -1);
+        common_sampler_accept(sampler, tok, true);
 
         if (llama_vocab_is_eog(llama_model_get_vocab(g_model), tok)) {
             LOGi("EOS at token %d", i);
@@ -229,6 +261,10 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
         common_batch_add(g_batch, tok, n_past, {0}, true);
         if (llama_decode(g_context, g_batch) != 0) { LOGe("Decode failed at %d", i); break; }
         n_past++;
+    }
+
+    if (local_sampler) {
+        common_sampler_free(local_sampler);
     }
 
     std::string result = response.str();
