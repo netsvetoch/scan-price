@@ -23,7 +23,7 @@ interface ScanRepository {
     suspend fun getAllScans(): List<Scan>
 }
 
-class ScanRepositoryImpl(private val scanDao: ScanDao) : ScanRepository {
+class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: ScanDao) : ScanRepository {
 
     override suspend fun createProcessing(imagePath: String): Long {
         return scanDao.insert(Scan(imagePath = imagePath))
