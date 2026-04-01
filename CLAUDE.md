@@ -23,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Layers
 
-- **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`. One-shot events (navigation, snackbar) use `Channel<Event>(Channel.BUFFERED)` + `receiveAsFlow()`, NOT `StateFlow<Event?>` + `eventConsumed()`.
+- **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`. One-shot events (navigation, snackbar) use `Channel<Event>(Channel.BUFFERED)` + `receiveAsFlow()`, NOT `StateFlow<Event?>` + `eventConsumed()`. Camera screen is decomposed into extracted composables: `CameraPreview`, `FrameOverlay`, `CameraPermissionContent`, `AdjustingContent` (gesture handler), each in its own file.
 - **Service** (`ocr/`, `analyzer/`): Vision engine abstraction. `ImageAnalyzer` routes to local or remote engine based on user settings.
 - **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (Preferences DataStore for non-sensitive settings as `Flow<T>`; EncryptedSharedPreferences for API credentials as `StateFlow<T>`).
 - **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines.
