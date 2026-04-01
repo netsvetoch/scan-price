@@ -193,6 +193,17 @@ class CameraViewModel(
     _state.value = CameraState.Preview
   }
 
+  private suspend fun saveBitmapToFile(bitmap: Bitmap, timestamp: Long): String {
+    return withContext(Dispatchers.IO) {
+      val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
+      val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
+      FileOutputStream(path).use { out ->
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+      }
+      path
+    }
+  }
+
   private suspend fun processImage(
     bitmap: Bitmap,
     cropRect: Rect?
@@ -204,14 +215,7 @@ class CameraViewModel(
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
     // Step 2: Save
-    val imagePath = withContext(Dispatchers.IO) {
-      val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
-      val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
-      FileOutputStream(path).use { out ->
-        cropped.compress(Bitmap.CompressFormat.JPEG, 80, out)
-      }
-      path
-    }
+    val imagePath = saveBitmapToFile(cropped, timestamp)
     lastImagePath = imagePath
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing))
 
@@ -230,12 +234,7 @@ class CameraViewModel(
     val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
-    val imagePath = withContext(Dispatchers.IO) {
-      val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
-      val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
-      FileOutputStream(path).use { out -> cropped.compress(Bitmap.CompressFormat.JPEG, 80, out) }
-      path
-    }
+    val imagePath = saveBitmapToFile(cropped, timestamp)
     lastImagePath = imagePath
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing_local))
 
@@ -256,14 +255,7 @@ class CameraViewModel(
     }
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
-    val imagePath = withContext(Dispatchers.IO) {
-      val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
-      val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
-      FileOutputStream(path).use { out ->
-        cropped.compress(Bitmap.CompressFormat.JPEG, 80, out)
-      }
-      path
-    }
+    val imagePath = saveBitmapToFile(cropped, timestamp)
     lastImagePath = imagePath
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing))
 
