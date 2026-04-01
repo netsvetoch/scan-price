@@ -163,11 +163,11 @@ fun CameraScreen(
           )
           Spacer(modifier = Modifier.height(16.dp))
           Button(onClick = { viewModel.retryWithLocal() }) {
-            Text("Обработать локально")
+            Text(stringResource(R.string.camera_process_local))
           }
           Spacer(modifier = Modifier.height(8.dp))
           TextButton(onClick = { viewModel.dismissError() }) {
-            Text("Отмена")
+            Text(stringResource(R.string.action_cancel))
           }
         }
       }
@@ -213,7 +213,7 @@ fun CameraScreen(
           Spacer(modifier = Modifier.height(16.dp))
 
           Button(onClick = { viewModel.dismissError() }) {
-            Text("Попробовать снова")
+            Text(stringResource(R.string.camera_retry))
           }
         }
       }
@@ -270,7 +270,7 @@ fun CameraScreen(
             verticalAlignment = Alignment.CenterVertically
           ) {
             Text(
-              text = "Передвиньте изображение, чтобы ценник попал в рамку",
+              text = stringResource(R.string.camera_frame_hint),
               color = Color.White,
               fontSize = 14.sp,
               textAlign = TextAlign.Center,
@@ -288,7 +288,7 @@ fun CameraScreen(
             ) {
               Icon(
                 Icons.Filled.CropRotate,
-                contentDescription = "Повернуть рамку",
+                contentDescription = stringResource(R.string.camera_rotate_frame),
                 tint = Color.White
               )
             }
@@ -312,7 +312,7 @@ fun CameraScreen(
                 zoom
               )
             }) {
-              Text("Сканировать")
+              Text(stringResource(R.string.camera_scan_button))
             }
           }
         }
@@ -462,7 +462,7 @@ fun CameraScreen(
           contentPadding = PaddingValues(0.dp),
           shape = CircleShape
         ) {
-          Icon(Icons.Filled.CropRotate, contentDescription = "Повернуть рамку", tint = Color.White)
+          Icon(Icons.Filled.CropRotate, contentDescription = stringResource(R.string.camera_rotate_frame), tint = Color.White)
         }
 
         // Bottom controls

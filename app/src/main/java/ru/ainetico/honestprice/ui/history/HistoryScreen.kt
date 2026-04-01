@@ -236,7 +236,7 @@ fun HistoryScreen(
         ) {
           grouped.forEach { (key, groupScans) ->
             val isExpanded = expandedState.getOrPut(key) { key == todayKey }
-            val header = formatRelativeDate(groupScans.first().createdAt)
+            val header = formatRelativeDate(context, groupScans.first().createdAt)
 
             item(key = "header_$key") {
               Row(

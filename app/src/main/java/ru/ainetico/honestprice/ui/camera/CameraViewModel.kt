@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.FrameConfig
+import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
 import ru.ainetico.honestprice.analyzer.RemoteAnalysisException
 import ru.ainetico.honestprice.data.ScanRepository
@@ -74,7 +75,7 @@ class CameraViewModel(
 
   fun capture(bitmap: Bitmap, cropRect: Rect?) {
     lastBitmapForRetry = bitmap
-    _state.value = CameraState.Scanning(null, "Кадрирование…")
+    _state.value = CameraState.Scanning(null, appContext.getString(R.string.camera_cropping))
     scanningJob = viewModelScope.launch {
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
@@ -84,13 +85,13 @@ class CameraViewModel(
       } catch (e: RemoteAnalysisException) {
         Log.e("CameraViewModel", "Remote failed", e)
         val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
-        _state.value = CameraState.RemoteError(e.message ?: "Ошибка сервера", cropped)
+        _state.value = CameraState.RemoteError(e.message ?: appContext.getString(R.string.camera_error_server), cropped)
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
-        _state.value = CameraState.Error("Превышено время ожидания. Попробуйте ещё раз.", bitmap)
+        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_timeout), bitmap)
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Processing failed", e)
-        _state.value = CameraState.Error("Ошибка распознавания: ${e.message}", bitmap)
+        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_recognition, e.message), bitmap)
       }
     }
   }
@@ -100,7 +101,7 @@ class CameraViewModel(
 
   fun retryWithLocal() {
     val bitmap = lastBitmapForRetry ?: return
-    _state.value = CameraState.Scanning(null, "Кадрирование…")
+    _state.value = CameraState.Scanning(null, appContext.getString(R.string.camera_cropping))
     scanningJob = viewModelScope.launch {
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
@@ -109,7 +110,7 @@ class CameraViewModel(
         _event.value = CameraEvent.NavigateToResult(scanId, result)
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Local retry failed", e)
-        _state.value = CameraState.Error("Ошибка: ${e.message}", bitmap)
+        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_generic, e.message), bitmap)
       }
     }
   }
@@ -143,7 +144,7 @@ class CameraViewModel(
     offsetY: Float,
     zoom: Float
   ) {
-    _state.value = CameraState.Scanning(null, "Кадрирование…")
+    _state.value = CameraState.Scanning(null, appContext.getString(R.string.camera_cropping))
     scanningJob = viewModelScope.launch {
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
@@ -152,10 +153,10 @@ class CameraViewModel(
         _event.value = CameraEvent.NavigateToResult(scanId, result)
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
-        _state.value = CameraState.Error("Превышено время ожидания.", bitmap)
+        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_timeout_short), bitmap)
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Processing failed", e)
-        _state.value = CameraState.Error("Ошибка: ${e.message}", bitmap)
+        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_generic, e.message), bitmap)
       }
     }
   }
@@ -200,7 +201,7 @@ class CameraViewModel(
 
     // Step 1: Crop
     val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
-    _state.value = CameraState.Scanning(cropped, "Сжатие…")
+    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
     // Step 2: Save
     val imagePath = withContext(Dispatchers.IO) {
@@ -212,7 +213,7 @@ class CameraViewModel(
       path
     }
     lastImagePath = imagePath
-    _state.value = CameraState.Scanning(cropped, "Анализ…")
+    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing))
 
     // Step 3: Analyze
     val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
@@ -227,7 +228,7 @@ class CameraViewModel(
   ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
     val timestamp = System.currentTimeMillis()
     val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
-    _state.value = CameraState.Scanning(cropped, "Сжатие…")
+    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
     val imagePath = withContext(Dispatchers.IO) {
       val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
@@ -236,7 +237,7 @@ class CameraViewModel(
       path
     }
     lastImagePath = imagePath
-    _state.value = CameraState.Scanning(cropped, "Анализ (локально)…")
+    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing_local))
 
     val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
     lastScanId = scanId
@@ -253,7 +254,7 @@ class CameraViewModel(
     val cropped = withContext(Dispatchers.Default) {
       cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
     }
-    _state.value = CameraState.Scanning(cropped, "Сжатие…")
+    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
     val imagePath = withContext(Dispatchers.IO) {
       val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
@@ -264,7 +265,7 @@ class CameraViewModel(
       path
     }
     lastImagePath = imagePath
-    _state.value = CameraState.Scanning(cropped, "Анализ…")
+    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing))
 
     val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
     lastScanId = scanId

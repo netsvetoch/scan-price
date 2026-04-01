@@ -28,6 +28,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.unit.dp
 import ru.ainetico.honestprice.MainActivity
+import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.model.WeightUnit
 import ru.ainetico.honestprice.util.formatRelativeDate
@@ -60,7 +61,7 @@ class LastScanWidget : GlanceAppWidget() {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "ЧестнаяЦена",
+                                text = context.getString(R.string.app_name),
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     color = GlanceTheme.colors.onSurface
@@ -68,7 +69,7 @@ class LastScanWidget : GlanceAppWidget() {
                             )
                             Spacer(modifier = GlanceModifier.height(4.dp))
                             Text(
-                                text = "Нет сканирований",
+                                text = context.getString(R.string.history_empty),
                                 style = TextStyle(
                                     color = GlanceTheme.colors.secondary
                                 )
@@ -109,7 +110,7 @@ class LastScanWidget : GlanceAppWidget() {
                                 }
 
                                 Spacer(modifier = GlanceModifier.height(2.dp))
-                                val relDate = formatRelativeDate(lastScan.createdAt)
+                                val relDate = formatRelativeDate(context, lastScan.createdAt)
                                 val time = SimpleDateFormat("HH:mm", Locale("ru"))
                                     .format(Date(lastScan.createdAt))
                                 val dateStr = "$relDate, $time"

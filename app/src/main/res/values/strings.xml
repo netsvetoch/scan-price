@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ЧестнаяЦена</string>
+    <string name="app_name">Ценоскан</string>
     <string name="onboarding_download_title">Офлайн-распознавание</string>
     <string name="onboarding_download_description">Скачайте нейросетевые модели на устройство для автоматического распознавания ценников даже без интернета или укажите свои серверы позднее в настройках</string>
     <string name="onboarding_download_button">Скачать</string>
@@ -35,7 +35,7 @@
     <string name="result_delete">Удалить</string>
     <string name="result_save">Сохранить</string>
     <string name="result_saving">Сохранение…</string>
-    <string name="app_title">ЧестнаяЦена</string>
+    <string name="app_title">Ценоскан</string>
     <string name="settings_title">Настройки</string>
     <string name="settings_remote_model_title">Удалённая модель</string>
     <string name="settings_remote_model_description">Укажите адрес OpenAI-совместимого сервера для более точного распознавания. Если сервер недоступен, будет использована локальная модель.</string>
@@ -57,9 +57,55 @@
     <string name="shortcut_gallery">Из галереи</string>
     <string name="shortcut_manual">Вручную</string>
     <string name="tile_scan_label">Сканировать</string>
+    <string name="download_file1_label">Файл 1 из 2</string>
+    <string name="download_file2_label">Файл 2 из 2</string>
+    <string name="download_channel_silent">Загрузка моделей</string>
+    <string name="download_channel_alert">Готовность модели</string>
+    <string name="download_ready_title">Модели загружены</string>
+    <string name="download_ready_text">Автоматическое распознавание ценников работает</string>
+    <string name="download_progress_title">Загрузка моделей</string>
+    <string name="download_description">Загрузка модели для распознавания ценников</string>
+    <string name="download_error_incomplete">Загрузка не завершена</string>
+    <string name="download_error_format">Ошибка загрузки: %s</string>
     <string name="history_empty">Нет сканирований</string>
     <string name="history_empty_hint">Нажмите 📷 чтобы начать</string>
     <string name="history_fab_camera">Камера</string>
     <string name="history_fab_gallery">Галерея</string>
     <string name="history_fab_manual">Вручную</string>
+
+    <!-- DateUtils -->
+    <string name="date_today">Сегодня</string>
+    <string name="date_yesterday">Вчера</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Назад</string>
+    <string name="action_cancel">Отмена</string>
+
+    <!-- Settings -->
+    <string name="settings_models_found">✓ %d моделей</string>
+    <string name="settings_select_model">Выберите модель</string>
+    <string name="settings_check_first">Сначала проверьте соединение</string>
+    <string name="settings_export_no_data">Нет данных для экспорта</string>
+    <string name="settings_export_success">Экспортировано: %d записей</string>
+    <string name="settings_export_error">Ошибка: %s</string>
+    <string name="settings_scan_count">%d записей</string>
+
+    <!-- DataExporter -->
+    <string name="export_share_title">Экспорт данных</string>
+
+    <!-- Camera -->
+    <string name="camera_cropping">Кадрирование…</string>
+    <string name="camera_compressing">Сжатие…</string>
+    <string name="camera_analyzing">Анализ…</string>
+    <string name="camera_analyzing_local">Анализ (локально)…</string>
+    <string name="camera_error_server">Ошибка сервера</string>
+    <string name="camera_error_timeout">Превышено время ожидания. Попробуйте ещё раз.</string>
+    <string name="camera_error_recognition">Ошибка распознавания: %s</string>
+    <string name="camera_error_timeout_short">Превышено время ожидания.</string>
+    <string name="camera_error_generic">Ошибка: %s</string>
+    <string name="camera_process_local">Обработать локально</string>
+    <string name="camera_retry">Попробовать снова</string>
+    <string name="camera_frame_hint">Передвиньте изображение, чтобы ценник попал в рамку</string>
+    <string name="camera_rotate_frame">Повернуть рамку</string>
+    <string name="camera_scan_button">Сканировать</string>
 </resources>

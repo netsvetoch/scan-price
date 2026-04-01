@@ -89,7 +89,7 @@ fun SettingsScreen(
         title = { Text(stringResource(R.string.settings_title)) },
         navigationIcon = {
           IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
           }
         }
       )
@@ -162,7 +162,7 @@ fun SettingsScreen(
               try {
                 val models = fetchModels(apiUrl.trimEnd('/'), apiKey)
                 modelList = models
-                connectionStatus = "✓ ${models.size} моделей"
+                connectionStatus = context.getString(R.string.settings_models_found, models.size)
               } catch (e: Exception) {
                 connectionStatus = "✗ ${e.message?.take(50)}"
                 Log.e("Settings", "Connection check failed", e)
@@ -223,7 +223,7 @@ fun SettingsScreen(
           },
           label = { Text(stringResource(R.string.settings_api_model)) },
           placeholder = {
-            Text(if (modelsLoaded) "Выберите модель" else "Сначала проверьте соединение")
+            Text(if (modelsLoaded) stringResource(R.string.settings_select_model) else stringResource(R.string.settings_check_first))
           },
           modifier = Modifier
             .fillMaxWidth()
@@ -340,6 +340,7 @@ fun SettingsScreen(
 
       var isExporting by remember { mutableStateOf(false) }
       var exportStatus by remember { mutableStateOf("") }
+      var isExportError by remember { mutableStateOf(false) }
       val exportContext = context
 
       Row(
@@ -352,21 +353,25 @@ fun SettingsScreen(
             scope.launch {
               isExporting = true
               exportStatus = ""
+              isExportError = false
               try {
                 val scans = withContext(Dispatchers.IO) {
                   scanRepository.getAllScans()
                 }
                 if (scans.isEmpty()) {
-                  exportStatus = "Нет данных для экспорта"
+                  exportStatus = context.getString(R.string.settings_export_no_data)
+                  isExportError = false
                 } else {
                   val exporter = DataExporter(exportContext)
                   val result = exporter.export(scans)
                   val files = listOfNotNull(result.csvFile, result.zipFile)
                   exporter.shareFiles(files)
-                  exportStatus = "Экспортировано: ${scans.size} записей"
+                  exportStatus = context.getString(R.string.settings_export_success, scans.size)
+                  isExportError = false
                 }
               } catch (e: Exception) {
-                exportStatus = "Ошибка: ${e.message}"
+                exportStatus = context.getString(R.string.settings_export_error, e.message)
+                isExportError = true
                 Log.e("Settings", "Export failed", e)
               }
               isExporting = false
@@ -385,7 +390,7 @@ fun SettingsScreen(
           Text(stringResource(R.string.settings_export_button))
         }
         Text(
-          text = "$scanCount записей",
+          text = stringResource(R.string.settings_scan_count, scanCount),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -395,7 +400,7 @@ fun SettingsScreen(
         Text(
           text = exportStatus,
           style = MaterialTheme.typography.bodySmall,
-          color = if (exportStatus.startsWith("Ошибка")) MaterialTheme.colorScheme.error
+          color = if (isExportError) MaterialTheme.colorScheme.error
           else MaterialTheme.colorScheme.primary
         )
       }

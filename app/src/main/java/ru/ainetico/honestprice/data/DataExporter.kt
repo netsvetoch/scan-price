@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.data
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import ru.ainetico.honestprice.R
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -95,7 +96,7 @@ class DataExporter(private val context: Context) {
             putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        val chooser = Intent.createChooser(intent, "Экспорт данных")
+        val chooser = Intent.createChooser(intent, context.getString(R.string.export_share_title))
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooser)
     }
