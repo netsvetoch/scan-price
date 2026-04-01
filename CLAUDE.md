@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**MVVM with Jetpack Compose.** Package: `ru.ainetico.honestprice`. No DI framework — dependencies manually wired in `MainActivity`. Navigation state managed by `AppNavigationViewModel`.
+**MVVM with Jetpack Compose + Hilt DI.** Package: `ru.ainetico.honestprice`. DI modules in `di/` package. Navigation state managed by `AppNavigationViewModel`.
 
 ### Layers
 
@@ -52,8 +52,9 @@ The remote engine is preferred when configured; local is the offline fallback.
 - **No on-device OCR** (Tesseract/ML Kit). They fail on Russian Cyrillic price tags. The app uses multimodal vision LLMs instead — image in, structured JSON out.
 - **Local engine uses grammar-constrained decoding.** JSON Schema is converted to GBNF grammar via llama.cpp, guaranteeing valid JSON output from the local model.
 - **`BarcodeEngine`** (ML Kit) is integrated but not wired to UI yet.
-- **No DI framework by design** — the app is small enough for manual wiring.
-- **Constructor injection for all dependencies.** Classes accept dependencies as constructor parameters (with defaults for convenience). No internal `= ConcreteClass()` creation — keeps classes testable.
+- **Hilt DI** with modules in `di/`: `DatabaseModule`, `DataModule`, `VisionModule`, `AppModule`. `@HiltViewModel` on `CameraViewModel`, `ResultViewModel`, `HistoryViewModel`. `ResultViewModel` still manually created in Compose (per-scan keying with `.also {}` init). `AppNavigationViewModel` stays manual (intent-derived state).
+- **Constructor `@Inject` for all dependencies.** No internal `= ConcreteClass()` creation — keeps classes testable and Hilt-compatible.
+- **Eager init in `ScanPriceApplication`**: `LocalVisionEngine` and `ModelDownloader` injected and initialized at app startup via `@Inject lateinit var`.
 
 ## Database
 
@@ -61,10 +62,17 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ## SDK & Build
 
-- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12
+- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12, Hilt 2.59.2
 - Min SDK 24, Target/Compile SDK 36
-- KSP for annotation processing (Room)
+- KSP for annotation processing (Room, Hilt)
 - ProGuard enabled for release builds
+
+### Build Gotchas
+
+- **Hilt requires 2.59+** for AGP 9.x compatibility (AGP 9 dropped `BaseExtension`)
+- **Hilt + KSP classloader**: `ksp` plugin must be declared `apply false` in root `build.gradle.kts` alongside `hilt`
+- **Don't add `kotlin-android` explicitly** — `kotlin.compose` already registers the kotlin extension
+- **`./gradlew test` fails** on `llama-lib` (missing junit dep). Use `:app:testDebugUnitTest` for app tests
 
 ## Testing
 
