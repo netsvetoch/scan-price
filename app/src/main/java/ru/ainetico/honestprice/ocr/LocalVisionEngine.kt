@@ -42,10 +42,16 @@ class LocalVisionEngine(private val appContext: Context) {
 }
 """
 
-    private const val PROMPT = "This is a photo of a price tag from a Russian store. " +
-        "Extract the product name, description, prices, weight/volume from the tag. " +
-        "If there is a discounted or card price, include it separately from the regular price. " +
-        "Use null for any fields you cannot read."
+    private const val PROMPT = "Фото ценника из российского магазина.\n\n" +
+        "Извлеки данные с ценника:\n" +
+        "- product_name: краткое название товара\n" +
+        "- product_description: бренд, состав, жирность, сорт — мелкий текст под названием. null если нет\n" +
+        "- price_regular: обычная цена числом\n" +
+        "- price_discount: цена по скидке/карте числом. null если скидки нет\n" +
+        "- weight_value: вес или объём числом как на ценнике (500 для 500г, 1 для 1кг)\n" +
+        "- weight_unit: единица измерения\n\n" +
+        "Пример: {\"product_name\":\"Молоко 3.2%\",\"product_description\":\"Простоквашино, ультрапастеризованное\"," +
+        "\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}"
   }
 
   private var engine: InferenceEngine? = null
