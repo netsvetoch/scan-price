@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">ЧестнаяЦена</string>
-    <string name="onboarding_download_title">Загрузка ИИ-модели</string>
-    <string name="onboarding_download_description">Необходимо загрузить модели нейросетей для автоматического распознавания ценников.</string>
+    <string name="onboarding_download_title">Офлайн-распознавание</string>
+    <string name="onboarding_download_description">Скачайте нейросетевые модели на устройство для автоматического распознавания ценников даже без интернета или укажите свои серверы позднее в настройках</string>
+    <string name="onboarding_download_button">Скачать</string>
     <string name="onboarding_download_preparing">Подготовка к загрузке…</string>
     <string name="onboarding_download_done">Модели загружены!</string>
-    <string name="onboarding_download_hint">Загрузка продолжится в фоне. Разрешите уведомления, чтобы видеть прогресс. Вы можете пользоваться приложением — вводите данные вручную.</string>
-    <string name="onboarding_allow_notifications">Разрешить уведомления</string>
+    <string name="onboarding_download_hint">Загрузка продолжится в фоне. Вы можете пользоваться приложением — вводите данные вручную.</string>
     <string name="onboarding_camera_title">Сканируйте ценник</string>
-    <string name="onboarding_camera_text">Наведите камеру на ценник — мы рассчитаем честную цену за кг или литр</string>
+    <string name="onboarding_camera_text">Наведите камеру на ценник — мы рассчитаем честную цену за килограмм или литр</string>
     <string name="onboarding_camera_hint">Также можно загрузить фото из галереи или ввести данные вручную</string>
     <string name="onboarding_location_title">Сохраняйте местоположение</string>
     <string name="onboarding_location_text">Это поможет запоминать магазин и добавить новые функции в будущем</string>
@@ -45,6 +45,10 @@
     <string name="settings_api_key">API ключ (необязательно)</string>
     <string name="settings_system_prompt">Системный промпт</string>
     <string name="settings_remote_active">✓ Удалённая модель будет использоваться при сканировании</string>
+    <string name="settings_local_model_title">Локальная модель</string>
+    <string name="settings_local_model_description">Нейросеть на устройстве для распознавания ценников без интернета</string>
+    <string name="settings_local_model_ready">✓ Модели загружены и готовы к работе</string>
+    <string name="settings_local_model_download">Скачать модели</string>
     <string name="settings_export_title">Экспорт данных</string>
     <string name="settings_export_description">Экспортирует все сканирования в CSV и фотографии ценников в ZIP-архив.</string>
     <string name="settings_export_button">Экспортировать</string>

@@ -29,10 +29,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -57,19 +59,7 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
   val pagerState = rememberPagerState(pageCount = { 3 })
   val coroutineScope = rememberCoroutineScope()
   val downloadState by modelDownloader.state.collectAsState()
-
-  // Start download on first page
-  LaunchedEffect(Unit) {
-    modelDownloader.startDownloadIfNeeded()
-  }
-
-  val notificationPermissionLauncher = rememberLauncherForActivityResult(
-    ActivityResultContracts.RequestPermission()
-  ) { _ ->
-    coroutineScope.launch {
-      pagerState.animateScrollToPage(1)
-    }
-  }
+  var downloadStarted by remember { mutableStateOf(false) }
 
   val cameraPermissionLauncher = rememberLauncherForActivityResult(
     ActivityResultContracts.RequestPermission()
@@ -96,7 +86,7 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
       modifier = Modifier.weight(1f)
     ) { page ->
       when (page) {
-        0 -> ModelDownloadPage(downloadState)
+        0 -> ModelDownloadPage(downloadState, downloadStarted)
         1 -> CameraPage()
         2 -> LocationPage()
       }
@@ -127,26 +117,37 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
     // Action buttons
     when (pagerState.currentPage) {
       0 -> {
-        Button(
-          onClick = {
-            if (android.os.Build.VERSION.SDK_INT >= 33) {
-              notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
+        if (!downloadStarted) {
+          // Choice: Download or Skip
+          Button(
+            onClick = {
+              downloadStarted = true
+              modelDownloader.startDownloadIfNeeded()
+            },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(stringResource(R.string.onboarding_download_button))
+          }
+          Spacer(modifier = Modifier.height(8.dp))
+          TextButton(
+            onClick = {
               coroutineScope.launch { pagerState.animateScrollToPage(1) }
-            }
-          },
-          modifier = Modifier.fillMaxWidth()
-        ) {
-          Text(stringResource(R.string.onboarding_allow_notifications))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        TextButton(
-          onClick = {
-            coroutineScope.launch { pagerState.animateScrollToPage(1) }
-          },
-          modifier = Modifier.fillMaxWidth()
-        ) {
-          Text(stringResource(R.string.onboarding_skip))
+            },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(stringResource(R.string.onboarding_skip))
+          }
+        } else {
+          // Download in progress or done
+          val isDone = downloadState is ModelDownloader.DownloadState.Completed
+          Button(
+            onClick = {
+              coroutineScope.launch { pagerState.animateScrollToPage(1) }
+            },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(stringResource(if (isDone) R.string.onboarding_next else R.string.onboarding_skip))
+          }
         }
       }
 
@@ -196,7 +197,7 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
 }
 
 @Composable
-private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
+private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState, downloadStarted: Boolean) {
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -226,49 +227,50 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState) {
     )
     Spacer(modifier = Modifier.height(16.dp))
 
-    when (downloadState) {
-      is ModelDownloader.DownloadState.Idle -> {
-        Text(
-          text = stringResource(R.string.onboarding_download_preparing),
-          style = MaterialTheme.typography.bodyMedium,
-          textAlign = TextAlign.Center,
-          color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    if (downloadStarted) {
+      when (downloadState) {
+        is ModelDownloader.DownloadState.Idle -> {
+          Text(
+            text = stringResource(R.string.onboarding_download_preparing),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+        }
+
+        is ModelDownloader.DownloadState.Downloading -> {
+          FileProgressRow(downloadState.file1)
+          Spacer(modifier = Modifier.height(8.dp))
+          FileProgressRow(downloadState.file2)
+        }
+
+        is ModelDownloader.DownloadState.Completed -> {
+          Text(
+            text = stringResource(R.string.onboarding_download_done),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary
+          )
+        }
+
+        is ModelDownloader.DownloadState.Error -> {
+          Text(
+            text = downloadState.message,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.error
+          )
+        }
       }
 
-      is ModelDownloader.DownloadState.Downloading -> {
-        FileProgressRow(downloadState.file1)
-        Spacer(modifier = Modifier.height(8.dp))
-        FileProgressRow(downloadState.file2)
-      }
-
-      is ModelDownloader.DownloadState.Completed -> {
-        Text(
-          text = stringResource(R.string.onboarding_download_done),
-          style = MaterialTheme.typography.bodyLarge,
-          textAlign = TextAlign.Center,
-          color = MaterialTheme.colorScheme.primary
-        )
-      }
-
-      is ModelDownloader.DownloadState.Error -> {
-        Text(
-          text = downloadState.message,
-          style = MaterialTheme.typography.bodyLarge,
-          textAlign = TextAlign.Center,
-          color = MaterialTheme.colorScheme.error
-        )
-      }
+      Spacer(modifier = Modifier.height(16.dp))
+      Text(
+        text = stringResource(R.string.onboarding_download_hint),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-    Text(
-      text = stringResource(R.string.onboarding_download_hint),
-      style = MaterialTheme.typography.bodyMedium,
-      textAlign = TextAlign.Center,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-
   }
 }
 

@@ -79,24 +79,18 @@ class MainActivity : ComponentActivity() {
         localVisionEngine = LocalVisionEngine(applicationContext)
         modelDownloader = ModelDownloader(applicationContext)
 
-        // Start download if needed, then init engine
-        modelDownloader.startDownloadIfNeeded()
-
-        // Watch for download completion and init engine
+        // Init engine if models already downloaded, otherwise wait for user to trigger download
         lifecycleScope.launch {
             if (modelDownloader.isModelDownloaded()) {
                 Log.i("MainActivity", "Models already present, initializing vision engine...")
                 localVisionEngine.initialize()
                 Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
             } else {
-                // Wait for download to complete
+                // Wait for user-initiated download to complete
                 modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed }
                 Log.i("MainActivity", "Download completed, initializing vision engine...")
                 localVisionEngine.initialize()
                 Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-                if (localVisionEngine.isAvailable()) {
-                    modelDownloader.showReadyNotification()
-                }
             }
         }
 
@@ -267,6 +261,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
             ru.ainetico.honestprice.ui.settings.SettingsScreen(
                 appSettings = appSettings,
                 scanRepository = repository,
+                modelDownloader = modelDownloader,
                 onBack = { navController.popBackStack() }
             )
         }

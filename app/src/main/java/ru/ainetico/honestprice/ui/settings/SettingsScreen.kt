@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -61,6 +63,7 @@ import java.net.URL
 fun SettingsScreen(
   appSettings: AppSettings,
   scanRepository: ScanRepository,
+  modelDownloader: ru.ainetico.honestprice.model.ModelDownloader,
   onBack: () -> Unit
 ) {
   var useRemote by remember { mutableStateOf(appSettings.useRemoteServer.value) }
@@ -275,6 +278,55 @@ fun SettingsScreen(
 
       HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
+      // Local model section
+      val downloadState by modelDownloader.state.collectAsState()
+      val modelsDownloaded = modelDownloader.isModelDownloaded()
+
+      Text(
+        text = stringResource(R.string.settings_local_model_title),
+        style = MaterialTheme.typography.titleMedium
+      )
+      Text(
+        text = stringResource(R.string.settings_local_model_description),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
+
+      if (modelsDownloaded && downloadState !is ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Downloading) {
+        Text(
+          text = stringResource(R.string.settings_local_model_ready),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.primary
+        )
+      } else {
+        when (downloadState) {
+          is ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Downloading -> {
+            val dl = downloadState as ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Downloading
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              DownloadFileRow(dl.file1)
+              DownloadFileRow(dl.file2)
+            }
+          }
+          is ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Error -> {
+            Text(
+              text = (downloadState as ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Error).message,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.error
+            )
+          }
+          else -> {}
+        }
+        Button(
+          onClick = { modelDownloader.startDownloadIfNeeded() },
+          enabled = downloadState !is ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Downloading,
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Text(stringResource(R.string.settings_local_model_download))
+        }
+      }
+
+      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
       // Export section
       Text(
         text = stringResource(R.string.settings_export_title),
@@ -347,6 +399,40 @@ fun SettingsScreen(
           else MaterialTheme.colorScheme.primary
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun DownloadFileRow(fp: ru.ainetico.honestprice.model.ModelDownloader.FileProgress) {
+  Column {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+      Text(
+        text = fp.label,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface
+      )
+      Text(
+        text = if (fp.done) "✓" else "${fp.progress}%",
+        style = MaterialTheme.typography.bodySmall,
+        color = if (fp.done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+      )
+    }
+    Spacer(modifier = Modifier.height(4.dp))
+    if (fp.done) {
+      LinearProgressIndicator(
+        progress = { 1f },
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.primary
+      )
+    } else {
+      LinearProgressIndicator(
+        progress = { fp.progress / 100f },
+        modifier = Modifier.fillMaxWidth()
+      )
     }
   }
 }
