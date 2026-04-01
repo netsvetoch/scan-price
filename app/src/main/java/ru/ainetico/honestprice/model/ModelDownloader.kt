@@ -183,7 +183,7 @@ class ModelDownloader(
     val request = DownloadManager.Request(Uri.parse(url))
       .setTitle("${context.getString(R.string.app_name)} — $label")
       .setDescription(context.getString(R.string.download_description))
-      .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
+      .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
       .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "honestprice_$filename")
       .setAllowedOverMetered(true)
       .setAllowedOverRoaming(false)

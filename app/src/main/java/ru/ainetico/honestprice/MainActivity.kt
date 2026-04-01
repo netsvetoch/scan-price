@@ -3,7 +3,7 @@ package ru.ainetico.honestprice
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -64,7 +64,7 @@ import kotlin.math.roundToInt
 
 private const val TRANSITION_DURATION = 300
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var localVisionEngine: LocalVisionEngine
   private lateinit var modelDownloader: ModelDownloader

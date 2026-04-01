@@ -1,0 +1,121 @@
+<resources>
+    <string name="app_name">ScanPrice</string>
+    <string name="settings_language_title">Language</string>
+    <string name="onboarding_download_title">Offline recognition</string>
+    <string name="onboarding_download_description">Download neural network models to your device for automatic price tag recognition even without internet, or set up your own servers later in settings</string>
+    <string name="onboarding_download_button">Download</string>
+    <string name="onboarding_download_preparing">Preparing download…</string>
+    <string name="onboarding_download_done">Models downloaded!</string>
+    <string name="onboarding_download_hint">Download will continue in the background. You can use the app — enter data manually.</string>
+    <string name="onboarding_camera_title">Scan a price tag</string>
+    <string name="onboarding_camera_text">Point the camera at a price tag — we\'ll calculate the real price per kilo or liter</string>
+    <string name="onboarding_camera_hint">You can also pick a photo from the gallery or enter data manually</string>
+    <string name="onboarding_location_title">Save your location</string>
+    <string name="onboarding_location_text">This helps remember the store and enables new features in the future</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_allow">Allow</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="camera_gallery">Gallery</string>
+    <string name="camera_capture">Capture</string>
+    <string name="camera_manual">Manual</string>
+    <string name="camera_retake">Retake</string>
+    <string name="camera_scanning">Scanning…</string>
+    <string name="camera_permission_needed">Camera access is required for scanning</string>
+    <string name="camera_open_settings">Open settings</string>
+    <string name="result_product_name">Product name</string>
+    <string name="result_product_description">Description (additional details)</string>
+    <string name="result_price_regular">Price</string>
+    <string name="result_price_discount">Discounted</string>
+    <string name="result_weight">Weight / Volume</string>
+    <string name="result_unit">Unit</string>
+    <string name="result_store">Store</string>
+    <string name="result_barcode">Barcode</string>
+    <string name="result_honest_price">Unit price</string>
+    <string name="result_regular_per_unit">regular: %s ₽/%s</string>
+    <string name="result_cancel">Cancel</string>
+    <string name="result_delete">Delete</string>
+    <string name="result_save">Save</string>
+    <string name="result_saving">Saving…</string>
+    <string name="app_title">ScanPrice</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_remote_model_title">Remote model</string>
+    <string name="settings_remote_model_description">Enter the address of an OpenAI-compatible server for more accurate recognition. If the server is unavailable, the local model will be used.</string>
+    <string name="settings_api_url">Server URL</string>
+    <string name="settings_check_connection">Check connection</string>
+    <string name="settings_api_model">Model</string>
+    <string name="settings_api_key">API key (optional)</string>
+    <string name="settings_system_prompt">System prompt</string>
+    <string name="settings_remote_active">✓ Remote model will be used for scanning</string>
+    <string name="settings_local_model_title">Local model</string>
+    <string name="settings_local_model_description">On-device neural network for price tag recognition without internet</string>
+    <string name="settings_local_model_ready">✓ Models downloaded and ready</string>
+    <string name="settings_local_model_download">Download models</string>
+    <string name="settings_export_title">Export data</string>
+    <string name="settings_export_description">Exports all scans as CSV and price tag photos as a ZIP archive.</string>
+    <string name="settings_export_button">Export</string>
+    <string name="widget_description">Latest price tag scan</string>
+    <string name="shortcut_camera">Scan</string>
+    <string name="shortcut_gallery">From gallery</string>
+    <string name="shortcut_manual">Manual entry</string>
+    <string name="tile_scan_label">Scan</string>
+    <string name="download_file1_label">File 1 of 2</string>
+    <string name="download_file2_label">File 2 of 2</string>
+    <string name="download_channel_silent">Model download</string>
+    <string name="download_channel_alert">Model readiness</string>
+    <string name="download_ready_title">Models downloaded</string>
+    <string name="download_ready_text">Automatic price tag recognition is active</string>
+    <string name="download_progress_title">Downloading models</string>
+    <string name="download_description">Downloading model for price tag recognition</string>
+    <string name="download_error_incomplete">Download not completed</string>
+    <string name="download_error_format">Download error: %s</string>
+    <string name="history_empty">No scans</string>
+    <string name="history_empty_hint">Tap 📷 to get started</string>
+    <string name="history_fab_camera">Camera</string>
+    <string name="history_fab_gallery">Gallery</string>
+    <string name="history_fab_manual">Manual</string>
+
+    <!-- DateUtils -->
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Settings -->
+    <string name="settings_select_model">Select model</string>
+    <string name="settings_check_first">Check the connection first</string>
+    <string name="settings_export_no_data">No data to export</string>
+    <string name="settings_export_error">Error: %s</string>
+    <plurals name="settings_models_found">
+        <item quantity="one">✓ %d model</item>
+        <item quantity="other">✓ %d models</item>
+    </plurals>
+    <plurals name="settings_scan_count">
+        <item quantity="one">%d entry</item>
+        <item quantity="other">%d entries</item>
+    </plurals>
+    <plurals name="settings_export_success">
+        <item quantity="one">Exported: %d entry</item>
+        <item quantity="other">Exported: %d entries</item>
+    </plurals>
+
+    <!-- DataExporter -->
+    <string name="export_share_title">Export data</string>
+
+    <!-- Camera -->
+    <string name="camera_cropping">Cropping…</string>
+    <string name="camera_compressing">Compressing…</string>
+    <string name="camera_analyzing">Analyzing…</string>
+    <string name="camera_analyzing_local">Analyzing (locally)…</string>
+    <string name="camera_error_server">Server error</string>
+    <string name="camera_error_timeout">Request timed out. Please try again.</string>
+    <string name="camera_error_recognition">Recognition error: %s</string>
+    <string name="camera_error_timeout_short">Request timed out.</string>
+    <string name="camera_error_generic">Error: %s</string>
+    <string name="camera_process_local">Process locally</string>
+    <string name="camera_retry">Try again</string>
+    <string name="camera_frame_hint">Move the image so the price tag fits inside the frame</string>
+    <string name="camera_rotate_frame">Rotate frame</string>
+    <string name="camera_scan_button">Scan</string>
+</resources>

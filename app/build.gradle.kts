@@ -96,6 +96,9 @@ dependencies {
     // Coroutines Play Services (await() on ML Kit Tasks)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // AppCompat (for per-app language support on pre-API 33)
+    implementation("androidx.appcompat:appcompat:1.7.0")
+
     // ExifInterface for EXIF rotation
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 

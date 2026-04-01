@@ -1,11 +1,16 @@
 package ru.ainetico.honestprice.ui.settings
 
+import android.content.Intent
+import android.os.Build
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -104,6 +110,88 @@ fun SettingsScreen(
         .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+      // Language section
+      val currentLang = AppCompatDelegate.getApplicationLocales().get(0)?.language
+        ?: context.resources.configuration.locales[0].language
+      val currentLangName = when (currentLang) {
+        "en" -> "English"
+        else -> "Русский"
+      }
+
+      if (Build.VERSION.SDK_INT >= 33) {
+        // API 33+: open system per-app language settings
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+              val intent = Intent(android.provider.Settings.ACTION_APP_LOCALE_SETTINGS)
+              intent.data = android.net.Uri.parse("package:${context.packageName}")
+              context.startActivity(intent)
+            },
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Text(
+            text = stringResource(R.string.settings_language_title),
+            style = MaterialTheme.typography.titleMedium
+          )
+          Text(
+            text = "$currentLangName ›",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+          )
+        }
+      } else {
+        // API < 33: show dropdown
+        var selectedLanguage by remember { mutableStateOf(currentLang) }
+        var languageExpanded by remember { mutableStateOf(false) }
+        val languageOptions = listOf("ru" to "Русский", "en" to "English")
+
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Text(
+            text = stringResource(R.string.settings_language_title),
+            style = MaterialTheme.typography.titleMedium
+          )
+          ExposedDropdownMenuBox(
+            expanded = languageExpanded,
+            onExpandedChange = { languageExpanded = it },
+            modifier = Modifier.width(160.dp)
+          ) {
+            OutlinedTextField(
+              value = languageOptions.first { it.first == selectedLanguage }.second,
+              onValueChange = {},
+              readOnly = true,
+              singleLine = true,
+              modifier = Modifier.menuAnchor(),
+              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageExpanded) }
+            )
+            ExposedDropdownMenu(
+              expanded = languageExpanded,
+              onDismissRequest = { languageExpanded = false }
+            ) {
+              languageOptions.forEach { (tag, name) ->
+                DropdownMenuItem(
+                  text = { Text(name) },
+                  onClick = {
+                    selectedLanguage = tag
+                    languageExpanded = false
+                    AppCompatDelegate.setApplicationLocales(
+                      LocaleListCompat.forLanguageTags(tag)
+                    )
+                  }
+                )
+              }
+            }
+          }
+        }
+      }
+
+      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,

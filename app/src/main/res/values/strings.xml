@@ -37,6 +37,7 @@
     <string name="result_saving">Сохранение…</string>
     <string name="app_title">Ценоскан</string>
     <string name="settings_title">Настройки</string>
+    <string name="settings_language_title">Язык</string>
     <string name="settings_remote_model_title">Удалённая модель</string>
     <string name="settings_remote_model_description">Укажите адрес OpenAI-совместимого сервера для более точного распознавания. Если сервер недоступен, будет использована локальная модель.</string>
     <string name="settings_api_url">URL сервера</string>
