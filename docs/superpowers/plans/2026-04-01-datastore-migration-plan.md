@@ -661,10 +661,11 @@ with:
     LaunchedEffect(savedLocalPrompt) { localPrompt = savedLocalPrompt }
 ```
 
-Add imports (note: `collectAsState` and `rememberCoroutineScope` are already imported in this file — only add missing ones):
+Add imports (note: `collectAsState` is already imported in this file — only add missing ones):
 
 ```kotlin
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 ```
 
