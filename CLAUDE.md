@@ -52,7 +52,6 @@ The remote engine is preferred when configured; local is the offline fallback.
 
 - **No on-device OCR** (Tesseract/ML Kit). They fail on Russian Cyrillic price tags. The app uses multimodal vision LLMs instead — image in, structured JSON out.
 - **Local engine uses grammar-constrained decoding.** JSON Schema is converted to GBNF grammar via llama.cpp, guaranteeing valid JSON output from the local model.
-- **`BarcodeEngine`** (ML Kit) is integrated but not wired to UI yet.
 - **Hilt DI** with modules in `di/`: `DatabaseModule`, `DataModule`, `VisionModule`, `AppModule`. `@HiltViewModel` on `CameraViewModel`, `ResultViewModel`, `HistoryViewModel`. `ResultViewModel` still manually created in Compose (per-scan keying with `.also {}` init). `AppNavigationViewModel` stays manual (intent-derived state).
 - **Constructor `@Inject` for all dependencies.** No internal `= ConcreteClass()` creation — keeps classes testable and Hilt-compatible.
 - **Eager init in `ScanPriceApplication`**: `LocalVisionEngine` and `ModelDownloader` injected and initialized at app startup via `@Inject lateinit var`.

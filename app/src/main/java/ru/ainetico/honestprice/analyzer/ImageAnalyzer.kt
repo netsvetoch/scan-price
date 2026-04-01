@@ -11,11 +11,6 @@ import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
 
-sealed class AnalysisMode {
-    object Local : AnalysisMode()
-    object Remote : AnalysisMode()
-}
-
 /**
  * Exception thrown when remote API fails — UI can offer "Process locally" button.
  */
