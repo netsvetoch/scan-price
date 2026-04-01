@@ -138,7 +138,7 @@ class RemoteVisionClient {
             }
         }
 
-    private fun parseResponse(content: String): ParsedPriceTag {
+    internal fun parseResponse(content: String): ParsedPriceTag {
         Log.d(TAG, "parseResponse input (${content.length} chars): '${content.take(500)}'")
 
         val jsonMatch = Regex("""\{[^{}]*"product_name"[^{}]*\}""").find(content)
