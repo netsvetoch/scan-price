@@ -9,6 +9,5 @@ data class ParsedPriceTag(
     val priceDiscount: BigDecimal? = null,
     val weightValue: BigDecimal? = null,
     val weightUnit: WeightUnit? = null,
-    val barcode: String? = null,
-    val rawBlocks: List<OcrBlock> = emptyList()
+    val barcode: String? = null
 )

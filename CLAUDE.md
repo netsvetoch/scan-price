@@ -49,7 +49,7 @@ The remote engine is preferred when configured; local is the offline fallback.
 ## Key Technical Decisions
 
 - **No on-device OCR** (Tesseract/ML Kit). They fail on Russian Cyrillic price tags. The app uses multimodal vision LLMs instead — image in, structured JSON out.
-- **`parser/` package is legacy/unused.** It was the old heuristic OCR parser. Vision LLMs replaced it.
+- **Local engine uses grammar-constrained decoding.** JSON Schema is converted to GBNF grammar via llama.cpp, guaranteeing valid JSON output from the local model.
 - **`BarcodeEngine`** (ML Kit) is integrated but not wired to UI yet.
 - **No DI framework by design** — the app is small enough for manual wiring.
 
@@ -66,4 +66,4 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS) and `Store` (au
 
 ## Testing
 
-JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `PriceTagParser`, `BlockClassifier`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`. No UI tests.
+JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`. No UI tests.
