@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.File
 import java.security.MessageDigest
@@ -42,7 +43,7 @@ class ModelDownloader(
     const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
 
     private const val MODEL_SHA256 = "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517"
-    private const val MMPROJ_SHA256 = "9922aa6e3425aaa2aa2f0c9fe62ca0f1289318df7da3a4981132f1890391dd28"
+    private const val MMPROJ_SHA256 = "d312c4d02fd46eea7a16e4f3bbb58840e6222209322ca1e33ca03247ad8935d6"
 
     private val EXPECTED_HASHES = mapOf(
       MODEL_FILENAME to MODEL_SHA256,
@@ -138,17 +139,17 @@ class ModelDownloader(
 
         _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
 
-        // Launch both downloads in parallel
-        val job1 = if (needModel) {
-          scope.launch { downloadFileWithManager(MODEL_URL, MODEL_FILENAME, file1Progress) }
+        // Launch both downloads in parallel (async so exceptions propagate on await)
+        val deferred1 = if (needModel) {
+          scope.async { downloadFileWithManager(MODEL_URL, MODEL_FILENAME, file1Progress) }
         } else null
 
-        val job2 = if (needMmproj) {
-          scope.launch { downloadFileWithManager(MMPROJ_URL, MMPROJ_FILENAME, file2Progress) }
+        val deferred2 = if (needMmproj) {
+          scope.async { downloadFileWithManager(MMPROJ_URL, MMPROJ_FILENAME, file2Progress) }
         } else null
 
         // Poll, update UI state and silent notification
-        while (job1?.isActive == true || job2?.isActive == true) {
+        while (deferred1?.isActive == true || deferred2?.isActive == true) {
           val f1 = file1Progress.value
           val f2 = file2Progress.value
           _state.value = DownloadState.Downloading(f1, f2)
@@ -159,8 +160,9 @@ class ModelDownloader(
           delay(2000)
         }
 
-        job1?.join()
-        job2?.join()
+        // await() rethrows exceptions from child coroutines into this try/catch
+        deferred1?.await()
+        deferred2?.await()
 
         if (isModelDownloaded()) {
           cancelSilentNotification()

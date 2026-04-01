@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew :app:testDebugUnitTest     # Run debug unit tests only
 ./gradlew :llama-lib:build           # Rebuild native C++ library (llama.cpp JNI)
 ./gradlew clean                      # Full clean
+adb logcat -s AndroidRuntime         # Read crash logs from connected device
 ```
 
 ## Architecture
@@ -73,6 +74,8 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 - **Hilt + KSP classloader**: `ksp` plugin must be declared `apply false` in root `build.gradle.kts` alongside `hilt`
 - **Don't add `kotlin-android` explicitly** — `kotlin.compose` already registers the kotlin extension
 - **`./gradlew test` fails** on `llama-lib` (missing junit dep). Use `:app:testDebugUnitTest` for app tests
+- **GGUF model SHA256 hashes** in `ModelDownloader.kt` are hardcoded. If HuggingFace updates a file, the download will fail with `SecurityException`. Update hashes after verifying the new file.
+- **`ModelDownloader` coroutine scope** uses `SupervisorJob` — child exceptions from `scope.launch` don't propagate to parent. Use `async`/`await` when exceptions must be caught by the caller.
 
 ## Testing
 
