@@ -24,9 +24,9 @@ class RemoteAnalysisException(message: String, cause: Throwable? = null) : Excep
 class ImageAnalyzer(
     private val localEngine: LocalVisionEngine,
     private val calculator: PriceCalculator,
-    private val appSettings: AppSettings
+    private val appSettings: AppSettings,
+    private val remoteClient: RemoteVisionClient = RemoteVisionClient()
 ) {
-    private val remoteClient = RemoteVisionClient()
 
     /**
      * Analyze bitmap. If remote model configured — try it first.

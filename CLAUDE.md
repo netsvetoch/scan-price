@@ -53,6 +53,7 @@ The remote engine is preferred when configured; local is the offline fallback.
 - **Local engine uses grammar-constrained decoding.** JSON Schema is converted to GBNF grammar via llama.cpp, guaranteeing valid JSON output from the local model.
 - **`BarcodeEngine`** (ML Kit) is integrated but not wired to UI yet.
 - **No DI framework by design** — the app is small enough for manual wiring.
+- **Constructor injection for all dependencies.** Classes accept dependencies as constructor parameters (with defaults for convenience). No internal `= ConcreteClass()` creation — keeps classes testable.
 
 ## Database
 

@@ -16,6 +16,7 @@ import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.model.WeightUnit
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
+import ru.ainetico.honestprice.ocr.RemoteVisionClient
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
@@ -67,6 +68,9 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze throws RemoteAnalysisException when remote fails`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val mockRemoteClient = mockk<RemoteVisionClient> {
+            coEvery { analyze(any(), any(), any(), any(), any()) } throws RuntimeException("Connection refused")
+        }
         val remoteSettings = mockk<AppSettings> {
             coEvery { isRemoteModelConfigured() } returns true
             every { apiUrl } returns MutableStateFlow("https://example.com")
@@ -75,7 +79,7 @@ class ImageAnalyzerTest {
             every { systemPrompt } returns flowOf("")
             every { localPrompt } returns flowOf("")
         }
-        val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings)
+        val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings, mockRemoteClient)
 
         try {
             remoteAnalyzer.analyze(bitmap, null)
@@ -88,6 +92,7 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze uses local engine when forceLocal is true`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val mockRemoteClient = mockk<RemoteVisionClient>()
         val remoteSettings = mockk<AppSettings> {
             coEvery { isRemoteModelConfigured() } returns true
             every { apiUrl } returns MutableStateFlow("https://example.com")
@@ -96,7 +101,7 @@ class ImageAnalyzerTest {
             every { systemPrompt } returns flowOf("")
             every { localPrompt } returns flowOf("")
         }
-        val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings)
+        val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings, mockRemoteClient)
         coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag(
             productName = "Хлеб",
             priceRegular = BigDecimal("45.00")
