@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**MVVM with Jetpack Compose.** No DI framework — all dependencies are manually wired in `MainActivity`.
+**MVVM with Jetpack Compose.** No DI framework — dependencies manually wired in `MainActivity`. Navigation state managed by `AppNavigationViewModel`.
 
 ### Layers
 
@@ -32,6 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Navigation Flow
 
 `Camera → Result → History` (plus Settings and Onboarding). Routes defined in `navigation/Screen.kt`.
+Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBackOverlay`), not NavHost routes.
 
 ### Dual Vision Pipeline
 
