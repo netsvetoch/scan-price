@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.ocr
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import ru.ainetico.honestprice.BuildConfig
 import com.arm.aichat.AiChat
 import com.arm.aichat.InferenceEngine
 import kotlinx.coroutines.flow.first
@@ -131,7 +132,7 @@ class LocalVisionEngine(private val appContext: Context) {
         )
 
         val response = eng.analyzeImage(imageBytes, prompt, JSON_SCHEMA)
-        Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
+        if (BuildConfig.DEBUG) Log.d(TAG, "Response (${response.length} chars): '${response.take(500)}'")
 
         if (response.isBlank()) {
           Log.w(TAG, "Empty response from model")
@@ -148,7 +149,7 @@ class LocalVisionEngine(private val appContext: Context) {
 
   private fun parseResponse(content: String): ParsedPriceTag {
     return try {
-      Log.d(TAG, "Parsing JSON: $content")
+      if (BuildConfig.DEBUG) Log.d(TAG, "Parsing JSON: $content")
       val json = JSONObject(content)
 
       val unit = json.optStringOrNull("weight_unit")?.lowercase()?.let { raw ->

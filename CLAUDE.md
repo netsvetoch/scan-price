@@ -70,6 +70,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ### Build Gotchas
 
+- **`BuildConfig` requires opt-in** on AGP 9+: `buildFeatures { buildConfig = true }` in `app/build.gradle.kts`. Needed for `BuildConfig.DEBUG` guards on sensitive logging.
 - **Hilt requires 2.59+** for AGP 9.x compatibility (AGP 9 dropped `BaseExtension`)
 - **Hilt + KSP classloader**: `ksp` plugin must be declared `apply false` in root `build.gradle.kts` alongside `hilt`
 - **Don't add `kotlin-android` explicitly** — `kotlin.compose` already registers the kotlin extension
@@ -91,6 +92,7 @@ JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `Ima
 
 ## Security
 
+- Response/JSON content logging in `ocr/` guarded by `if (BuildConfig.DEBUG)` — prevents leaking API responses in release builds
 - API key/URL/model stored in `EncryptedSharedPreferences` (`secure_settings`), backed by Android Keystore AES-256-GCM
 - `AppSettings`: credential setters use `commit()` (synchronous, EncryptedSharedPreferences); non-sensitive setters are `suspend fun` via DataStore. `isRemoteModelConfigured()` is also `suspend`.
 - CSV export sanitizes formula-triggering characters (`=`, `+`, `-`, `@`, `\t`) with tab prefix to prevent injection

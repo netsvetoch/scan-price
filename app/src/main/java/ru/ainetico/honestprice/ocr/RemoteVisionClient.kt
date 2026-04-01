@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.ocr
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import ru.ainetico.honestprice.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -118,7 +119,7 @@ class RemoteVisionClient {
 
                     val responseBody = response.body?.string()
                         ?: throw RuntimeException("Empty response body")
-                    Log.d(TAG, "Response: ${responseBody.take(300)}")
+                    if (BuildConfig.DEBUG) Log.d(TAG, "Response: ${responseBody.take(300)}")
 
                     val content = JSONObject(responseBody)
                         .getJSONArray("choices")
@@ -135,7 +136,7 @@ class RemoteVisionClient {
         }
 
     internal fun parseResponse(content: String): ParsedPriceTag {
-        Log.d(TAG, "parseResponse input (${content.length} chars): '${content.take(500)}'")
+        if (BuildConfig.DEBUG) Log.d(TAG, "parseResponse input (${content.length} chars): '${content.take(500)}'")
 
         val jsonMatch = Regex("""\{[^{}]*"product_name"[^{}]*\}""").find(content)
         val jsonStr = jsonMatch?.value ?: content
@@ -143,7 +144,7 @@ class RemoteVisionClient {
             .replace(Regex("""```\s*"""), "")
             .trim()
 
-        Log.d(TAG, "Parsing JSON: '$jsonStr'")
+        if (BuildConfig.DEBUG) Log.d(TAG, "Parsing JSON: '$jsonStr'")
         val json = JSONObject(jsonStr)
 
         val unit = json.optStringOrNull("weight_unit")?.lowercase()?.let { raw ->
