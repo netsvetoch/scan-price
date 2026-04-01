@@ -78,5 +78,6 @@ JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `Ima
 ## Security
 
 - API key/URL/model stored in `EncryptedSharedPreferences` (`secure_settings`), backed by Android Keystore AES-256-GCM
+- `AppSettings` uses `commit()` (synchronous) for credential setters and migration; `apply()` (async) for non-critical settings — prevents data loss on crash
 - CSV export sanitizes formula-triggering characters (`=`, `+`, `-`, `@`, `\t`) with tab prefix to prevent injection
 - `RemoteVisionClient` HTTP connections are closed in `finally` blocks

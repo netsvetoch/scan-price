@@ -43,8 +43,8 @@ class AppSettings(context: Context) {
     private fun migrateSensitiveField(key: String) {
         val plainValue = prefs.getString(key, null)
         if (plainValue != null) {
-            securePrefs.edit().putString(key, plainValue).apply()
-            prefs.edit().remove(key).apply()
+            securePrefs.edit().putString(key, plainValue).commit()
+            prefs.edit().remove(key).commit()
         }
     }
 
@@ -76,17 +76,17 @@ class AppSettings(context: Context) {
     }
 
     fun setApiUrl(url: String) {
-        securePrefs.edit().putString("api_url", url).apply()
+        securePrefs.edit().putString("api_url", url).commit()
         _apiUrl.value = url
     }
 
     fun setApiKey(key: String) {
-        securePrefs.edit().putString("api_key", key).apply()
+        securePrefs.edit().putString("api_key", key).commit()
         _apiKey.value = key
     }
 
     fun setApiModel(model: String) {
-        securePrefs.edit().putString("api_model", model).apply()
+        securePrefs.edit().putString("api_model", model).commit()
         _apiModel.value = model
     }
 
