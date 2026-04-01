@@ -32,7 +32,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -80,7 +79,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         val launchAction = intent?.action
-        val initialOnboardingCompleted = runBlocking { appSettings.onboardingCompleted.first() }
 
         setContent {
             ScanPriceTheme {
@@ -89,8 +87,7 @@ class MainActivity : AppCompatActivity() {
                     modelDownloader = modelDownloader,
                     database = database,
                     scanRepository = scanRepository,
-                    launchAction = launchAction,
-                    initialOnboardingCompleted = initialOnboardingCompleted
+                    launchAction = launchAction
                 )
             }
         }
@@ -103,9 +100,16 @@ fun HonestPriceApp(
     modelDownloader: ModelDownloader,
     database: AppDatabase,
     scanRepository: ScanRepository,
-    launchAction: String? = null,
-    initialOnboardingCompleted: Boolean = false
+    launchAction: String? = null
 ) {
+    // Load onboarding state asynchronously to avoid blocking the main thread
+    var onboardingCompleted by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(Unit) {
+        onboardingCompleted = appSettings.onboardingCompleted.first()
+    }
+
+    val initialOnboardingCompleted = onboardingCompleted ?: return
+
     val navController = rememberNavController()
     val context = LocalContext.current
     val startDestination = if (initialOnboardingCompleted) Screen.History.route else Screen.Onboarding.route

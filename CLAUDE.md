@@ -25,6 +25,7 @@ adb logcat -s AndroidRuntime         # Read crash logs from connected device
 ### Layers
 
 - **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`. One-shot events (navigation, snackbar) use `Channel<Event>(Channel.BUFFERED)` + `receiveAsFlow()`, NOT `StateFlow<Event?>` + `eventConsumed()`. Camera screen is decomposed into extracted composables: `CameraPreview`, `FrameOverlay`, `CameraPermissionContent`, `AdjustingContent` (gesture handler), each in its own file.
+- **No `runBlocking` on main thread.** For async data needed before first frame (e.g. onboarding check), use nullable state + `LaunchedEffect` + early return: `var x by remember { mutableStateOf<T?>(null) }; LaunchedEffect(Unit) { x = flow.first() }; val value = x ?: return`.
 - **Service** (`ocr/`, `analyzer/`): Vision engine abstraction. `ImageAnalyzer` routes to local or remote engine based on user settings.
 - **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (Preferences DataStore for non-sensitive settings as `Flow<T>`; EncryptedSharedPreferences for API credentials as `StateFlow<T>`).
 - **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines.
