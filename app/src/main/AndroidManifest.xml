@@ -26,10 +26,29 @@
             android:theme="@style/Theme.ЧестнаяЦена">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="ru.ainetico.honestprice.ACTION_SCAN" />
+                <action android:name="ru.ainetico.honestprice.ACTION_GALLERY" />
+                <action android:name="ru.ainetico.honestprice.ACTION_MANUAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <service
+            android:name=".tile.ScanTileService"
+            android:label="@string/tile_scan_label"
+            android:icon="@drawable/ic_shortcut_camera"
+            android:exported="true"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".widget.LastScanWidgetReceiver"

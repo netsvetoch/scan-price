@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="scan_camera"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_camera"
+        android:shortcutShortLabel="@string/shortcut_camera"
+        android:shortcutLongLabel="@string/shortcut_camera">
+        <intent
+            android:action="ru.ainetico.honestprice.ACTION_SCAN"
+            android:targetPackage="ru.ainetico.honestprice"
+            android:targetClass="ru.ainetico.honestprice.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="gallery"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_gallery"
+        android:shortcutShortLabel="@string/shortcut_gallery"
+        android:shortcutLongLabel="@string/shortcut_gallery">
+        <intent
+            android:action="ru.ainetico.honestprice.ACTION_GALLERY"
+            android:targetPackage="ru.ainetico.honestprice"
+            android:targetClass="ru.ainetico.honestprice.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="manual_entry"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_edit"
+        android:shortcutShortLabel="@string/shortcut_manual"
+        android:shortcutLongLabel="@string/shortcut_manual">
+        <intent
+            android:action="ru.ainetico.honestprice.ACTION_MANUAL"
+            android:targetPackage="ru.ainetico.honestprice"
+            android:targetClass="ru.ainetico.honestprice.MainActivity" />
+    </shortcut>
+</shortcuts>

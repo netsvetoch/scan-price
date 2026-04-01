@@ -4,8 +4,10 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -97,16 +99,22 @@ class MainActivity : ComponentActivity() {
 
         val appSettings = AppSettings(applicationContext)
 
+        val launchAction = intent?.action
+
         setContent {
             ЧестнаяЦенаTheme {
-                HonestPriceApp(localVisionEngine, modelDownloader, appSettings)
+                HonestPriceApp(localVisionEngine, modelDownloader, appSettings, launchAction)
             }
         }
     }
 }
 
+private const val ACTION_SCAN = "ru.ainetico.honestprice.ACTION_SCAN"
+private const val ACTION_GALLERY = "ru.ainetico.honestprice.ACTION_GALLERY"
+private const val ACTION_MANUAL = "ru.ainetico.honestprice.ACTION_MANUAL"
+
 @Composable
-fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelDownloader, appSettings: AppSettings) {
+fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelDownloader, appSettings: AppSettings, launchAction: String? = null) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val prefs = remember {
@@ -120,7 +128,26 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
     val repository = remember { ScanRepositoryImpl(db.scanDao()) }
     val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator(), appSettings) }
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
-    var showCameraSheet by remember { mutableStateOf(true) }
+    var showCameraSheet by remember { mutableStateOf(launchAction == ACTION_SCAN) }
+
+    // Gallery launcher for ACTION_GALLERY shortcut
+    val shortcutGalleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        uri?.let {
+            cameraViewModel.importFromGallery(it, context)
+            showCameraSheet = true
+        }
+    }
+
+    // Handle shortcut actions after NavHost is ready
+    LaunchedEffect(launchAction) {
+        if (!onboardingCompleted) return@LaunchedEffect
+        when (launchAction) {
+            ACTION_MANUAL -> navController.navigate(Screen.ResultManual.route)
+            ACTION_GALLERY -> shortcutGalleryLauncher.launch("image/*")
+        }
+    }
     var pendingResult by remember { mutableStateOf<Pair<Long, ru.ainetico.honestprice.model.AnalysisResult>?>(null) }
     var pendingScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
 
