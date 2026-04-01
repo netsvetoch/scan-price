@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`.
 - **Service** (`ocr/`, `analyzer/`): Vision engine abstraction. `ImageAnalyzer` routes to local or remote engine based on user settings.
-- **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (EncryptedSharedPreferences for API credentials, plain SharedPreferences for non-sensitive settings).
+- **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (Preferences DataStore for non-sensitive settings as `Flow<T>`; EncryptedSharedPreferences for API credentials as `StateFlow<T>`).
 - **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines.
 - **Calculator** (`calculator/`): `PriceCalculator` converts prices to per-unit for comparison.
 
@@ -74,10 +74,11 @@ JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `Ima
 - Classes using `android.util.Log` need `@RunWith(RobolectricTestRunner::class)`
 - `BigDecimal` equality: use `compareTo() == 0`, not `assertEquals` (scale differs: `89.90` ≠ `89.9`)
 - `PriceResult` requires `source: ParsedPriceTag` parameter — easy to miss in test constructors
+- `AppSettings` mocking: non-sensitive fields (`systemPrompt`, `localPrompt`, etc.) use `flowOf("")`; encrypted fields (`apiUrl`, `apiKey`, `apiModel`) use `MutableStateFlow("")`; `isRemoteModelConfigured()` needs `coEvery` (suspend)
 
 ## Security
 
 - API key/URL/model stored in `EncryptedSharedPreferences` (`secure_settings`), backed by Android Keystore AES-256-GCM
-- `AppSettings` uses `commit()` (synchronous) for credential setters and migration; `apply()` (async) for non-critical settings — prevents data loss on crash
+- `AppSettings`: credential setters use `commit()` (synchronous, EncryptedSharedPreferences); non-sensitive setters are `suspend fun` via DataStore. `isRemoteModelConfigured()` is also `suspend`.
 - CSV export sanitizes formula-triggering characters (`=`, `+`, `-`, `@`, `\t`) with tab prefix to prevent injection
 - `RemoteVisionClient` HTTP connections are closed in `finally` blocks
