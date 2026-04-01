@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,10 +97,11 @@ class MainActivity : AppCompatActivity() {
 
         val appSettings = AppSettings(applicationContext)
         val launchAction = intent?.action
+        val initialOnboardingCompleted = runBlocking { appSettings.onboardingCompleted.first() }
 
         setContent {
             ScanPriceTheme {
-                HonestPriceApp(localVisionEngine, modelDownloader, appSettings, launchAction)
+                HonestPriceApp(localVisionEngine, modelDownloader, appSettings, launchAction, initialOnboardingCompleted)
             }
         }
     }
@@ -110,16 +112,13 @@ fun HonestPriceApp(
     localVisionEngine: LocalVisionEngine,
     modelDownloader: ModelDownloader,
     appSettings: AppSettings,
-    launchAction: String? = null
+    launchAction: String? = null,
+    initialOnboardingCompleted: Boolean = false
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val prefs = remember {
-        context.getSharedPreferences("honest_price_prefs", Context.MODE_PRIVATE)
-    }
-    val onboardingCompleted = prefs.getBoolean("onboarding_completed", false)
     val db = remember { AppDatabase.getInstance(context) }
-    val startDestination = if (onboardingCompleted) Screen.History.route else Screen.Onboarding.route
+    val startDestination = if (initialOnboardingCompleted) Screen.History.route else Screen.Onboarding.route
 
     // Shared instances
     val repository = remember { ScanRepositoryImpl(db.scanDao()) }
@@ -140,7 +139,7 @@ fun HonestPriceApp(
 
     // Handle shortcut actions after NavHost is ready
     LaunchedEffect(launchAction) {
-        if (!onboardingCompleted) return@LaunchedEffect
+        if (!initialOnboardingCompleted) return@LaunchedEffect
         when (launchAction) {
             ACTION_MANUAL -> navController.navigate(Screen.ResultManual.route)
             ACTION_GALLERY -> shortcutGalleryLauncher.launch("image/*")
