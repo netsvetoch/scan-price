@@ -102,6 +102,9 @@ dependencies {
     // Encrypted SharedPreferences for secure API key storage
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
+    // Preferences DataStore
+    implementation(libs.datastore.preferences)
+
     // ExifInterface for EXIF rotation
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
