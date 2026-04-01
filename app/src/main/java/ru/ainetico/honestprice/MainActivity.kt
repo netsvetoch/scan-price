@@ -227,6 +227,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
         composable(Screen.Settings.route) {
             ru.ainetico.honestprice.ui.settings.SettingsScreen(
                 appSettings = appSettings,
+                scanRepository = repository,
                 onBack = { navController.popBackStack() }
             )
         }

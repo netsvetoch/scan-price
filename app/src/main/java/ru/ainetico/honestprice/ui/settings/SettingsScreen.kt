@@ -20,6 +20,8 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppSettings
+import ru.ainetico.honestprice.data.DataExporter
+import ru.ainetico.honestprice.data.ScanRepository
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -27,6 +29,7 @@ import java.net.URL
 @Composable
 fun SettingsScreen(
     appSettings: AppSettings,
+    scanRepository: ScanRepository,
     onBack: () -> Unit
 ) {
     var apiUrl by remember { mutableStateOf(appSettings.apiUrl.value) }
@@ -39,6 +42,7 @@ fun SettingsScreen(
     var modelsExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val modelsLoaded = modelList.isNotEmpty()
 
     Scaffold(
@@ -189,6 +193,67 @@ fun SettingsScreen(
                     text = stringResource(R.string.settings_remote_active),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Export section
+            Text(
+                text = stringResource(R.string.settings_export_title),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = stringResource(R.string.settings_export_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            var isExporting by remember { mutableStateOf(false) }
+            var exportStatus by remember { mutableStateOf("") }
+            val exportContext = context
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        isExporting = true
+                        exportStatus = ""
+                        try {
+                            val allScans = withContext(Dispatchers.IO) {
+                                scanRepository.getAllScans()
+                            }
+                            if (allScans.isEmpty()) {
+                                exportStatus = "Нет данных для экспорта"
+                            } else {
+                                val exporter = DataExporter(exportContext)
+                                val result = exporter.export(allScans)
+                                val files = listOfNotNull(result.csvFile, result.zipFile)
+                                exporter.shareFiles(files)
+                                exportStatus = "Экспортировано: ${allScans.size} записей"
+                            }
+                        } catch (e: Exception) {
+                            exportStatus = "Ошибка: ${e.message}"
+                            Log.e("Settings", "Export failed", e)
+                        }
+                        isExporting = false
+                    }
+                },
+                enabled = !isExporting,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isExporting) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(stringResource(R.string.settings_export_button))
+            }
+
+            if (exportStatus.isNotBlank()) {
+                Text(
+                    text = exportStatus,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (exportStatus.startsWith("Ошибка")) MaterialTheme.colorScheme.error
+                           else MaterialTheme.colorScheme.primary
                 )
             }
         }
