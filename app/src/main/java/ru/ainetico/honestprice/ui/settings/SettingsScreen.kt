@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -61,6 +63,7 @@ fun SettingsScreen(
   scanRepository: ScanRepository,
   onBack: () -> Unit
 ) {
+  var useRemote by remember { mutableStateOf(appSettings.useRemoteServer.value) }
   var apiUrl by remember { mutableStateOf(appSettings.apiUrl.value) }
   var apiModel by remember { mutableStateOf(appSettings.apiModel.value) }
   var apiKey by remember { mutableStateOf(appSettings.apiKey.value) }
@@ -97,15 +100,35 @@ fun SettingsScreen(
         .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-      Text(
-        text = stringResource(R.string.settings_remote_model_title),
-        style = MaterialTheme.typography.titleMedium
-      )
-      Text(
-        text = stringResource(R.string.settings_remote_model_description),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-      )
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = stringResource(R.string.settings_remote_model_title),
+            style = MaterialTheme.typography.titleMedium
+          )
+          Text(
+            text = stringResource(R.string.settings_remote_model_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+        }
+        Switch(
+          checked = useRemote,
+          onCheckedChange = {
+            useRemote = it
+            appSettings.setUseRemoteServer(it)
+          }
+        )
+      }
+
+      AnimatedVisibility(visible = useRemote) {
+        Column(
+          verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
 
       // URL + Check button
       Row(
@@ -246,6 +269,9 @@ fun SettingsScreen(
           color = MaterialTheme.colorScheme.primary
         )
       }
+
+        } // Column inside AnimatedVisibility
+      } // AnimatedVisibility
 
       HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 

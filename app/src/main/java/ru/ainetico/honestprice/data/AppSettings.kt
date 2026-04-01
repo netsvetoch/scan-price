@@ -18,6 +18,9 @@ class AppSettings(context: Context) {
         }
     }
 
+    private val _useRemoteServer = MutableStateFlow(prefs.getBoolean("use_remote_server", false))
+    val useRemoteServer: StateFlow<Boolean> = _useRemoteServer
+
     private val _apiUrl = MutableStateFlow(prefs.getString("api_url", "") ?: "")
     val apiUrl: StateFlow<String> = _apiUrl
 
@@ -31,7 +34,12 @@ class AppSettings(context: Context) {
     val systemPrompt: StateFlow<String> = _systemPrompt
 
     fun isRemoteModelConfigured(): Boolean {
-        return _apiUrl.value.isNotBlank() && _apiModel.value.isNotBlank()
+        return _useRemoteServer.value && _apiUrl.value.isNotBlank() && _apiModel.value.isNotBlank()
+    }
+
+    fun setUseRemoteServer(enabled: Boolean) {
+        prefs.edit().putBoolean("use_remote_server", enabled).apply()
+        _useRemoteServer.value = enabled
     }
 
     fun setApiUrl(url: String) {
