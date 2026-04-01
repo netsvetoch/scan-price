@@ -51,15 +51,14 @@ fun ResultScreen(
 ) {
   val state by viewModel.state.collectAsState()
   val suggestions by viewModel.storeSuggestions.collectAsState()
-  val event by viewModel.event.collectAsState()
-
   // Handle back button — cancel without saving
   androidx.activity.compose.BackHandler { onCancel() }
 
-  LaunchedEffect(event) {
-    if (event is ResultEvent.Saved) {
-      onSaved()
-      viewModel.eventConsumed()
+  LaunchedEffect(Unit) {
+    viewModel.event.collect { e ->
+      when (e) {
+        is ResultEvent.Saved -> onSaved()
+      }
     }
   }
 

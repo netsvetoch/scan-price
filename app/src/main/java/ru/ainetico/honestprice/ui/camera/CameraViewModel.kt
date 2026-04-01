@@ -10,8 +10,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.FrameConfig
@@ -52,8 +54,8 @@ class CameraViewModel(
   private val _state = MutableStateFlow<CameraState>(CameraState.Preview)
   val state: StateFlow<CameraState> = _state
 
-  private val _event = MutableStateFlow<CameraEvent?>(null)
-  val event: StateFlow<CameraEvent?> = _event
+  private val _event = Channel<CameraEvent>(Channel.BUFFERED)
+  val event = _event.receiveAsFlow()
 
   private val _isVerticalFrame = MutableStateFlow(false)
   val isVerticalFrame: StateFlow<Boolean> = _isVerticalFrame
@@ -81,7 +83,7 @@ class CameraViewModel(
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(bitmap, cropRect)
         }
-        _event.value = CameraEvent.NavigateToResult(scanId, result)
+        _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: RemoteAnalysisException) {
         Log.e("CameraViewModel", "Remote failed", e)
         val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
@@ -107,7 +109,7 @@ class CameraViewModel(
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImageForceLocal(bitmap)
         }
-        _event.value = CameraEvent.NavigateToResult(scanId, result)
+        _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Local retry failed", e)
         _state.value = CameraState.Error(appContext.getString(R.string.camera_error_generic, e.message), bitmap)
@@ -150,7 +152,7 @@ class CameraViewModel(
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImageWithAlignment(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
         }
-        _event.value = CameraEvent.NavigateToResult(scanId, result)
+        _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
         _state.value = CameraState.Error(appContext.getString(R.string.camera_error_timeout_short), bitmap)
@@ -178,12 +180,9 @@ class CameraViewModel(
   }
 
   fun onManualEntry() {
-    _event.value = CameraEvent.NavigateToManualEntry
+    _event.trySend(CameraEvent.NavigateToManualEntry)
   }
 
-  fun eventConsumed() {
-    _event.value = null
-  }
 
   fun resetToPreview() {
     _state.value = CameraState.Preview

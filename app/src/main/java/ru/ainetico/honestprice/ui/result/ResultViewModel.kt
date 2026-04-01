@@ -3,8 +3,10 @@ package ru.ainetico.honestprice.ui.result
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,8 +61,8 @@ class ResultViewModel(
   private val _storeSuggestions = MutableStateFlow<List<Store>>(emptyList())
   val storeSuggestions: StateFlow<List<Store>> = _storeSuggestions
 
-  private val _event = MutableStateFlow<ResultEvent?>(null)
-  val event: StateFlow<ResultEvent?> = _event
+  private val _event = Channel<ResultEvent>(Channel.BUFFERED)
+  val event = _event.receiveAsFlow()
 
   fun loadScan(scan: ru.ainetico.honestprice.data.Scan) {
     val unit = scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
@@ -153,9 +155,6 @@ class ResultViewModel(
     _state.update { it.copy(barcode = value) }
   }
 
-  fun eventConsumed() {
-    _event.value = null
-  }
 
   private fun searchStores(query: String) {
     viewModelScope.launch {
@@ -243,7 +242,7 @@ class ResultViewModel(
           )
         }
 
-        _event.value = ResultEvent.Saved
+        _event.trySend(ResultEvent.Saved)
       } catch (e: Exception) {
         _state.update { it.copy(isSaving = false) }
       }

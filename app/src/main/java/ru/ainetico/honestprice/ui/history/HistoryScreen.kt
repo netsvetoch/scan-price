@@ -95,12 +95,11 @@ fun HistoryScreen(
     }
   }
 
-  // Listen for camera events via Flow collect (not collectAsState)
+  // Listen for camera events via Channel flow (each event consumed exactly once)
   LaunchedEffect(cameraViewModel) {
     cameraViewModel.event.collect { e ->
       when (e) {
         is CameraEvent.NavigateToResult -> {
-          cameraViewModel.eventConsumed()
           sheetState.hide()
           onShowSheetChange(false)
           cameraViewModel.resetToPreview()
@@ -108,14 +107,11 @@ fun HistoryScreen(
         }
 
         is CameraEvent.NavigateToManualEntry -> {
-          cameraViewModel.eventConsumed()
           sheetState.hide()
           onShowSheetChange(false)
           cameraViewModel.resetToPreview()
           onNavigateToManualEntry()
         }
-
-        null -> {}
       }
     }
   }
