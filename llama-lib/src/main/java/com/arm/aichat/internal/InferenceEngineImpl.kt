@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.IOException
 
@@ -49,6 +50,7 @@ internal class InferenceEngineImpl private constructor(
 
     companion object {
         private val TAG = InferenceEngineImpl::class.java.simpleName
+        private const val MODEL_LOAD_TIMEOUT_MS = 120_000L // 2 minutes
 
         @Volatile
         private var instance: InferenceEngine? = null
@@ -172,12 +174,14 @@ internal class InferenceEngineImpl private constructor(
                 Log.i(TAG, "Loading model... \n$pathToModel")
                 _readyForSystemPrompt = false
                 _state.value = InferenceEngine.State.LoadingModel
-                load(pathToModel).let {
-                    // TODO-han.yin: find a better way to pass other error codes
-                    if (it != 0) throw UnsupportedArchitectureException()
-                }
-                prepare().let {
-                    if (it != 0) throw IOException("Failed to prepare resources")
+                withTimeout(MODEL_LOAD_TIMEOUT_MS) {
+                    load(pathToModel).let {
+                        // TODO-han.yin: find a better way to pass other error codes
+                        if (it != 0) throw UnsupportedArchitectureException()
+                    }
+                    prepare().let {
+                        if (it != 0) throw IOException("Failed to prepare resources")
+                    }
                 }
                 Log.i(TAG, "Model loaded!")
                 _readyForSystemPrompt = true
