@@ -5,6 +5,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
@@ -23,12 +24,12 @@ class ImageAnalyzerTest {
     private val localEngine = mockk<LocalVisionEngine>()
     private val calculator = PriceCalculator()
     private val appSettings = mockk<AppSettings> {
-        every { isRemoteModelConfigured() } returns false
+        coEvery { isRemoteModelConfigured() } returns false
         every { apiUrl } returns MutableStateFlow("")
         every { apiKey } returns MutableStateFlow("")
         every { apiModel } returns MutableStateFlow("")
-        every { systemPrompt } returns MutableStateFlow("")
-        every { localPrompt } returns MutableStateFlow("")
+        every { systemPrompt } returns flowOf("")
+        every { localPrompt } returns flowOf("")
     }
 
     private val analyzer = ImageAnalyzer(localEngine, calculator, appSettings)
@@ -67,12 +68,12 @@ class ImageAnalyzerTest {
     fun `analyze throws RemoteAnalysisException when remote fails`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         val remoteSettings = mockk<AppSettings> {
-            every { isRemoteModelConfigured() } returns true
+            coEvery { isRemoteModelConfigured() } returns true
             every { apiUrl } returns MutableStateFlow("https://example.com")
             every { apiKey } returns MutableStateFlow("key")
             every { apiModel } returns MutableStateFlow("model")
-            every { systemPrompt } returns MutableStateFlow("")
-            every { localPrompt } returns MutableStateFlow("")
+            every { systemPrompt } returns flowOf("")
+            every { localPrompt } returns flowOf("")
         }
         val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings)
 
@@ -88,12 +89,12 @@ class ImageAnalyzerTest {
     fun `analyze uses local engine when forceLocal is true`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         val remoteSettings = mockk<AppSettings> {
-            every { isRemoteModelConfigured() } returns true
+            coEvery { isRemoteModelConfigured() } returns true
             every { apiUrl } returns MutableStateFlow("https://example.com")
             every { apiKey } returns MutableStateFlow("key")
             every { apiModel } returns MutableStateFlow("model")
-            every { systemPrompt } returns MutableStateFlow("")
-            every { localPrompt } returns MutableStateFlow("")
+            every { systemPrompt } returns flowOf("")
+            every { localPrompt } returns flowOf("")
         }
         val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings)
         coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag(

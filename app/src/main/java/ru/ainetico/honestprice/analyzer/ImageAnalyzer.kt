@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.analyzer
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.util.Log
+import kotlinx.coroutines.flow.first
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.AnalysisResult
@@ -37,7 +38,7 @@ class ImageAnalyzer(
         val tag: ParsedPriceTag = if (useRemote) {
             try {
                 Log.d("ImageAnalyzer", "Using remote model...")
-                val systemPrompt = appSettings.systemPrompt.value.ifBlank { RemoteVisionClient.DEFAULT_SYSTEM_PROMPT }
+                val systemPrompt = appSettings.systemPrompt.first().ifBlank { RemoteVisionClient.DEFAULT_SYSTEM_PROMPT }
                 remoteClient.analyze(bitmap, appSettings.apiUrl.value, appSettings.apiKey.value, appSettings.apiModel.value, systemPrompt)
             } catch (e: Exception) {
                 Log.e("ImageAnalyzer", "Remote failed: ${e.message}")
@@ -45,7 +46,7 @@ class ImageAnalyzer(
             }
         } else {
             Log.d("ImageAnalyzer", "Using local model...")
-            val prompt = appSettings.localPrompt.value.ifBlank { LocalVisionEngine.DEFAULT_PROMPT }
+            val prompt = appSettings.localPrompt.first().ifBlank { LocalVisionEngine.DEFAULT_PROMPT }
             localEngine.analyze(bitmap, prompt)
         }
 
