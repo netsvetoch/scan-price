@@ -110,24 +110,28 @@ class RemoteVisionClient {
                     doOutput = true
                 }
 
-                conn.outputStream.use { it.write(requestBody.toString().toByteArray()) }
+                try {
+                    conn.outputStream.use { it.write(requestBody.toString().toByteArray()) }
 
-                val responseCode = conn.responseCode
-                if (responseCode != 200) {
-                    val error = conn.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
-                    throw RuntimeException("API error $responseCode: ${error.take(200)}")
+                    val responseCode = conn.responseCode
+                    if (responseCode != 200) {
+                        val error = conn.errorStream?.use { it.bufferedReader().readText() } ?: "Unknown error"
+                        throw RuntimeException("API error $responseCode: ${error.take(200)}")
+                    }
+
+                    val responseBody = conn.inputStream.use { it.bufferedReader().readText() }
+                    Log.d(TAG, "Response: ${responseBody.take(300)}")
+
+                    val content = JSONObject(responseBody)
+                        .getJSONArray("choices")
+                        .getJSONObject(0)
+                        .getJSONObject("message")
+                        .getString("content")
+
+                    parseResponse(content)
+                } finally {
+                    conn.disconnect()
                 }
-
-                val responseBody = conn.inputStream.bufferedReader().readText()
-                Log.d(TAG, "Response: ${responseBody.take(300)}")
-
-                val content = JSONObject(responseBody)
-                    .getJSONArray("choices")
-                    .getJSONObject(0)
-                    .getJSONObject("message")
-                    .getString("content")
-
-                parseResponse(content)
             } catch (e: Exception) {
                 Log.e(TAG, "Remote analysis failed", e)
                 throw e
