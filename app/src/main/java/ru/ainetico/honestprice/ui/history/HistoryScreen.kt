@@ -21,13 +21,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +61,7 @@ fun HistoryScreen(
   onShowSheetChange: (Boolean) -> Unit,
   onScanClick: (ru.ainetico.honestprice.data.Scan) -> Unit,
   onNavigateToResult: (Long, AnalysisResult) -> Unit,
+  onNavigateToSettings: () -> Unit,
   onNavigateToManualEntry: () -> Unit
 ) {
   val scansList by viewModel.scans.collectAsState()
@@ -109,6 +114,16 @@ fun HistoryScreen(
   }
 
   Scaffold(
+    topBar = {
+      TopAppBar(
+        title = { Text(stringResource(R.string.app_title)) },
+        actions = {
+          IconButton(onClick = onNavigateToSettings) {
+            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
+          }
+        }
+      )
+    },
     floatingActionButton = {
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -34,6 +34,13 @@
     <string name="result_delete">Удалить</string>
     <string name="result_save">Сохранить</string>
     <string name="result_saving">Сохранение…</string>
+    <string name="app_title">ЧестнаяЦена</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_remote_model_title">Удалённая модель</string>
+    <string name="settings_remote_model_description">Укажите адрес OpenAI-совместимого сервера для более точного распознавания. Если сервер недоступен, будет использована локальная модель.</string>
+    <string name="settings_api_url">URL сервера</string>
+    <string name="settings_api_key">API ключ (необязательно)</string>
+    <string name="settings_remote_active">✓ Удалённая модель будет использоваться при сканировании</string>
     <string name="history_empty">Нет сканирований</string>
     <string name="history_empty_hint">Нажмите 📷 чтобы начать</string>
     <string name="history_fab_camera">Камера</string>

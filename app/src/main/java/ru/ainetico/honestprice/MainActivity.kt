@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.model.ModelDownloader
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
+import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.data.ScanRepositoryImpl
@@ -86,16 +87,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val appSettings = AppSettings(applicationContext)
+
         setContent {
             ЧестнаяЦенаTheme {
-                HonestPriceApp(localVisionEngine, modelDownloader)
+                HonestPriceApp(localVisionEngine, modelDownloader, appSettings)
             }
         }
     }
 }
 
 @Composable
-fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelDownloader) {
+fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelDownloader, appSettings: AppSettings) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val prefs = remember {
@@ -107,7 +110,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
 
     // Shared instances
     val repository = remember { ScanRepositoryImpl(db.scanDao()) }
-    val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator()) }
+    val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator(), appSettings) }
     val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
     var showCameraSheet by remember { mutableStateOf(true) }
     var pendingResult by remember { mutableStateOf<Pair<Long, ru.ainetico.honestprice.model.AnalysisResult>?>(null) }
@@ -145,7 +148,8 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                     pendingResult = Pair(scanId, result)
                     navController.navigate(Screen.Result.createRoute(scanId))
                 },
-                onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) }
+                onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
         composable(
@@ -218,6 +222,12 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                     }
                 },
                 onCancel = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Settings.route) {
+            ru.ainetico.honestprice.ui.settings.SettingsScreen(
+                appSettings = appSettings,
+                onBack = { navController.popBackStack() }
             )
         }
     }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.FrameConfig
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
+import ru.ainetico.honestprice.analyzer.RemoteAnalysisException
 import ru.ainetico.honestprice.data.ScanRepository
 import java.io.File
 import java.io.FileOutputStream
@@ -29,6 +30,7 @@ sealed class CameraState {
   ) : CameraState()
 
   data class Error(val message: String, val previewBitmap: Bitmap) : CameraState()
+  data class RemoteError(val message: String, val croppedBitmap: Bitmap) : CameraState()
 }
 
 sealed class CameraEvent {
@@ -61,6 +63,7 @@ class CameraViewModel(
   }
 
   fun capture(bitmap: Bitmap, cropRect: Rect?) {
+    lastBitmapForRetry = bitmap
     _state.value = CameraState.Scanning(null, "Кадрирование…")
     scanningJob = viewModelScope.launch {
       try {
@@ -68,12 +71,35 @@ class CameraViewModel(
           processImage(bitmap, cropRect)
         }
         _event.value = CameraEvent.NavigateToResult(scanId, result)
+      } catch (e: RemoteAnalysisException) {
+        Log.e("CameraViewModel", "Remote failed", e)
+        val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
+        _state.value = CameraState.RemoteError(e.message ?: "Ошибка сервера", cropped)
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
         _state.value = CameraState.Error("Превышено время ожидания. Попробуйте ещё раз.", bitmap)
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Processing failed", e)
         _state.value = CameraState.Error("Ошибка распознавания: ${e.message}", bitmap)
+      }
+    }
+  }
+
+  /** Retry last scan using local model after remote failure */
+  private var lastBitmapForRetry: Bitmap? = null
+
+  fun retryWithLocal() {
+    val bitmap = lastBitmapForRetry ?: return
+    _state.value = CameraState.Scanning(null, "Кадрирование…")
+    scanningJob = viewModelScope.launch {
+      try {
+        val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
+          processImageForceLocal(bitmap)
+        }
+        _event.value = CameraEvent.NavigateToResult(scanId, result)
+      } catch (e: Exception) {
+        Log.e("CameraViewModel", "Local retry failed", e)
+        _state.value = CameraState.Error("Ошибка: ${e.message}", bitmap)
       }
     }
   }
@@ -176,6 +202,28 @@ class CameraViewModel(
     lastScanId = scanId
     val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
 
+    return Pair(scanId, analysisResult)
+  }
+
+  private suspend fun processImageForceLocal(
+    bitmap: Bitmap
+  ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
+    val timestamp = System.currentTimeMillis()
+    val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
+    _state.value = CameraState.Scanning(cropped, "Сжатие…")
+
+    val imagePath = withContext(Dispatchers.IO) {
+      val imagesDir = File(appContext.filesDir, "images").apply { mkdirs() }
+      val path = File(imagesDir, "scan_${timestamp}.jpg").absolutePath
+      FileOutputStream(path).use { out -> cropped.compress(Bitmap.CompressFormat.JPEG, 80, out) }
+      path
+    }
+    lastImagePath = imagePath
+    _state.value = CameraState.Scanning(cropped, "Анализ (локально)…")
+
+    val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
+    lastScanId = scanId
+    val analysisResult = imageAnalyzer.analyze(bitmap, null, forceLocal = true)
     return Pair(scanId, analysisResult)
   }
 
