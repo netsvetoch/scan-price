@@ -26,18 +26,26 @@ class LocalVisionEngine(private val appContext: Context) {
     private const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
     private const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
 
+    private const val JSON_SCHEMA = """
+{
+  "type": "object",
+  "properties": {
+    "product_name": { "type": ["string", "null"], "description": "Short product name from the tag" },
+    "product_description": { "type": ["string", "null"], "description": "Additional details: brand, composition, variety" },
+    "price_regular": { "type": ["number", "null"], "description": "Regular price" },
+    "price_discount": { "type": ["number", "null"], "description": "Discounted/card price, null if no discount" },
+    "weight_value": { "type": ["number", "null"], "description": "Weight or volume number as on the tag" },
+    "weight_unit": { "enum": ["г", "кг", "мл", "л", "шт", null] }
+  },
+  "required": ["product_name", "price_regular"],
+  "additionalProperties": false
+}
+"""
+
     private const val PROMPT = "This is a photo of a price tag from a Russian store. " +
-            "Return ONLY a JSON object, no markdown, no explanation.\n" +
-            "Example: {\"product_name\":\"Молоко 3.2%\",\"product_description\":\"Простоквашино, ультрапастеризованное, жирн. 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}\n" +
-            "Rules:\n" +
-            "- product_name: short product name from the tag\n" +
-            "- product_description: additional details in small print (brand, composition, variety), or null if none\n" +
-            "- price_regular: regular price number\n" +
-            "- price_discount: discounted/card price number. Use null if there is NO discount. Never use 0.\n" +
-            "- weight_value: weight or volume number EXACTLY as written on the tag (e.g. 500 for 500г, 1 for 1кг)\n" +
-            "- weight_unit: exactly one of: г, кг, мл, л, шт\n" +
-            "- null for missing fields\n" +
-            "JSON:"
+        "Extract the product name, description, prices, weight/volume from the tag. " +
+        "If there is a discounted or card price, include it separately from the regular price. " +
+        "Use null for any fields you cannot read."
   }
 
   private var engine: InferenceEngine? = null
@@ -122,7 +130,7 @@ class LocalVisionEngine(private val appContext: Context) {
           "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB"
         )
 
-        val response = eng.analyzeImage(imageBytes, PROMPT)
+        val response = eng.analyzeImage(imageBytes, PROMPT, JSON_SCHEMA)
         Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
 
         if (response.isBlank()) {
@@ -140,19 +148,8 @@ class LocalVisionEngine(private val appContext: Context) {
 
   private fun parseResponse(content: String): ParsedPriceTag {
     return try {
-      // Extract JSON from response
-      val jsonMatch = Regex("""\{[^{}]*"product_name"[^{}]*\}""").find(content)
-      val jsonStr = if (jsonMatch != null) {
-        jsonMatch.value
-      } else {
-        content
-          .replace(Regex("""```json\s*"""), "")
-          .replace(Regex("""```\s*"""), "")
-          .trim()
-      }
-
-      Log.d(TAG, "Parsing JSON: $jsonStr")
-      val json = JSONObject(jsonStr)
+      Log.d(TAG, "Parsing JSON: $content")
+      val json = JSONObject(content)
 
       val unit = json.optStringOrNull("weight_unit")?.lowercase()?.let { raw ->
         when {
