@@ -53,7 +53,13 @@ fun RemoteModelSection(appSettings: AppSettings) {
     var useRemote by remember { mutableStateOf(savedUseRemote) }
     LaunchedEffect(savedUseRemote) { useRemote = savedUseRemote }
 
-    var apiUrl by remember { mutableStateOf(appSettings.apiUrl.value) }
+    var apiUrl by remember {
+        mutableStateOf(
+            appSettings.apiUrl.value
+                .removePrefix("https://")
+                .removePrefix("http://")
+        )
+    }
     var apiModel by remember { mutableStateOf(appSettings.apiModel.value) }
     var apiKey by remember { mutableStateOf(appSettings.apiKey.value) }
 
@@ -107,14 +113,18 @@ fun RemoteModelSection(appSettings: AppSettings) {
             ) {
                 OutlinedTextField(
                     value = apiUrl,
-                    onValueChange = {
-                        apiUrl = it
-                        appSettings.setApiUrl(it)
+                    onValueChange = { input ->
+                        val cleaned = input
+                            .removePrefix("https://")
+                            .removePrefix("http://")
+                        apiUrl = cleaned
+                        appSettings.setApiUrl("https://$cleaned")
                         modelList = emptyList()
                         connectionStatus = ""
                     },
                     label = { Text(stringResource(R.string.settings_api_url)) },
-                    placeholder = { Text("https://api.example.com/v1") },
+                    prefix = { Text("https://") },
+                    placeholder = { Text("api.example.com/v1") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
@@ -126,7 +136,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
                             connectionStatus = ""
                             modelList = emptyList()
                             try {
-                                val models = fetchModels(apiUrl.trimEnd('/'), apiKey)
+                                val models = fetchModels("https://${apiUrl.trimEnd('/')}", apiKey)
                                 modelList = models
                                 connectionStatus = context.resources.getQuantityString(
                                     R.plurals.settings_models_found, models.size, models.size
