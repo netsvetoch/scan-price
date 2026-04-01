@@ -20,6 +20,8 @@ internal class GgufMetadataReaderImpl(
 ) : GgufMetadataReader {
     companion object {
         private const val ARCH_LLAMA = "llama"
+        /** Maximum allowed length for a single metadata string (1 MB). */
+        private const val MAX_STRING_LENGTH = 1L * 1024 * 1024
     }
 
     /** Enum corresponding to GGUF metadata value types (for convenience and array element typing). */
@@ -519,7 +521,7 @@ internal class GgufMetadataReaderImpl(
     private fun readString(input: InputStream): String =
         // Read 8-byte little-endian length (number of bytes in the string).
         readLittleLong(input).let { len ->
-            if (len < 0 || len > Int.MAX_VALUE) throw IOException("String too long: $len")
+            if (len < 0 || len > MAX_STRING_LENGTH) throw IOException("String too long: $len bytes (max $MAX_STRING_LENGTH)")
 
             // Read the UTF-8 bytes of the given length.
             ByteArray(len.toInt()).let {
