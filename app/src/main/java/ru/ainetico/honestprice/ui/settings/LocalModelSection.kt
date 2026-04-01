@@ -12,14 +12,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.ModelDownloader
@@ -29,7 +32,10 @@ fun LocalModelSection(
     appSettings: AppSettings,
     modelDownloader: ModelDownloader
 ) {
-    var localPrompt by remember { mutableStateOf(appSettings.localPrompt.value) }
+    val scope = rememberCoroutineScope()
+    val savedLocalPrompt by appSettings.localPrompt.collectAsState(initial = "")
+    var localPrompt by remember { mutableStateOf(savedLocalPrompt) }
+    LaunchedEffect(savedLocalPrompt) { localPrompt = savedLocalPrompt }
     val downloadState by modelDownloader.state.collectAsState()
     val modelsDownloaded = modelDownloader.isModelDownloaded()
 
@@ -47,7 +53,7 @@ fun LocalModelSection(
         value = localPrompt,
         onValueChange = {
             localPrompt = it
-            appSettings.setLocalPrompt(it)
+            scope.launch { appSettings.setLocalPrompt(it) }
         },
         label = { Text(stringResource(R.string.settings_local_prompt)) },
         placeholder = { Text(ru.ainetico.honestprice.ocr.LocalVisionEngine.DEFAULT_PROMPT) },
