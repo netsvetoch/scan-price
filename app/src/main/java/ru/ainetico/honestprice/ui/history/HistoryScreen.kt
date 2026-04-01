@@ -36,7 +36,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -269,10 +271,14 @@ fun HistoryScreen(
   if (showSheet) {
     val cameraState by cameraViewModel.state.collectAsState()
     val isVertical by cameraViewModel.isVerticalFrame.collectAsState()
-    val sheetModifier = when {
-      cameraState is CameraState.Scanning && isVertical -> Modifier.fillMaxHeight(0.85f)
-      cameraState is CameraState.Scanning -> Modifier.height(320.dp)
-      else -> Modifier.fillMaxHeight(0.85f)
+    val sheetModifier by remember {
+      derivedStateOf {
+        when {
+          cameraState is CameraState.Scanning && isVertical -> Modifier.fillMaxHeight(0.85f)
+          cameraState is CameraState.Scanning -> Modifier.height(320.dp)
+          else -> Modifier.fillMaxHeight(0.85f)
+        }
+      }
     }
 
     ModalBottomSheet(

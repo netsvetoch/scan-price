@@ -12,6 +12,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -52,14 +53,18 @@ fun ScanCard(scan: Scan, onClick: () -> Unit) {
           )
         }
         Spacer(Modifier.height(2.dp))
-        val priceText = buildString {
-          scan.priceRegular?.let { append("$it ₽") }
-          scan.priceDiscount?.let { append(" → $it ₽") }
-          scan.weightValue?.let { w ->
-            val unitName =
-              scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }?.displayName
-                ?: ""
-            append(" / $w $unitName")
+        val priceText = remember(
+          scan.priceRegular, scan.priceDiscount, scan.weightValue, scan.weightUnit
+        ) {
+          buildString {
+            scan.priceRegular?.let { append("$it ₽") }
+            scan.priceDiscount?.let { append(" → $it ₽") }
+            scan.weightValue?.let { w ->
+              val unitName =
+                scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }?.displayName
+                  ?: ""
+              append(" / $w $unitName")
+            }
           }
         }
         if (priceText.isNotBlank()) {
@@ -70,11 +75,14 @@ fun ScanCard(scan: Scan, onClick: () -> Unit) {
           )
         }
       }
-      val honestPrice = (scan.pricePerUnitDiscount ?: scan.pricePerUnit)
-        ?.let { BigDecimal(it).round(MathContext(3)).stripTrailingZeros().toPlainString() }
-      val unitName =
+      val honestPrice = remember(scan.pricePerUnitDiscount, scan.pricePerUnit) {
+        (scan.pricePerUnitDiscount ?: scan.pricePerUnit)
+          ?.let { BigDecimal(it).round(MathContext(3)).stripTrailingZeros().toPlainString() }
+      }
+      val unitName = remember(scan.displayUnit) {
         scan.displayUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }?.displayName
           ?: ""
+      }
       if (honestPrice != null) {
         Text(
           "$honestPrice ₽/$unitName",
