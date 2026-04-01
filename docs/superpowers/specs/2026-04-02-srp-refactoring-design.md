@@ -67,17 +67,16 @@ object ImageCropper {
     fun cropToFrame(
         bitmap: Bitmap,
         density: Float,
-        isVerticalFrame: Boolean,
-        viewWidth: Int, viewHeight: Int
+        isVerticalFrame: Boolean
     ): Bitmap
 
     fun cropAligned(
         bitmap: Bitmap,
+        viewW: Float, viewH: Float,
         panX: Float, panY: Float,
         zoom: Float,
         density: Float,
-        isVerticalFrame: Boolean,
-        displayWidth: Int, displayHeight: Int
+        isVerticalFrame: Boolean
     ): Bitmap
 }
 ```
@@ -118,14 +117,14 @@ Contains the `NavHost { ... }` block with all `composable()` destination declara
 
 **Source:** `LocalVisionEngine.kt` (duplicate methods)
 
-**What:** Add `toGrayscale()` and `bitmapToJpeg()` to the existing `ImagePreprocessor` class (`image/ImagePreprocessor.kt`). No new classes created. `ImagePreprocessor` is a Hilt-injected `class` (not `object`), and stays that way.
+**What:** Add `bitmapToJpeg()` and `downscaleToMaxSide()` to the existing `ImagePreprocessor` class (`image/ImagePreprocessor.kt`). No new classes created. `ImagePreprocessor` is a `class` (not `object`), and stays that way. Note: `toGrayscale()` exists in `LocalVisionEngine` but is dead code (never called in the pipeline), so it is simply deleted, not migrated.
 
 ```kotlin
 // Added to existing ImagePreprocessor class
-class ImagePreprocessor @Inject constructor() {
+class ImagePreprocessor {
     // existing: cropBitmap, processBitmap, processFile, calculateInSampleSize
-    fun toGrayscale(bitmap: Bitmap): Bitmap   // new
     fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray  // new
+    fun downscaleToMaxSide(bitmap: Bitmap, maxSide: Int): Bitmap  // new
 }
 ```
 
