@@ -45,6 +45,8 @@ Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBa
 
 The remote engine is preferred when configured; local is the offline fallback.
 
+Both engines delegate JSON→`ParsedPriceTag` conversion to `PriceTagParser` (shared `object` in `ocr/`). Weight-unit mapping, `BigDecimal` safe parsing, and null-coalescing live there — edit once, not twice.
+
 ### Native Layer
 
 `llama-lib/` is a CMake-based C++ module bridging llama.cpp (git submodule) via JNI. ARM64-v8a only.

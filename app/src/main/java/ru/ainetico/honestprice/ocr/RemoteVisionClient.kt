@@ -12,9 +12,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.WeightUnit
 import java.io.ByteArrayOutputStream
-import java.math.BigDecimal
 
 /**
  * Sends image to OpenAI-compatible API for price tag analysis.
@@ -147,27 +145,7 @@ class RemoteVisionClient {
         if (BuildConfig.DEBUG) Log.d(TAG, "Parsing JSON: '$jsonStr'")
         val json = JSONObject(jsonStr)
 
-        val unit = json.optStringOrNull("weight_unit")?.lowercase()?.let { raw ->
-            when {
-                raw.contains("кг") -> WeightUnit.KG
-                raw.contains("г") -> WeightUnit.G
-                raw.contains("мл") -> WeightUnit.ML
-                raw.contains("л") -> WeightUnit.L
-                raw.contains("шт") -> WeightUnit.PCS
-                else -> null
-            }
-        }
-
-        val discount = json.optStringOrNull("price_discount")?.toBigDecimalSafe()
-
-        return ParsedPriceTag(
-            productName = json.optStringOrNull("product_name"),
-            productDescription = json.optStringOrNull("product_description"),
-            priceRegular = json.optStringOrNull("price_regular")?.toBigDecimalSafe(),
-            priceDiscount = if (discount != null && discount.compareTo(BigDecimal.ZERO) == 0) null else discount,
-            weightValue = json.optStringOrNull("weight_value")?.toBigDecimalSafe(),
-            weightUnit = unit
-        )
+        return PriceTagParser.parse(json)
     }
 
     private fun bitmapToBase64(bitmap: Bitmap): String {
@@ -182,15 +160,4 @@ class RemoteVisionClient {
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
     }
 
-    private fun JSONObject.optStringOrNull(key: String): String? {
-        val value = optString(key, "")
-        return if (value.isBlank() || value == "null") null else value
-    }
-
-    private fun String.toBigDecimalSafe(): BigDecimal? {
-        return try {
-            val cleaned = this.replace(Regex("""[^\d.,]"""), "").replace(',', '.')
-            if (cleaned.isBlank()) null else BigDecimal(cleaned)
-        } catch (_: Exception) { null }
-    }
 }

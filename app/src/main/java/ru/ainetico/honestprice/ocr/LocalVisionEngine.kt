@@ -10,11 +10,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.WeightUnit
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.math.BigDecimal
 
 /**
  * On-device vision inference using llama.cpp + Qwen3.5 GGUF.
@@ -151,28 +149,7 @@ class LocalVisionEngine(private val appContext: Context) {
     return try {
       if (BuildConfig.DEBUG) Log.d(TAG, "Parsing JSON: $content")
       val json = JSONObject(content)
-
-      val unit = json.optStringOrNull("weight_unit")?.lowercase()?.let { raw ->
-        when {
-          raw.contains("кг") -> WeightUnit.KG
-          raw.contains("г") -> WeightUnit.G
-          raw.contains("мл") -> WeightUnit.ML
-          raw.contains("л") -> WeightUnit.L
-          raw.contains("шт") -> WeightUnit.PCS
-          else -> null
-        }
-      }
-
-      val discount = json.optStringOrNull("price_discount")?.toBigDecimalSafe()
-
-      ParsedPriceTag(
-        productName = json.optStringOrNull("product_name"),
-        productDescription = json.optStringOrNull("product_description"),
-        priceRegular = json.optStringOrNull("price_regular")?.toBigDecimalSafe(),
-        priceDiscount = if (discount != null && discount.compareTo(java.math.BigDecimal.ZERO) == 0) null else discount,
-        weightValue = json.optStringOrNull("weight_value")?.toBigDecimalSafe(),
-        weightUnit = unit
-      ).also {
+      PriceTagParser.parse(json).also {
         Log.i(
           TAG, "Parsed: name=${it.productName}, regular=${it.priceRegular}, " +
                   "discount=${it.priceDiscount}, weight=${it.weightValue} ${it.weightUnit}"
@@ -234,17 +211,4 @@ class LocalVisionEngine(private val appContext: Context) {
     return stream.toByteArray()
   }
 
-  private fun JSONObject.optStringOrNull(key: String): String? {
-    val value = optString(key, "")
-    return if (value.isBlank() || value == "null") null else value
-  }
-
-  private fun String.toBigDecimalSafe(): BigDecimal? {
-    return try {
-      val cleaned = this.replace(Regex("""[^\d.,]"""), "").replace(',', '.')
-      if (cleaned.isBlank()) null else BigDecimal(cleaned)
-    } catch (_: Exception) {
-      null
-    }
-  }
 }
