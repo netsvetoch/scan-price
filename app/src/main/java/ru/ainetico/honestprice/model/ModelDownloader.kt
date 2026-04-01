@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.File
-import java.security.MessageDigest
 
 /**
  * Downloads GGUF model files using Android's system DownloadManager.
@@ -245,7 +244,7 @@ class ModelDownloader(
                 // Verify SHA256 before accepting
                 val expectedHash = EXPECTED_HASHES[filename]
                 if (expectedHash != null) {
-                  val actualHash = sha256(destFile)
+                  val actualHash = FileHashVerifier.sha256(destFile)
                   if (actualHash != expectedHash) {
                     destFile.delete()
                     downloadManager.remove(downloadId)
@@ -284,15 +283,4 @@ class ModelDownloader(
     }
   }
 
-  private fun sha256(file: File): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-    file.inputStream().use { input ->
-      val buf = ByteArray(65536)
-      var len: Int
-      while (input.read(buf).also { len = it } > 0) {
-        digest.update(buf, 0, len)
-      }
-    }
-    return digest.digest().joinToString("") { "%02x".format(it) }
-  }
 }
