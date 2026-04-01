@@ -82,7 +82,11 @@ class CameraViewModel @javax.inject.Inject constructor(
     scanningJob = viewModelScope.launch {
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
-          processImage(bitmap, cropRect)
+          processImage(
+            cropOp = { withContext(Dispatchers.Default) { cropToFrame(bitmap) } },
+            analyzeBitmap = bitmap,
+            cropRect = cropRect
+          )
         }
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: RemoteAnalysisException) {
@@ -108,7 +112,12 @@ class CameraViewModel @javax.inject.Inject constructor(
     scanningJob = viewModelScope.launch {
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
-          processImageForceLocal(bitmap)
+          processImage(
+            cropOp = { withContext(Dispatchers.Default) { cropToFrame(bitmap) } },
+            analyzeBitmap = bitmap,
+            forceLocal = true,
+            analyzingStatus = R.string.camera_analyzing_local
+          )
         }
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: Exception) {
@@ -151,7 +160,9 @@ class CameraViewModel @javax.inject.Inject constructor(
     scanningJob = viewModelScope.launch {
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
-          processImageWithAlignment(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
+          processImage(
+            cropOp = { withContext(Dispatchers.Default) { cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom) } }
+          )
         }
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
@@ -205,63 +216,24 @@ class CameraViewModel @javax.inject.Inject constructor(
   }
 
   private suspend fun processImage(
-    bitmap: Bitmap,
-    cropRect: Rect?
+    cropOp: suspend () -> Bitmap,
+    analyzeBitmap: Bitmap? = null,
+    cropRect: Rect? = null,
+    forceLocal: Boolean = false,
+    analyzingStatus: Int = R.string.camera_analyzing
   ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
     val timestamp = System.currentTimeMillis()
 
-    // Step 1: Crop
-    val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
-    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
-
-    // Step 2: Save
-    val imagePath = saveBitmapToFile(cropped, timestamp)
-    lastImagePath = imagePath
-    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing))
-
-    // Step 3: Analyze
-    val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
-    lastScanId = scanId
-    val analysisResult = imageAnalyzer.analyze(bitmap, cropRect)
-
-    return Pair(scanId, analysisResult)
-  }
-
-  private suspend fun processImageForceLocal(
-    bitmap: Bitmap
-  ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
-    val timestamp = System.currentTimeMillis()
-    val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
+    val cropped = cropOp()
     _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
     val imagePath = saveBitmapToFile(cropped, timestamp)
     lastImagePath = imagePath
-    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing_local))
+    _state.value = CameraState.Scanning(cropped, appContext.getString(analyzingStatus))
 
     val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
     lastScanId = scanId
-    val analysisResult = imageAnalyzer.analyze(bitmap, null, forceLocal = true)
-    return Pair(scanId, analysisResult)
-  }
-
-  private suspend fun processImageWithAlignment(
-    bitmap: Bitmap, viewWidth: Float, viewHeight: Float,
-    offsetX: Float, offsetY: Float, zoom: Float
-  ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
-    val timestamp = System.currentTimeMillis()
-
-    val cropped = withContext(Dispatchers.Default) {
-      cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
-    }
-    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
-
-    val imagePath = saveBitmapToFile(cropped, timestamp)
-    lastImagePath = imagePath
-    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_analyzing))
-
-    val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
-    lastScanId = scanId
-    val analysisResult = imageAnalyzer.analyze(cropped, null)
+    val analysisResult = imageAnalyzer.analyze(analyzeBitmap ?: cropped, cropRect, forceLocal)
 
     return Pair(scanId, analysisResult)
   }
