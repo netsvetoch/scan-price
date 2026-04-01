@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`.
 - **Service** (`ocr/`, `analyzer/`): Vision engine abstraction. `ImageAnalyzer` routes to local or remote engine based on user settings.
-- **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (SharedPreferences).
+- **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (EncryptedSharedPreferences for API credentials, plain SharedPreferences for non-sensitive settings).
 - **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines.
 - **Calculator** (`calculator/`): `PriceCalculator` converts prices to per-unit for comparison.
 
@@ -66,4 +66,16 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS) and `Store` (au
 
 ## Testing
 
-JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`. No UI tests.
+JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`. No UI tests.
+
+### Testing Gotchas
+
+- Classes using `android.util.Log` need `@RunWith(RobolectricTestRunner::class)`
+- `BigDecimal` equality: use `compareTo() == 0`, not `assertEquals` (scale differs: `89.90` ≠ `89.9`)
+- `PriceResult` requires `source: ParsedPriceTag` parameter — easy to miss in test constructors
+
+## Security
+
+- API key/URL/model stored in `EncryptedSharedPreferences` (`secure_settings`), backed by Android Keystore AES-256-GCM
+- CSV export sanitizes formula-triggering characters (`=`, `+`, `-`, `@`, `\t`) with tab prefix to prevent injection
+- `RemoteVisionClient` HTTP connections are closed in `finally` blocks
