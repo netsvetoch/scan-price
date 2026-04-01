@@ -23,8 +23,7 @@ import java.io.File
  * Survives app background, force stop, and process death.
  */
 class ModelDownloader(
-  private val context: Context,
-  private val onModelsReady: (suspend () -> Unit)? = null
+  private val context: Context
 ) {
 
   companion object {
@@ -91,6 +90,10 @@ class ModelDownloader(
     notificationManager.cancel(NOTIF_SILENT)
   }
 
+  fun showReadyNotification() {
+    showHeadsUpNotification("Модели загружены", "Автоматическое распознавание ценников работает")
+  }
+
   private fun showHeadsUpNotification(title: String, text: String) {
     notificationManager.notify(NOTIF_ALERT,
       NotificationCompat.Builder(context, CHANNEL_ALERT)
@@ -150,12 +153,9 @@ class ModelDownloader(
         job2?.join()
 
         if (isModelDownloaded()) {
-          showSilentNotification("Загрузка моделей", "Инициализация…", 100)
-          _state.value = DownloadState.Completed
-          Log.i(TAG, "All models downloaded, initializing engine...")
-          onModelsReady?.invoke()
           cancelSilentNotification()
-          showHeadsUpNotification("Модели загружены", "Автоматическое распознавание ценников работает")
+          _state.value = DownloadState.Completed
+          Log.i(TAG, "All models downloaded")
         } else {
           _state.value = DownloadState.Error("Загрузка не завершена")
         }

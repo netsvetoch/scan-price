@@ -63,23 +63,27 @@ class MainActivity : ComponentActivity() {
         }
 
         localVisionEngine = LocalVisionEngine(applicationContext)
+        modelDownloader = ModelDownloader(applicationContext)
 
-        modelDownloader = ModelDownloader(applicationContext) {
-            // Called after models downloaded — initialize vision engine
-            Log.i("MainActivity", "Models ready, initializing vision engine...")
-            localVisionEngine.initialize()
-            Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-        }
+        // Start download if needed, then init engine
+        modelDownloader.startDownloadIfNeeded()
 
-        if (modelDownloader.isModelDownloaded()) {
-            lifecycleScope.launch {
+        // Watch for download completion and init engine
+        lifecycleScope.launch {
+            if (modelDownloader.isModelDownloaded()) {
                 Log.i("MainActivity", "Models already present, initializing vision engine...")
                 localVisionEngine.initialize()
                 Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
+            } else {
+                // Wait for download to complete
+                modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed }
+                Log.i("MainActivity", "Download completed, initializing vision engine...")
+                localVisionEngine.initialize()
+                Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
+                if (localVisionEngine.isAvailable()) {
+                    modelDownloader.showReadyNotification()
+                }
             }
-        } else {
-            // Download on own scope — survives app backgrounding
-            modelDownloader.startDownloadIfNeeded()
         }
 
         setContent {
