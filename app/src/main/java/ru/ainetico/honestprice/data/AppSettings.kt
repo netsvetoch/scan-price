@@ -2,19 +2,25 @@ package ru.ainetico.honestprice.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import ru.ainetico.honestprice.ocr.RemoteVisionClient
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
-/**
- * App settings stored in SharedPreferences.
- * Sensitive fields (API key, URL, model) use EncryptedSharedPreferences.
- */
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
+
 class AppSettings(context: Context) {
 
-    private val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    private val dataStore = context.dataStore
 
     private val securePrefs: SharedPreferences = run {
         val masterKey = MasterKey.Builder(context)
@@ -29,28 +35,36 @@ class AppSettings(context: Context) {
         )
     }
 
-    init {
-        // Migrate: if old default was written to prefs, clear it so we use placeholder instead
-        if (prefs.getString("system_prompt", "") == RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) {
-            prefs.edit().remove("system_prompt").apply()
-        }
-        // Migrate sensitive fields from plaintext prefs to encrypted storage
-        migrateSensitiveField("api_key")
-        migrateSensitiveField("api_url")
-        migrateSensitiveField("api_model")
+    // DataStore-backed fields (Flow<T>)
+    private object Keys {
+        val USE_REMOTE_SERVER = booleanPreferencesKey("use_remote_server")
+        val SYSTEM_PROMPT = stringPreferencesKey("system_prompt")
+        val LOCAL_PROMPT = stringPreferencesKey("local_prompt")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
-    private fun migrateSensitiveField(key: String) {
-        val plainValue = prefs.getString(key, null)
-        if (plainValue != null) {
-            securePrefs.edit().putString(key, plainValue).commit()
-            prefs.edit().remove(key).commit()
-        }
+    val useRemoteServer: Flow<Boolean> = dataStore.data.map { it[Keys.USE_REMOTE_SERVER] ?: false }
+    val systemPrompt: Flow<String> = dataStore.data.map { it[Keys.SYSTEM_PROMPT] ?: "" }
+    val localPrompt: Flow<String> = dataStore.data.map { it[Keys.LOCAL_PROMPT] ?: "" }
+    val onboardingCompleted: Flow<Boolean> = dataStore.data.map { it[Keys.ONBOARDING_COMPLETED] ?: false }
+
+    suspend fun setUseRemoteServer(enabled: Boolean) {
+        dataStore.edit { it[Keys.USE_REMOTE_SERVER] = enabled }
     }
 
-    private val _useRemoteServer = MutableStateFlow(prefs.getBoolean("use_remote_server", false))
-    val useRemoteServer: StateFlow<Boolean> = _useRemoteServer
+    suspend fun setSystemPrompt(prompt: String) {
+        dataStore.edit { it[Keys.SYSTEM_PROMPT] = prompt }
+    }
 
+    suspend fun setLocalPrompt(prompt: String) {
+        dataStore.edit { it[Keys.LOCAL_PROMPT] = prompt }
+    }
+
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
+    }
+
+    // Encrypted fields (StateFlow<T>, unchanged API)
     private val _apiUrl = MutableStateFlow(securePrefs.getString("api_url", "") ?: "")
     val apiUrl: StateFlow<String> = _apiUrl
 
@@ -59,21 +73,6 @@ class AppSettings(context: Context) {
 
     private val _apiModel = MutableStateFlow(securePrefs.getString("api_model", "") ?: "")
     val apiModel: StateFlow<String> = _apiModel
-
-    private val _systemPrompt = MutableStateFlow(prefs.getString("system_prompt", "") ?: "")
-    val systemPrompt: StateFlow<String> = _systemPrompt
-
-    private val _localPrompt = MutableStateFlow(prefs.getString("local_prompt", "") ?: "")
-    val localPrompt: StateFlow<String> = _localPrompt
-
-    fun isRemoteModelConfigured(): Boolean {
-        return _useRemoteServer.value && _apiUrl.value.isNotBlank() && _apiModel.value.isNotBlank()
-    }
-
-    fun setUseRemoteServer(enabled: Boolean) {
-        prefs.edit().putBoolean("use_remote_server", enabled).apply()
-        _useRemoteServer.value = enabled
-    }
 
     fun setApiUrl(url: String) {
         securePrefs.edit().putString("api_url", url).commit()
@@ -90,13 +89,7 @@ class AppSettings(context: Context) {
         _apiModel.value = model
     }
 
-    fun setSystemPrompt(prompt: String) {
-        prefs.edit().putString("system_prompt", prompt).apply()
-        _systemPrompt.value = prompt
-    }
-
-    fun setLocalPrompt(prompt: String) {
-        prefs.edit().putString("local_prompt", prompt).apply()
-        _localPrompt.value = prompt
+    suspend fun isRemoteModelConfigured(): Boolean {
+        return useRemoteServer.first() && _apiUrl.value.isNotBlank() && _apiModel.value.isNotBlank()
     }
 }
