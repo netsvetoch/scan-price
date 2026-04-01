@@ -43,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -162,7 +163,7 @@ fun SettingsScreen(
               try {
                 val models = fetchModels(apiUrl.trimEnd('/'), apiKey)
                 modelList = models
-                connectionStatus = context.getString(R.string.settings_models_found, models.size)
+                connectionStatus = context.resources.getQuantityString(R.plurals.settings_models_found, models.size, models.size)
               } catch (e: Exception) {
                 connectionStatus = "✗ ${e.message?.take(50)}"
                 Log.e("Settings", "Connection check failed", e)
@@ -366,7 +367,7 @@ fun SettingsScreen(
                   val result = exporter.export(scans)
                   val files = listOfNotNull(result.csvFile, result.zipFile)
                   exporter.shareFiles(files)
-                  exportStatus = context.getString(R.string.settings_export_success, scans.size)
+                  exportStatus = context.resources.getQuantityString(R.plurals.settings_export_success, scans.size, scans.size)
                   isExportError = false
                 }
               } catch (e: Exception) {
@@ -390,7 +391,7 @@ fun SettingsScreen(
           Text(stringResource(R.string.settings_export_button))
         }
         Text(
-          text = stringResource(R.string.settings_scan_count, scanCount),
+          text = pluralStringResource(R.plurals.settings_scan_count, scanCount, scanCount),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant
         )

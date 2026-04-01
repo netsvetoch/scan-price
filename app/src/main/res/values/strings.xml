@@ -82,13 +82,28 @@
     <string name="action_cancel">Отмена</string>
 
     <!-- Settings -->
-    <string name="settings_models_found">✓ %d моделей</string>
     <string name="settings_select_model">Выберите модель</string>
     <string name="settings_check_first">Сначала проверьте соединение</string>
     <string name="settings_export_no_data">Нет данных для экспорта</string>
-    <string name="settings_export_success">Экспортировано: %d записей</string>
     <string name="settings_export_error">Ошибка: %s</string>
-    <string name="settings_scan_count">%d записей</string>
+    <plurals name="settings_models_found">
+        <item quantity="one">✓ %d модель</item>
+        <item quantity="few">✓ %d модели</item>
+        <item quantity="many">✓ %d моделей</item>
+        <item quantity="other">✓ %d моделей</item>
+    </plurals>
+    <plurals name="settings_scan_count">
+        <item quantity="one">%d запись</item>
+        <item quantity="few">%d записи</item>
+        <item quantity="many">%d записей</item>
+        <item quantity="other">%d записей</item>
+    </plurals>
+    <plurals name="settings_export_success">
+        <item quantity="one">Экспортировано: %d запись</item>
+        <item quantity="few">Экспортировано: %d записи</item>
+        <item quantity="many">Экспортировано: %d записей</item>
+        <item quantity="other">Экспортировано: %d записей</item>
+    </plurals>
 
     <!-- DataExporter -->
     <string name="export_share_title">Экспорт данных</string>
