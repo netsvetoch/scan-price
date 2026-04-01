@@ -295,10 +295,13 @@ class CameraViewModel(
     val imgCenterY = viewH / 2f
 
     // Step 3: Frame rectangle in view coordinates
-    val frameW = viewW * FrameConfig.WIDTH_FRACTION
-    val frameH = frameW / currentAspectRatio
+    val baseW = viewW * FrameConfig.WIDTH_FRACTION
+    val baseH = baseW / FrameConfig.ASPECT_RATIO
+    val frameW = if (currentAspectRatio >= 1f) baseW else baseH
+    val frameH = if (currentAspectRatio >= 1f) baseH else baseW
+    val density = appContext.resources.displayMetrics.density
     val frameLeft = (viewW - frameW) / 2f
-    val frameTop = (viewH - frameH) / 2f - viewH * FrameConfig.VERTICAL_OFFSET_FRACTION
+    val frameTop = FrameConfig.frameTop(viewH, frameH, density)
 
     // Step 4: Convert frame corners to bitmap coordinates
     // View point → bitmap: bmpX = (viewX - imgCenterX - panX) / totalScale + bmpWidth/2
@@ -322,12 +325,13 @@ class CameraViewModel(
   }
 
   private fun cropToFrame(bitmap: Bitmap): Bitmap {
-    val frameWidth = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
-    val frameHeight = (frameWidth / currentAspectRatio).toInt()
+    val baseW = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
+    val baseH = (baseW / FrameConfig.ASPECT_RATIO).toInt()
+    val frameWidth = if (currentAspectRatio >= 1f) baseW else baseH
+    val frameHeight = if (currentAspectRatio >= 1f) baseH else baseW
+    val density = appContext.resources.displayMetrics.density
     val left = (bitmap.width - frameWidth) / 2
-    val top =
-      ((bitmap.height - frameHeight) / 2f - bitmap.height * FrameConfig.VERTICAL_OFFSET_FRACTION).toInt()
-        .coerceAtLeast(0)
+    val top = FrameConfig.frameTop(bitmap.height.toFloat(), frameHeight.toFloat(), density).toInt().coerceAtLeast(0)
 
     if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
       return bitmap

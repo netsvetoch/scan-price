@@ -600,11 +600,13 @@ private fun FrameOverlay(
   aspectRatio: Float = ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
 ) {
   Canvas(modifier = modifier) {
-    val frameWidth = size.width * ru.ainetico.honestprice.FrameConfig.WIDTH_FRACTION
-    val frameHeight = frameWidth / aspectRatio
+    // Base rectangle from WIDTH_FRACTION, then rotate for vertical
+    val baseWidth = size.width * ru.ainetico.honestprice.FrameConfig.WIDTH_FRACTION
+    val baseHeight = baseWidth / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
+    val frameWidth = if (aspectRatio >= 1f) baseWidth else baseHeight
+    val frameHeight = if (aspectRatio >= 1f) baseHeight else baseWidth
     val left = (size.width - frameWidth) / 2f
-    val top =
-      (size.height - frameHeight) / 2f - size.height * ru.ainetico.honestprice.FrameConfig.VERTICAL_OFFSET_FRACTION
+    val top = ru.ainetico.honestprice.FrameConfig.frameTop(size.height, frameHeight, density)
     val cornerRadius = 16.dp.toPx()
 
     // Outer border (dark) for contrast on light backgrounds

@@ -192,9 +192,7 @@ class LocalVisionEngine(private val appContext: Context) {
     val frameWidth = (bitmap.width * ru.ainetico.honestprice.FrameConfig.WIDTH_FRACTION).toInt()
     val frameHeight = (frameWidth / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO).toInt()
     val left = (bitmap.width - frameWidth) / 2
-    val top =
-      ((bitmap.height - frameHeight) / 2f - bitmap.height * ru.ainetico.honestprice.FrameConfig.VERTICAL_OFFSET_FRACTION).toInt()
-        .coerceAtLeast(0)
+    val top = ((bitmap.height - frameHeight) / 2f).toInt().coerceAtLeast(0)
 
     if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
       return bitmap
