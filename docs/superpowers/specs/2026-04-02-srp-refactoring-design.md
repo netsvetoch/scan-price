@@ -43,6 +43,7 @@ class DownloadNotificationHelper(private val context: Context) {
     fun createChannel()
     fun buildProgressNotification(label: String, progress: Int, max: Int): Notification
     fun buildCompletionNotification(): Notification
+    fun showReadyNotification()  // public API used by ScanPriceApplication
     fun notify(id: Int, notification: Notification)
     fun cancel(id: Int)
 }
@@ -58,27 +59,32 @@ class DownloadNotificationHelper(private val context: Context) {
 
 **Source:** `CameraViewModel.kt` (~60 LOC)
 
-**What:** `object` with pure geometry functions.
+**What:** `object` with stateless geometry functions. All Android-derived values (density, aspect ratio) are passed as parameters, making the functions testable without context.
 
 ```kotlin
 // ui/camera/ImageCropper.kt
 object ImageCropper {
     fun cropToFrame(
         bitmap: Bitmap,
-        frameRect: RectF
+        density: Float,
+        isVerticalFrame: Boolean,
+        viewWidth: Int, viewHeight: Int
     ): Bitmap
 
     fun cropAligned(
         bitmap: Bitmap,
         panX: Float, panY: Float,
         zoom: Float,
-        frameConfig: FrameConfig,
+        density: Float,
+        isVerticalFrame: Boolean,
         displayWidth: Int, displayHeight: Int
     ): Bitmap
 }
 ```
 
-**Rationale:** Crop coordinate math is the most complex logic in CameraViewModel and the hardest to test in-place. As pure functions on an object, they become trivially unit-testable.
+Both functions compute frame geometry internally using `FrameConfig` + the provided `density` and `isVerticalFrame`. The caller (CameraViewModel) passes these values from its state and `appContext.resources.displayMetrics.density`.
+
+**Rationale:** Crop coordinate math is the most complex logic in CameraViewModel and the hardest to test in-place. By surfacing `density` and `isVerticalFrame` as parameters instead of reading them from Context/StateFlow, the functions become testable with arbitrary inputs.
 
 **Impact on CameraViewModel:** Replace inline crop logic with `ImageCropper.cropToFrame(...)` / `ImageCropper.cropAligned(...)`. ViewModel drops to ~240 LOC and focuses on state management.
 
@@ -112,12 +118,12 @@ Contains the `NavHost { ... }` block with all `composable()` destination declara
 
 **Source:** `LocalVisionEngine.kt` (duplicate methods)
 
-**What:** Move `toGrayscale()` and `bitmapToJpeg()` into the existing `ImagePreprocessor` object (`image/ImagePreprocessor.kt`). No new classes created.
+**What:** Add `toGrayscale()` and `bitmapToJpeg()` to the existing `ImagePreprocessor` class (`image/ImagePreprocessor.kt`). No new classes created. `ImagePreprocessor` is a Hilt-injected `class` (not `object`), and stays that way.
 
 ```kotlin
-// Added to existing ImagePreprocessor
-object ImagePreprocessor {
-    // existing: cropBitmap, rotateBitmap, downsampleBitmap
+// Added to existing ImagePreprocessor class
+class ImagePreprocessor @Inject constructor() {
+    // existing: cropBitmap, processBitmap, processFile, calculateInSampleSize
     fun toGrayscale(bitmap: Bitmap): Bitmap   // new
     fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray  // new
 }
