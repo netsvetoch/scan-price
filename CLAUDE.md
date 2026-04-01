@@ -78,10 +78,11 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 - **GGUF model SHA256 hashes** in `ModelDownloader.kt` are hardcoded. If HuggingFace updates a file, the download will fail with `SecurityException`. Update hashes after verifying the new file.
 - **`ModelDownloader` coroutine scope** uses `SupervisorJob` — child exceptions from `scope.launch` don't propagate to parent. Use `async`/`await` when exceptions must be caught by the caller.
 - **Room `PagingSource` requires `room-paging`** artifact (`androidx.room:room-paging`). Without it, KSP fails with `Cannot find required type element LimitOffsetPagingSource`.
+- **JUnit 5 on Android** requires `useJUnitPlatform()` in `testOptions`, plus `junit-platform-launcher` and `junit-vintage-engine` runtime deps (vintage keeps JUnit 4 tests working).
 
 ## Testing
 
-JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`. No UI tests.
+JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`. No UI tests. `PriceCalculatorTest` uses JUnit 5 `@ParameterizedTest`/`@CsvSource`; all others use JUnit 4.
 
 ### Testing Gotchas
 
