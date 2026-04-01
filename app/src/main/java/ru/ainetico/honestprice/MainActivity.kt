@@ -170,6 +170,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
         composable(Screen.History.route) {
             val historyViewModel = remember { HistoryViewModel(repository) }
             var overlayScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
+            var showSettings by remember { mutableStateOf(false) }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 HistoryScreen(
@@ -185,7 +186,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                         navController.navigate(Screen.Result.createRoute(scanId))
                     },
                     onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) },
-                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                    onNavigateToSettings = { showSettings = true }
                 )
 
                 overlayScan?.let { scan ->
@@ -212,6 +213,17 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                                 }
                                 overlayScan = null
                             }
+                        )
+                    }
+                }
+
+                if (showSettings) {
+                    SwipeBackOverlay(onDismiss = { showSettings = false }) {
+                        ru.ainetico.honestprice.ui.settings.SettingsScreen(
+                            appSettings = appSettings,
+                            scanRepository = repository,
+                            modelDownloader = modelDownloader,
+                            onBack = { showSettings = false }
                         )
                     }
                 }
@@ -291,14 +303,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                 onCancel = { navController.popBackStack() }
             )
         }
-        composable(Screen.Settings.route) {
-            ru.ainetico.honestprice.ui.settings.SettingsScreen(
-                appSettings = appSettings,
-                scanRepository = repository,
-                modelDownloader = modelDownloader,
-                onBack = { navController.popBackStack() }
-            )
-        }
+        // Settings is rendered as overlay on History, not as NavHost route
     }
 }
 
