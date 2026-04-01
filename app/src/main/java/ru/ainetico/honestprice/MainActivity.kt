@@ -57,6 +57,7 @@ import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
 import ru.ainetico.honestprice.ui.result.ResultScreen
 import ru.ainetico.honestprice.ui.result.ResultViewModel
 import ru.ainetico.honestprice.ui.theme.ЧестнаяЦенаTheme
+import ru.ainetico.honestprice.widget.updateLastScanWidget
 import kotlin.math.roundToInt
 
 private const val TRANSITION_DURATION = 300
@@ -172,11 +173,15 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                     ) {
                         ResultScreen(
                             viewModel = viewModel,
-                            onSaved = { overlayScan = null },
+                            onSaved = {
+                                overlayScan = null
+                                kotlinx.coroutines.MainScope().launch { updateLastScanWidget(context) }
+                            },
                             onCancel = { overlayScan = null },
                             onDelete = {
                                 kotlinx.coroutines.MainScope().launch {
                                     repository.delete(scanId)
+                                    updateLastScanWidget(context)
                                 }
                                 overlayScan = null
                             }
@@ -222,6 +227,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                     navController.navigate(Screen.History.route) {
                         popUpTo(Screen.History.route) { inclusive = true }
                     }
+                    kotlinx.coroutines.MainScope().launch { updateLastScanWidget(context) }
                 },
                 onCancel = {
                     if (isFreshScan) {
@@ -236,6 +242,7 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                 onDelete = if (!isFreshScan) { {
                     kotlinx.coroutines.MainScope().launch {
                         repository.delete(scanId)
+                        updateLastScanWidget(context)
                     }
                     showCameraSheet = false
                     navController.popBackStack()

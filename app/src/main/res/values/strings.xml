@@ -52,6 +52,7 @@
     <string name="settings_export_title">Экспорт данных</string>
     <string name="settings_export_description">Экспортирует все сканирования в CSV и фотографии ценников в ZIP-архив.</string>
     <string name="settings_export_button">Экспортировать</string>
+    <string name="widget_description">Последнее сканирование ценника</string>
     <string name="history_empty">Нет сканирований</string>
     <string name="history_empty_hint">Нажмите 📷 чтобы начать</string>
     <string name="history_fab_camera">Камера</string>

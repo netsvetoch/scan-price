@@ -28,12 +28,8 @@ android {
             isDebuggable = true
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -102,6 +98,10 @@ dependencies {
 
     // ExifInterface for EXIF rotation
     implementation("androidx.exifinterface:exifinterface:1.3.7")
+
+    // Glance widget
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
 
     // Testing
     testImplementation(libs.kotlinx.coroutines.test)
