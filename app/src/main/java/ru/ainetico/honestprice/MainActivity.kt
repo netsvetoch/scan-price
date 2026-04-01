@@ -7,19 +7,31 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.foundation.background
-import androidx.compose.ui.Modifier
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -45,6 +57,7 @@ import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
 import ru.ainetico.honestprice.ui.result.ResultScreen
 import ru.ainetico.honestprice.ui.result.ResultViewModel
 import ru.ainetico.honestprice.ui.theme.ЧестнаяЦенаTheme
+import kotlin.math.roundToInt
 
 private const val TRANSITION_DURATION = 300
 
@@ -134,23 +147,49 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
         }
         composable(Screen.History.route) {
             val historyViewModel = remember { HistoryViewModel(repository) }
+            var overlayScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
 
-            HistoryScreen(
-                viewModel = historyViewModel,
-                cameraViewModel = cameraViewModel,
-                showSheet = showCameraSheet,
-                onShowSheetChange = { showCameraSheet = it },
-                onScanClick = { scan ->
-                    pendingScan = scan
-                    navController.navigate(Screen.Result.createRoute(scan.id))
-                },
-                onNavigateToResult = { scanId, result ->
-                    pendingResult = Pair(scanId, result)
-                    navController.navigate(Screen.Result.createRoute(scanId))
-                },
-                onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                HistoryScreen(
+                    viewModel = historyViewModel,
+                    cameraViewModel = cameraViewModel,
+                    showSheet = showCameraSheet,
+                    onShowSheetChange = { showCameraSheet = it },
+                    onScanClick = { scan ->
+                        overlayScan = scan
+                    },
+                    onNavigateToResult = { scanId, result ->
+                        pendingResult = Pair(scanId, result)
+                        navController.navigate(Screen.Result.createRoute(scanId))
+                    },
+                    onNavigateToManualEntry = { navController.navigate(Screen.ResultManual.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                )
+
+                overlayScan?.let { scan ->
+                    val scanId = scan.id
+                    val viewModel = remember(scanId) {
+                        ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator()).also { vm ->
+                            vm.loadScan(scan)
+                        }
+                    }
+                    SwipeBackOverlay(
+                        onDismiss = { overlayScan = null }
+                    ) {
+                        ResultScreen(
+                            viewModel = viewModel,
+                            onSaved = { overlayScan = null },
+                            onCancel = { overlayScan = null },
+                            onDelete = {
+                                kotlinx.coroutines.MainScope().launch {
+                                    repository.delete(scanId)
+                                }
+                                overlayScan = null
+                            }
+                        )
+                    }
+                }
+            }
         }
         composable(
             route = Screen.Result.route,
@@ -231,5 +270,62 @@ fun HonestPriceApp(localVisionEngine: LocalVisionEngine, modelDownloader: ModelD
                 onBack = { navController.popBackStack() }
             )
         }
+    }
+}
+
+@Composable
+private fun SwipeBackOverlay(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val screenWidthPx = with(LocalDensity.current) {
+        LocalConfiguration.current.screenWidthDp.dp.toPx()
+    }
+    val offsetX = remember { Animatable(screenWidthPx) }
+    val scope = rememberCoroutineScope()
+
+    // Slide in on appear
+    LaunchedEffect(Unit) {
+        offsetX.animateTo(0f, tween(TRANSITION_DURATION))
+    }
+
+    val progress = (offsetX.value / screenWidthPx).coerceIn(0f, 1f)
+
+    // Scrim
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.4f * (1f - progress)))
+    )
+
+    // Content with swipe gesture
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        scope.launch {
+                            if (offsetX.value > screenWidthPx * 0.3f) {
+                                offsetX.animateTo(screenWidthPx, tween(200))
+                                onDismiss()
+                            } else {
+                                offsetX.animateTo(0f, tween(200))
+                            }
+                        }
+                    },
+                    onDragCancel = {
+                        scope.launch { offsetX.animateTo(0f, tween(200)) }
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        scope.launch {
+                            offsetX.snapTo((offsetX.value + dragAmount).coerceAtLeast(0f))
+                        }
+                    }
+                )
+            }
+    ) {
+        content()
     }
 }
