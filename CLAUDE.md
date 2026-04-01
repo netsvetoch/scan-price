@@ -56,6 +56,7 @@ The remote engine is preferred when configured; local is the offline fallback.
 - **Hilt DI** with modules in `di/`: `DatabaseModule`, `DataModule`, `VisionModule`, `AppModule`. `@HiltViewModel` on `CameraViewModel`, `ResultViewModel`, `HistoryViewModel`. `ResultViewModel` still manually created in Compose (per-scan keying with `.also {}` init). `AppNavigationViewModel` stays manual (intent-derived state).
 - **Constructor `@Inject` for all dependencies.** No internal `= ConcreteClass()` creation — keeps classes testable and Hilt-compatible.
 - **Eager init in `ScanPriceApplication`**: `LocalVisionEngine` and `ModelDownloader` injected and initialized at app startup via `@Inject lateinit var`.
+- **History uses Paging 3** with `insertSeparators()` for date headers. `HistoryViewModel` exposes `Flow<PagingData<ScanListItem>>` (sealed interface: `ScanItem` | `DateHeader`). `formatRelativeDate` needs `Context` so date label formatting stays in Compose, not ViewModel.
 
 ## Database
 
@@ -63,7 +64,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ## SDK & Build
 
-- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12, Hilt 2.59.2
+- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12, Hilt 2.59.2, Paging 3.3.6
 - Min SDK 24, Target/Compile SDK 36
 - KSP for annotation processing (Room, Hilt)
 - ProGuard enabled for release builds
@@ -76,6 +77,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 - **`./gradlew test` fails** on `llama-lib` (missing junit dep). Use `:app:testDebugUnitTest` for app tests
 - **GGUF model SHA256 hashes** in `ModelDownloader.kt` are hardcoded. If HuggingFace updates a file, the download will fail with `SecurityException`. Update hashes after verifying the new file.
 - **`ModelDownloader` coroutine scope** uses `SupervisorJob` — child exceptions from `scope.launch` don't propagate to parent. Use `async`/`await` when exceptions must be caught by the caller.
+- **Room `PagingSource` requires `room-paging`** artifact (`androidx.room:room-paging`). Without it, KSP fails with `Cannot find required type element LimitOffsetPagingSource`.
 
 ## Testing
 

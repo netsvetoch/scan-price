@@ -3,10 +3,6 @@ package ru.ainetico.honestprice.ui.history
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,15 +16,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -43,8 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +44,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.model.AnalysisResult
@@ -60,12 +54,6 @@ import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraState
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 import ru.ainetico.honestprice.util.formatRelativeDate
-import java.util.Calendar
-
-private fun dateKey(timestamp: Long): String {
-  val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
-  return "${cal.get(Calendar.YEAR)}-${cal.get(Calendar.DAY_OF_YEAR)}"
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,8 +67,7 @@ fun HistoryScreen(
   onNavigateToSettings: () -> Unit,
   onNavigateToManualEntry: () -> Unit
 ) {
-  val scansList by viewModel.scans.collectAsState()
-  val scans = scansList
+  val lazyPagingItems = viewModel.scansPaged.collectAsLazyPagingItems()
   val context = LocalContext.current
 
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -173,8 +160,10 @@ fun HistoryScreen(
       }
     }
   ) { padding ->
+    val refreshState = lazyPagingItems.loadState.refresh
+
     when {
-      scans == null -> {
+      refreshState is LoadState.Loading -> {
         // Loading skeleton
         Column(
           modifier = Modifier
@@ -193,7 +182,7 @@ fun HistoryScreen(
         }
       }
 
-      scans.isEmpty() -> {
+      refreshState is LoadState.NotLoading && lazyPagingItems.itemCount == 0 -> {
         Box(
           Modifier
             .fillMaxSize()
@@ -216,13 +205,6 @@ fun HistoryScreen(
       }
 
       else -> {
-        val todayKey = dateKey(System.currentTimeMillis())
-        val grouped = remember(scans) {
-          scans.groupBy { dateKey(it.createdAt) }
-            .toSortedMap(compareByDescending { it })
-        }
-        val expandedState = remember { mutableStateMapOf<String, Boolean>() }
-
         LazyColumn(
           modifier = Modifier
             .fillMaxSize()
@@ -230,39 +212,51 @@ fun HistoryScreen(
           contentPadding = PaddingValues(16.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          grouped.forEach { (key, groupScans) ->
-            val isExpanded = expandedState.getOrPut(key) { key == todayKey }
-            val header = formatRelativeDate(context, groupScans.first().createdAt)
-
-            item(key = "header_$key") {
-              Row(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .clickable { expandedState[key] = !isExpanded }
-                  .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-              ) {
-                Text(
-                  text = "$header (${groupScans.size})",
-                  style = MaterialTheme.typography.titleSmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Icon(
-                  imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+          items(
+            count = lazyPagingItems.itemCount,
+            key = { index ->
+              when (val item = lazyPagingItems.peek(index)) {
+                is ScanListItem.ScanItem -> "scan_${item.scan.id}"
+                is ScanListItem.DateHeader -> "header_${item.dateKey}"
+                null -> "placeholder_$index"
               }
             }
+          ) { index ->
+            when (val item = lazyPagingItems[index]) {
+              is ScanListItem.DateHeader -> {
+                Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  Text(
+                    text = formatRelativeDate(context, item.timestamp),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                  )
+                }
+              }
 
-            items(groupScans, key = { it.id }) { scan ->
-              AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(),
-                exit = shrinkVertically()
+              is ScanListItem.ScanItem -> {
+                ScanCard(scan = item.scan, onClick = { onScanClick(item.scan) })
+              }
+
+              null -> {}
+            }
+          }
+
+          // Append loading indicator
+          if (lazyPagingItems.loadState.append is LoadState.Loading) {
+            item {
+              Box(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(16.dp),
+                contentAlignment = Alignment.Center
               ) {
-                ScanCard(scan = scan, onClick = { onScanClick(scan) })
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
               }
             }
           }

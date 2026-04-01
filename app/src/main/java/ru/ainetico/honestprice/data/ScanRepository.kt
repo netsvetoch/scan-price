@@ -1,5 +1,6 @@
 package ru.ainetico.honestprice.data
 
+import androidx.paging.PagingSource
 import kotlinx.coroutines.flow.Flow
 import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.model.PriceResult
@@ -18,6 +19,7 @@ interface ScanRepository {
         longitude: Double?
     )
     fun getAllScansFlow(): Flow<List<Scan>>
+    fun getAllScansPaged(): PagingSource<Int, Scan>
     suspend fun getById(scanId: Long): Scan?
     suspend fun delete(scanId: Long)
     suspend fun getAllScans(): List<Scan>
@@ -92,6 +94,10 @@ class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: S
 
     override fun getAllScansFlow(): Flow<List<Scan>> {
         return scanDao.getAllScansFlow()
+    }
+
+    override fun getAllScansPaged(): PagingSource<Int, Scan> {
+        return scanDao.getAllScansPaged()
     }
 
     override suspend fun getById(scanId: Long): Scan? {

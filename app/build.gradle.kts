@@ -85,6 +85,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging)
     ksp(libs.room.compiler)
 
     // Navigation
@@ -113,6 +114,10 @@ dependencies {
 
     // OkHttp
     implementation(libs.okhttp)
+
+    // Paging 3
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 
     // ExifInterface for EXIF rotation
     implementation("androidx.exifinterface:exifinterface:1.3.7")

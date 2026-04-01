@@ -1,5 +1,6 @@
 package ru.ainetico.honestprice.data
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -25,6 +26,9 @@ interface ScanDao {
 
     @Query("SELECT * FROM scans WHERE status != 'PROCESSING' ORDER BY createdAt DESC")
     fun getAllScansFlow(): Flow<List<Scan>>
+
+    @Query("SELECT * FROM scans WHERE status != 'PROCESSING' ORDER BY createdAt DESC")
+    fun getAllScansPaged(): PagingSource<Int, Scan>
 
     @Query("DELETE FROM scans WHERE id = :id")
     suspend fun deleteById(id: Long)
