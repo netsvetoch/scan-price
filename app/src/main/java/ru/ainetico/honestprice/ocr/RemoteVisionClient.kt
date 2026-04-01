@@ -24,12 +24,13 @@ class RemoteVisionClient {
         private const val TAG = "RemoteVisionClient"
         private const val TIMEOUT_MS = 30_000
 
-        private const val SYSTEM_PROMPT = "Ты анализируешь фото ценника из магазина. " +
-                "Извлеки данные и верни ТОЛЬКО JSON без markdown:\n" +
-                "{\"product_name\": \"название\", \"price_regular\": число_или_null, " +
-                "\"price_discount\": число_или_null, \"weight_value\": число_или_null, " +
-                "\"weight_unit\": \"г/кг/мл/л/шт или null\"}\n" +
-                "Если поле не найдено — null. Цены без символа валюты. Вес как на ценнике."
+        private const val SYSTEM_PROMPT = "Analyze this Russian store price tag photo. Extract product info into JSON.\n\n" +
+                "Rules:\n" +
+                "- product_name: full name as written on the tag\n" +
+                "- price_regular: regular price as a number, null if unreadable\n" +
+                "- price_discount: discounted/loyalty card price as a number, null if NO discount exists\n" +
+                "- weight_value: number exactly as on tag (500 for \"500г\", 1 for \"1кг\")\n" +
+                "- weight_unit: one of г, кг, мл, л, шт — null if not shown"
     }
 
     suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String): ParsedPriceTag =
@@ -61,11 +62,38 @@ class RemoteVisionClient {
                     })
                 }
 
+                val jsonSchema = JSONObject().apply {
+                    put("type", "object")
+                    put("required", JSONArray().apply {
+                        put("product_name"); put("price_regular"); put("price_discount")
+                        put("weight_value"); put("weight_unit")
+                    })
+                    put("properties", JSONObject().apply {
+                        put("product_name", JSONObject().put("type", "string"))
+                        put("price_regular", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
+                        put("price_discount", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
+                        put("weight_value", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
+                        put("weight_unit", JSONObject().apply {
+                            put("type", JSONArray().apply { put("string"); put("null") })
+                            put("enum", JSONArray().apply { put("г"); put("кг"); put("мл"); put("л"); put("шт"); put(JSONObject.NULL) })
+                        })
+                    })
+                    put("additionalProperties", false)
+                }
+
                 val requestBody = JSONObject().apply {
                     put("messages", messagesArray)
                     put("max_tokens", 512)
                     put("temperature", 0.1)
                     put("stream", false)
+                    put("response_format", JSONObject().apply {
+                        put("type", "json_schema")
+                        put("json_schema", JSONObject().apply {
+                            put("name", "price_tag")
+                            put("strict", true)
+                            put("schema", jsonSchema)
+                        })
+                    })
                 }
 
                 val url = URL("$baseUrl/chat/completions")
