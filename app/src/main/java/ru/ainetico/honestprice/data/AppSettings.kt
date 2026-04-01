@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.data
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
 
 /**
@@ -13,8 +14,9 @@ class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
     init {
-        if (!prefs.contains("system_prompt")) {
-            prefs.edit().putString("system_prompt", RemoteVisionClient.DEFAULT_SYSTEM_PROMPT).apply()
+        // Migrate: if old default was written to prefs, clear it so we use placeholder instead
+        if (prefs.getString("system_prompt", "") == RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) {
+            prefs.edit().remove("system_prompt").apply()
         }
     }
 
@@ -30,8 +32,11 @@ class AppSettings(context: Context) {
     private val _apiModel = MutableStateFlow(prefs.getString("api_model", "") ?: "")
     val apiModel: StateFlow<String> = _apiModel
 
-    private val _systemPrompt = MutableStateFlow(prefs.getString("system_prompt", "")!!)
+    private val _systemPrompt = MutableStateFlow(prefs.getString("system_prompt", "") ?: "")
     val systemPrompt: StateFlow<String> = _systemPrompt
+
+    private val _localPrompt = MutableStateFlow(prefs.getString("local_prompt", "") ?: "")
+    val localPrompt: StateFlow<String> = _localPrompt
 
     fun isRemoteModelConfigured(): Boolean {
         return _useRemoteServer.value && _apiUrl.value.isNotBlank() && _apiModel.value.isNotBlank()
@@ -60,5 +65,10 @@ class AppSettings(context: Context) {
     fun setSystemPrompt(prompt: String) {
         prefs.edit().putString("system_prompt", prompt).apply()
         _systemPrompt.value = prompt
+    }
+
+    fun setLocalPrompt(prompt: String) {
+        prefs.edit().putString("local_prompt", prompt).apply()
+        _localPrompt.value = prompt
     }
 }

@@ -37,14 +37,16 @@ class ImageAnalyzer(
         val tag: ParsedPriceTag = if (useRemote) {
             try {
                 Log.d("ImageAnalyzer", "Using remote model...")
-                remoteClient.analyze(bitmap, appSettings.apiUrl.value, appSettings.apiKey.value, appSettings.apiModel.value, appSettings.systemPrompt.value)
+                val systemPrompt = appSettings.systemPrompt.value.ifBlank { RemoteVisionClient.DEFAULT_SYSTEM_PROMPT }
+                remoteClient.analyze(bitmap, appSettings.apiUrl.value, appSettings.apiKey.value, appSettings.apiModel.value, systemPrompt)
             } catch (e: Exception) {
                 Log.e("ImageAnalyzer", "Remote failed: ${e.message}")
                 throw RemoteAnalysisException("Ошибка при подключении к серверу", e)
             }
         } else {
             Log.d("ImageAnalyzer", "Using local model...")
-            localEngine.analyze(bitmap)
+            val prompt = appSettings.localPrompt.value.ifBlank { LocalVisionEngine.DEFAULT_PROMPT }
+            localEngine.analyze(bitmap, prompt)
         }
 
         val price = calculator.calculate(tag)

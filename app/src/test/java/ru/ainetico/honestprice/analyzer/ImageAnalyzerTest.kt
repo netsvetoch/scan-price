@@ -28,6 +28,7 @@ class ImageAnalyzerTest {
         every { apiKey } returns MutableStateFlow("")
         every { apiModel } returns MutableStateFlow("")
         every { systemPrompt } returns MutableStateFlow("")
+        every { localPrompt } returns MutableStateFlow("")
     }
 
     private val analyzer = ImageAnalyzer(localEngine, calculator, appSettings)
@@ -35,7 +36,7 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze returns complete result from local engine`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        coEvery { localEngine.analyze(any()) } returns ParsedPriceTag(
+        coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag(
             productName = "Молоко",
             priceRegular = BigDecimal("89.90"),
             weightValue = BigDecimal("1"),
@@ -54,7 +55,7 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze returns null price when no price detected`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        coEvery { localEngine.analyze(any()) } returns ParsedPriceTag()
+        coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag()
 
         val result = analyzer.analyze(bitmap, null)
 
@@ -71,6 +72,7 @@ class ImageAnalyzerTest {
             every { apiKey } returns MutableStateFlow("key")
             every { apiModel } returns MutableStateFlow("model")
             every { systemPrompt } returns MutableStateFlow("")
+            every { localPrompt } returns MutableStateFlow("")
         }
         val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings)
 
@@ -91,9 +93,10 @@ class ImageAnalyzerTest {
             every { apiKey } returns MutableStateFlow("key")
             every { apiModel } returns MutableStateFlow("model")
             every { systemPrompt } returns MutableStateFlow("")
+            every { localPrompt } returns MutableStateFlow("")
         }
         val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings)
-        coEvery { localEngine.analyze(any()) } returns ParsedPriceTag(
+        coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag(
             productName = "Хлеб",
             priceRegular = BigDecimal("45.00")
         )

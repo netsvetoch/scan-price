@@ -49,6 +49,7 @@
     <string name="settings_local_model_title">Local model</string>
     <string name="settings_local_model_description">On-device neural network for price tag recognition without internet</string>
     <string name="settings_local_model_ready">✓ Models downloaded and ready</string>
+    <string name="settings_local_prompt">Local model prompt</string>
     <string name="settings_local_model_download">Download models</string>
     <string name="settings_export_title">Export data</string>
     <string name="settings_export_description">Exports all scans as CSV and price tag photos as a ZIP archive.</string>

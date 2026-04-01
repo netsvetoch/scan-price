@@ -42,16 +42,10 @@ class LocalVisionEngine(private val appContext: Context) {
 }
 """
 
-    private const val PROMPT = "Фото ценника из российского магазина.\n\n" +
-        "Извлеки данные с ценника:\n" +
-        "- product_name: краткое название товара\n" +
-        "- product_description: бренд, состав, жирность, сорт — мелкий текст под названием. null если нет\n" +
-        "- price_regular: обычная цена числом\n" +
-        "- price_discount: цена по скидке/карте числом. null если скидки нет\n" +
-        "- weight_value: вес или объём числом как на ценнике (500 для 500г, 1 для 1кг)\n" +
-        "- weight_unit: единица измерения\n\n" +
-        "Пример: {\"product_name\":\"Молоко 3.2%\",\"product_description\":\"Простоквашино, ультрапастеризованное\"," +
-        "\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}"
+    const val DEFAULT_PROMPT = "This is a photo of a price tag from a Russian store. " +
+        "Extract the product name, description, prices, weight/volume from the tag. " +
+        "If there is a discounted or card price, include it separately from the regular price. " +
+        "Use null for any fields you cannot read."
   }
 
   private var engine: InferenceEngine? = null
@@ -118,7 +112,7 @@ class LocalVisionEngine(private val appContext: Context) {
   /**
    * Analyze a price tag image. Returns ParsedPriceTag.
    */
-  suspend fun analyze(bitmap: Bitmap): ParsedPriceTag {
+  suspend fun analyze(bitmap: Bitmap, prompt: String = DEFAULT_PROMPT): ParsedPriceTag {
     val eng = engine
     if (!isReady || eng == null) {
       Log.e(TAG, "Engine not ready!")
@@ -136,7 +130,7 @@ class LocalVisionEngine(private val appContext: Context) {
           "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB"
         )
 
-        val response = eng.analyzeImage(imageBytes, PROMPT, JSON_SCHEMA)
+        val response = eng.analyzeImage(imageBytes, prompt, JSON_SCHEMA)
         Log.i(TAG, "Response (${response.length} chars): '${response.take(500)}'")
 
         if (response.isBlank()) {

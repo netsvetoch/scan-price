@@ -49,6 +49,7 @@
     <string name="settings_local_model_title">Локальная модель</string>
     <string name="settings_local_model_description">Нейросеть на устройстве для распознавания ценников без интернета</string>
     <string name="settings_local_model_ready">✓ Модели загружены и готовы к работе</string>
+    <string name="settings_local_prompt">Промпт локальной модели</string>
     <string name="settings_local_model_download">Скачать модели</string>
     <string name="settings_export_title">Экспорт данных</string>
     <string name="settings_export_description">Экспортирует все сканирования в CSV и фотографии ценников в ZIP-архив.</string>

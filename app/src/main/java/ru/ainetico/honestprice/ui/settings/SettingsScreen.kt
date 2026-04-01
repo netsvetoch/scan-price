@@ -78,6 +78,7 @@ fun SettingsScreen(
   var apiModel by remember { mutableStateOf(appSettings.apiModel.value) }
   var apiKey by remember { mutableStateOf(appSettings.apiKey.value) }
   var systemPrompt by remember { mutableStateOf(appSettings.systemPrompt.value) }
+  var localPrompt by remember { mutableStateOf(appSettings.localPrompt.value) }
 
   var modelList by remember { mutableStateOf<List<String>>(emptyList()) }
   var connectionStatus by remember { mutableStateOf("") }
@@ -348,6 +349,7 @@ fun SettingsScreen(
           appSettings.setSystemPrompt(it)
         },
         label = { Text(stringResource(R.string.settings_system_prompt)) },
+        placeholder = { Text(ru.ainetico.honestprice.ocr.RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) },
         modifier = Modifier.fillMaxWidth(),
         minLines = 3,
         maxLines = 8
@@ -379,6 +381,20 @@ fun SettingsScreen(
         text = stringResource(R.string.settings_local_model_description),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
+
+      // Local prompt
+      OutlinedTextField(
+        value = localPrompt,
+        onValueChange = {
+          localPrompt = it
+          appSettings.setLocalPrompt(it)
+        },
+        label = { Text(stringResource(R.string.settings_local_prompt)) },
+        placeholder = { Text(ru.ainetico.honestprice.ocr.LocalVisionEngine.DEFAULT_PROMPT) },
+        modifier = Modifier.fillMaxWidth(),
+        minLines = 3,
+        maxLines = 8
       )
 
       if (modelsDownloaded && downloadState !is ru.ainetico.honestprice.model.ModelDownloader.DownloadState.Downloading) {
