@@ -120,7 +120,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_loadMmproj(JNIEnv *env, jobject
     LOGi("Loading mmproj from: %s", path);
 
     mtmd_context_params p = mtmd_context_params_default();
-    p.use_gpu = false;
+    p.use_gpu = true;
     p.print_timings = true;
     p.n_threads = get_n_threads();
 
