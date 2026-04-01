@@ -14,11 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.data.Scan
+import ru.ainetico.honestprice.ui.theme.PriceGreen
 import ru.ainetico.honestprice.model.WeightUnit
 import java.math.BigDecimal
 import java.math.MathContext
@@ -78,7 +78,7 @@ fun ScanCard(scan: Scan, onClick: () -> Unit) {
       if (honestPrice != null) {
         Text(
           "$honestPrice ₽/$unitName",
-          color = Color(0xFF2E7D32),
+          color = PriceGreen,
           fontWeight = FontWeight.Bold,
           fontSize = 18.sp
         )

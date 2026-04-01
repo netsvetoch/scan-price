@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.PriceGreen
+import ru.ainetico.honestprice.ui.theme.PriceGreenLight
 import ru.ainetico.honestprice.model.WeightUnit
 
 @Composable
@@ -40,7 +42,7 @@ fun PriceCard(
       .clip(RoundedCornerShape(16.dp))
       .background(
         Brush.linearGradient(
-          colors = listOf(Color(0xFF4CAF50), Color(0xFF2E7D32))
+          colors = listOf(PriceGreenLight, PriceGreen)
         )
       )
       .padding(20.dp),

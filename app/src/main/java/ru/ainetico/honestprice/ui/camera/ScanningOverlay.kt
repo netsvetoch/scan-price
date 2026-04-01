@@ -15,6 +15,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import ru.ainetico.honestprice.ui.theme.ScanLineGreen
+import ru.ainetico.honestprice.ui.theme.ScanLineGreenAlpha
 
 @Composable
 fun ScanningOverlay(modifier: Modifier = Modifier) {
@@ -36,7 +38,7 @@ fun ScanningOverlay(modifier: Modifier = Modifier) {
 
     drawRect(
       brush = Brush.verticalGradient(
-        colors = listOf(Color.Transparent, Color(0x4400E676)),
+        colors = listOf(Color.Transparent, ScanLineGreenAlpha),
         startY = (y - gradientHeight).coerceAtLeast(0f),
         endY = y
       ),
@@ -45,7 +47,7 @@ fun ScanningOverlay(modifier: Modifier = Modifier) {
     )
 
     drawRect(
-      color = Color(0xFF00E676),
+      color = ScanLineGreen,
       topLeft = Offset(0f, y),
       size = Size(size.width, lineHeight)
     )
