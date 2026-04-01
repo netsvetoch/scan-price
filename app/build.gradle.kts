@@ -20,6 +20,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     buildTypes {
@@ -71,9 +74,6 @@ dependencies {
 
     // Shimmer skeleton animation
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
-
-    // ML Kit - Barcode only
-    implementation(libs.mlkit.barcode.scanning)
 
     // CameraX
     implementation(libs.camerax.core)

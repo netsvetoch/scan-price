@@ -55,3 +55,26 @@ dependencies {
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 }
+
+// Strip all .so files after native build for release
+afterEvaluate {
+    tasks.matching { it.name.startsWith("buildCMakeRelease") }.configureEach {
+        doLast {
+            val stripPath = "toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
+            val ndkDir = File(System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT") ?: "/home/netsvetoch/Android/Sdk", "ndk/${android.ndkVersion}")
+            val strip = File(ndkDir, stripPath)
+            if (!strip.exists()) {
+                logger.warn("llvm-strip not found at $strip")
+                return@doLast
+            }
+            listOf(file(".cxx/Release"), file("build/intermediates/cxx/Release"))
+                .filter { it.exists() }
+                .flatMap { dir -> dir.walkTopDown().filter { it.extension == "so" }.toList() }
+                .forEach { so ->
+                    val sizeBefore = so.length()
+                    Runtime.getRuntime().exec(arrayOf(strip.absolutePath, so.absolutePath)).waitFor()
+                    logger.lifecycle("Stripped: ${so.name} ${sizeBefore/1024}K → ${so.length()/1024}K")
+                }
+        }
+    }
+}
