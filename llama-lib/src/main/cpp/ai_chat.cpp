@@ -273,7 +273,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_analyzeImage(
     // Strip <think>...</think> block — keep only the actual answer
     auto think_start = result.find("<think>");
     auto think_end = result.find("</think>");
-    if (think_start != std::string::npos && think_end != std::string::npos) {
+    if (think_start != std::string::npos && think_end != std::string::npos && think_end > think_start + 7) {
         std::string thinking = result.substr(think_start + 7, think_end - think_start - 7);
         LOGi("Thinking (%d chars): %.200s", (int)thinking.size(), thinking.c_str());
         result = result.substr(0, think_start) + result.substr(think_end + 8);
