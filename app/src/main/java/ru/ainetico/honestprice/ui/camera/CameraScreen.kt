@@ -32,7 +32,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CropRotate
-import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -67,6 +69,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -80,6 +83,15 @@ fun CameraScreen(
   val context = LocalContext.current
   val state by viewModel.state.collectAsState()
   val isVertical by viewModel.isVerticalFrame.collectAsState()
+  var cameraRef by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
+  var torchEnabled by remember { mutableStateOf(false) }
+
+  // Keep screen on while camera is active
+  val view = LocalView.current
+  DisposableEffect(Unit) {
+    view.keepScreenOn = true
+    onDispose { view.keepScreenOn = false }
+  }
   val frameAspectRatio =
     if (isVertical) 1f / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO else ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
   // Navigation events handled by parent (HistoryScreen)
@@ -433,7 +445,7 @@ fun CameraScreen(
             shape = CircleShape
           ) {
             Icon(
-              Icons.Filled.EditNote,
+              Icons.Filled.Edit,
               contentDescription = null,
               tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -445,24 +457,75 @@ fun CameraScreen(
         // Live camera preview with controls
         CameraPreview(
           modifier = Modifier.fillMaxSize(),
-          onPreviewViewReady = { previewViewRef = it }
+          onPreviewViewReady = { previewViewRef = it },
+          onCameraReady = { cameraRef = it }
         )
 
         // Darkened frame overlay
         FrameOverlay(modifier = Modifier.fillMaxSize(), aspectRatio = frameAspectRatio)
 
-        // Rotate frame button
-        Button(
-          onClick = { viewModel.toggleFrameOrientation() },
-          colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+        // Top buttons: torch + rotate
+        Row(
           modifier = Modifier
             .align(Alignment.TopEnd)
-            .padding(top = 16.dp, end = 16.dp)
-            .size(48.dp),
-          contentPadding = PaddingValues(0.dp),
-          shape = CircleShape
+            .padding(top = 16.dp, end = 16.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          Icon(Icons.Filled.CropRotate, contentDescription = stringResource(R.string.camera_rotate_frame), tint = Color.White)
+          // Torch button
+          if (cameraRef?.cameraInfo?.hasFlashUnit() == true) {
+            Button(
+              onClick = {
+                torchEnabled = !torchEnabled
+                cameraRef?.cameraControl?.enableTorch(torchEnabled)
+              },
+              colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.4f)),
+              modifier = Modifier.size(48.dp),
+              contentPadding = PaddingValues(0.dp),
+              shape = CircleShape
+            ) {
+              Icon(
+                if (torchEnabled) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
+                contentDescription = null,
+                tint = Color.White
+              )
+            }
+          }
+          // Rotate frame button
+          Button(
+            onClick = { viewModel.toggleFrameOrientation() },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.4f)),
+            modifier = Modifier.size(48.dp),
+            contentPadding = PaddingValues(0.dp),
+            shape = CircleShape
+          ) {
+            Icon(Icons.Filled.CropRotate, contentDescription = stringResource(R.string.camera_rotate_frame), tint = Color.White)
+          }
+        }
+
+        // Zoom toggle — centered above bottom controls
+        if (cameraRef != null) {
+          var isZoomed by remember { mutableStateOf(false) }
+          Button(
+            onClick = {
+              isZoomed = !isZoomed
+              cameraRef?.cameraControl?.setZoomRatio(if (isZoomed) 2f else 1f)
+            },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = if (isZoomed) Color.White else Color.White.copy(alpha = 0.4f)
+            ),
+            modifier = Modifier
+              .align(Alignment.BottomCenter)
+              .padding(bottom = 132.dp)
+              .size(40.dp),
+            contentPadding = PaddingValues(0.dp),
+            shape = CircleShape
+          ) {
+            Text(
+              if (isZoomed) "x2" else "x1",
+              color = if (isZoomed) Color.Black else Color.White,
+              fontSize = 13.sp
+            )
+          }
         }
 
         // Bottom controls
@@ -475,63 +538,51 @@ fun CameraScreen(
           verticalAlignment = Alignment.CenterVertically
         ) {
           // Gallery button
-          Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+          Button(
+            onClick = { galleryLauncher.launch("image/*") },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = Color.White.copy(alpha = 0.4f)
+            ),
+            modifier = Modifier.size(56.dp),
+            contentPadding = PaddingValues(0.dp),
+            shape = CircleShape
           ) {
-            Button(
-              onClick = { galleryLauncher.launch("image/*") },
-              colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White.copy(alpha = 0.2f)
-              ),
-              modifier = Modifier.size(56.dp),
-              contentPadding = PaddingValues(0.dp),
-              shape = CircleShape
-            ) {
-              Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
-            }
+            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
           }
 
-          // Capture button (big white circle)
-          Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-          ) {
-            Button(
-              onClick = {
-                previewViewRef?.bitmap?.let { bmp ->
-                  viewModel.capture(bmp, cropRect = null)
-                }
-              },
+          // Capture button
+          Button(
+            onClick = {
+              previewViewRef?.bitmap?.let { bmp ->
+                viewModel.capture(bmp, cropRect = null)
+              }
+            },
               colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White
               ),
-              modifier = Modifier.size(72.dp),
-              contentPadding = PaddingValues(0.dp),
-              shape = CircleShape
-            ) {
-              Box(
-                modifier = Modifier
-                  .size(60.dp)
-                  .clip(CircleShape)
-                  .border(2.dp, Color.Black.copy(alpha = 0.2f), CircleShape)
-              )
-            }
+            modifier = Modifier.size(72.dp),
+            contentPadding = PaddingValues(0.dp),
+            shape = CircleShape
+          ) {
+            Box(
+              modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .border(2.dp, Color.Black.copy(alpha = 0.2f), CircleShape)
+            )
           }
 
           // Manual entry button
-          Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+          Button(
+            onClick = { viewModel.onManualEntry() },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = Color.White.copy(alpha = 0.4f)
+            ),
+            modifier = Modifier.size(56.dp),
+            contentPadding = PaddingValues(0.dp),
+            shape = CircleShape
           ) {
-            Button(
-              onClick = { viewModel.onManualEntry() },
-              colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White.copy(alpha = 0.2f)
-              ),
-              modifier = Modifier.size(56.dp),
-              contentPadding = PaddingValues(0.dp),
-              shape = CircleShape
-            ) {
-              Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
-            }
+            Icon(Icons.Filled.Edit, contentDescription = null, tint = Color.White)
           }
         }
       }
@@ -584,7 +635,8 @@ private fun FrameOverlay(
 @Composable
 private fun CameraPreview(
   modifier: Modifier = Modifier,
-  onPreviewViewReady: (PreviewView) -> Unit
+  onPreviewViewReady: (PreviewView) -> Unit,
+  onCameraReady: (androidx.camera.core.Camera) -> Unit = {}
 ) {
   LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
@@ -610,7 +662,8 @@ private fun CameraPreview(
         val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
         try {
           cameraProvider.unbindAll()
-          cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+          val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+          onCameraReady(camera)
         } catch (e: Exception) {
           // Camera binding failed — e.g., no back camera
         }
