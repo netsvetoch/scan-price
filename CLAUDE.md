@@ -57,7 +57,7 @@ The remote engine is preferred when configured; local is the offline fallback.
 
 ## Database
 
-Room with 2 entities: `Scan` (price tag data + image path + GPS) and `Store` (autocomplete). One migration (v1→v2: added `productDescription`).
+Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `createdAt` and `status`) and `Store` (autocomplete). Migrations: v1→v2 (added `productDescription`), v2→v3 (added indexes).
 
 ## SDK & Build
 

@@ -1,9 +1,16 @@
 package ru.ainetico.honestprice.data
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "scans")
+@Entity(
+    tableName = "scans",
+    indices = [
+        Index(value = ["createdAt"]),
+        Index(value = ["status"])
+    ]
+)
 data class Scan(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
