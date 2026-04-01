@@ -58,7 +58,7 @@ import ru.ainetico.honestprice.ui.history.HistoryViewModel
 import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
 import ru.ainetico.honestprice.ui.result.ResultScreen
 import ru.ainetico.honestprice.ui.result.ResultViewModel
-import ru.ainetico.honestprice.ui.theme.ЧестнаяЦенаTheme
+import ru.ainetico.honestprice.ui.theme.ScanPriceTheme
 import ru.ainetico.honestprice.widget.updateLastScanWidget
 import kotlin.math.roundToInt
 
@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
         val launchAction = intent?.action
 
         setContent {
-            ЧестнаяЦенаTheme {
+            ScanPriceTheme {
                 HonestPriceApp(localVisionEngine, modelDownloader, appSettings, launchAction)
             }
         }

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**ЧестнаяЦена (Honest Price)** — Android app that scans Russian price tags using a vision LLM, extracts structured data (product name, prices, weight), and calculates per-unit prices for comparison shopping.
+**ScanPrice (Ценоскан)** — Android app that scans Russian price tags using a vision LLM, extracts structured data (product name, prices, weight), and calculates per-unit prices for comparison shopping.
 
 ## Build Commands
 

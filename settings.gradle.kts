@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ЧестнаяЦена"
+rootProject.name = "ScanPrice"
 include(":app")
 include(":llama-lib")

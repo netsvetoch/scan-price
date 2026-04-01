@@ -1,5 +1,6 @@
 package ru.ainetico.honestprice.model
 
+import ru.ainetico.honestprice.R
 import android.app.DownloadManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -53,8 +54,8 @@ class ModelDownloader(
   private val _state = MutableStateFlow<DownloadState>(DownloadState.Idle)
   val state: StateFlow<DownloadState> = _state
 
-  private val file1Progress = MutableStateFlow(FileProgress("Файл 1 из 2", 0))
-  private val file2Progress = MutableStateFlow(FileProgress("Файл 2 из 2", 0))
+  private val file1Progress = MutableStateFlow(FileProgress(context.getString(R.string.download_file1_label), 0))
+  private val file2Progress = MutableStateFlow(FileProgress(context.getString(R.string.download_file2_label), 0))
 
   private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
   private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -67,10 +68,10 @@ class ModelDownloader(
   private fun createNotificationChannels() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       notificationManager.createNotificationChannel(
-        NotificationChannel(CHANNEL_SILENT, "Загрузка моделей", NotificationManager.IMPORTANCE_LOW)
+        NotificationChannel(CHANNEL_SILENT, context.getString(R.string.download_channel_silent), NotificationManager.IMPORTANCE_LOW)
       )
       notificationManager.createNotificationChannel(
-        NotificationChannel(CHANNEL_ALERT, "Готовность модели", NotificationManager.IMPORTANCE_HIGH)
+        NotificationChannel(CHANNEL_ALERT, context.getString(R.string.download_channel_alert), NotificationManager.IMPORTANCE_HIGH)
       )
     }
   }
@@ -91,7 +92,7 @@ class ModelDownloader(
   }
 
   fun showReadyNotification() {
-    showHeadsUpNotification("Модели загружены", "Автоматическое распознавание ценников работает")
+    showHeadsUpNotification(context.getString(R.string.download_ready_title), context.getString(R.string.download_ready_text))
   }
 
   private fun showHeadsUpNotification(title: String, text: String) {
@@ -123,8 +124,8 @@ class ModelDownloader(
         val needModel = !File(modelsDir, MODEL_FILENAME).exists()
         val needMmproj = !File(modelsDir, MMPROJ_FILENAME).exists()
 
-        if (!needModel) file1Progress.value = FileProgress("Файл 1 из 2", 100, done = true)
-        if (!needMmproj) file2Progress.value = FileProgress("Файл 2 из 2", 100, done = true)
+        if (!needModel) file1Progress.value = FileProgress(context.getString(R.string.download_file1_label), 100, done = true)
+        if (!needMmproj) file2Progress.value = FileProgress(context.getString(R.string.download_file2_label), 100, done = true)
 
         _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
 
@@ -144,7 +145,7 @@ class ModelDownloader(
           _state.value = DownloadState.Downloading(f1, f2)
 
           val totalProgress = (f1.progress + f2.progress) / 2
-          showSilentNotification("Загрузка моделей", "$totalProgress%", totalProgress)
+          showSilentNotification(context.getString(R.string.download_progress_title), "$totalProgress%", totalProgress)
 
           delay(2000)
         }
@@ -157,11 +158,11 @@ class ModelDownloader(
           _state.value = DownloadState.Completed
           Log.i(TAG, "All models downloaded")
         } else {
-          _state.value = DownloadState.Error("Загрузка не завершена")
+          _state.value = DownloadState.Error(context.getString(R.string.download_error_incomplete))
         }
       } catch (e: Exception) {
         Log.e(TAG, "Download failed", e)
-        _state.value = DownloadState.Error("Ошибка загрузки: ${e.message}")
+        _state.value = DownloadState.Error(context.getString(R.string.download_error_format, e.message))
       }
     }
   }
@@ -180,8 +181,8 @@ class ModelDownloader(
 
     // Enqueue download — downloads to public Downloads dir first (DownloadManager limitation)
     val request = DownloadManager.Request(Uri.parse(url))
-      .setTitle("ЧестнаяЦена — $label")
-      .setDescription("Загрузка модели для распознавания ценников")
+      .setTitle("${context.getString(R.string.app_name)} — $label")
+      .setDescription(context.getString(R.string.download_description))
       .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
       .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "honestprice_$filename")
       .setAllowedOverMetered(true)
