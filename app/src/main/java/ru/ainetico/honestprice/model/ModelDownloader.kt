@@ -2,14 +2,10 @@ package ru.ainetico.honestprice.model
 
 import ru.ainetico.honestprice.R
 import android.app.DownloadManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,10 +26,6 @@ class ModelDownloader(
 
   companion object {
     private const val TAG = "ModelDownloader"
-    private const val CHANNEL_SILENT = "model_download"
-    private const val CHANNEL_ALERT = "model_ready"
-    private const val NOTIF_SILENT = 1001
-    private const val NOTIF_ALERT = 1002
 
     val MODEL_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
     val MMPROJ_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
@@ -67,53 +59,15 @@ class ModelDownloader(
   private val file2Progress = MutableStateFlow(FileProgress(context.getString(R.string.download_file2_label), 0))
 
   private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-  private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+  private val notificationHelper = DownloadNotificationHelper(context)
   private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
-    createNotificationChannels()
-  }
-
-  private fun createNotificationChannels() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      notificationManager.createNotificationChannel(
-        NotificationChannel(CHANNEL_SILENT, context.getString(R.string.download_channel_silent), NotificationManager.IMPORTANCE_LOW)
-      )
-      notificationManager.createNotificationChannel(
-        NotificationChannel(CHANNEL_ALERT, context.getString(R.string.download_channel_alert), NotificationManager.IMPORTANCE_HIGH)
-      )
-    }
-  }
-
-  private fun showSilentNotification(title: String, text: String, progress: Int) {
-    val builder = NotificationCompat.Builder(context, CHANNEL_SILENT)
-      .setSmallIcon(android.R.drawable.stat_sys_download)
-      .setContentTitle(title)
-      .setContentText(text)
-      .setPriority(NotificationCompat.PRIORITY_LOW)
-      .setOngoing(true)
-      .setProgress(100, progress.coerceIn(0, 100), false)
-    notificationManager.notify(NOTIF_SILENT, builder.build())
-  }
-
-  private fun cancelSilentNotification() {
-    notificationManager.cancel(NOTIF_SILENT)
+    notificationHelper.createChannels()
   }
 
   fun showReadyNotification() {
-    showHeadsUpNotification(context.getString(R.string.download_ready_title), context.getString(R.string.download_ready_text))
-  }
-
-  private fun showHeadsUpNotification(title: String, text: String) {
-    notificationManager.notify(NOTIF_ALERT,
-      NotificationCompat.Builder(context, CHANNEL_ALERT)
-        .setSmallIcon(android.R.drawable.stat_sys_download_done)
-        .setContentTitle(title)
-        .setContentText(text)
-        .setPriority(NotificationCompat.PRIORITY_HIGH)
-        .setAutoCancel(true)
-        .build()
-    )
+    notificationHelper.showReadyNotification()
   }
 
   fun isModelDownloaded(): Boolean {
@@ -154,7 +108,7 @@ class ModelDownloader(
           _state.value = DownloadState.Downloading(f1, f2)
 
           val totalProgress = (f1.progress + f2.progress) / 2
-          showSilentNotification(context.getString(R.string.download_progress_title), "$totalProgress%", totalProgress)
+          notificationHelper.showProgress(context.getString(R.string.download_progress_title), "$totalProgress%", totalProgress)
 
           delay(2000)
         }
@@ -164,7 +118,7 @@ class ModelDownloader(
         deferred2?.await()
 
         if (isModelDownloaded()) {
-          cancelSilentNotification()
+          notificationHelper.cancelProgress()
           _state.value = DownloadState.Completed
           Log.i(TAG, "All models downloaded")
         } else {
