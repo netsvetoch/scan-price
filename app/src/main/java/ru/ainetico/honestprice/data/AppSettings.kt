@@ -1,35 +1,63 @@
 package ru.ainetico.honestprice.data
 
 import android.content.Context
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
 
 /**
  * App settings stored in SharedPreferences.
+ * Sensitive fields (API key, URL, model) use EncryptedSharedPreferences.
  */
 class AppSettings(context: Context) {
 
     private val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+
+    private val securePrefs: SharedPreferences = run {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            context,
+            "secure_settings",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     init {
         // Migrate: if old default was written to prefs, clear it so we use placeholder instead
         if (prefs.getString("system_prompt", "") == RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) {
             prefs.edit().remove("system_prompt").apply()
         }
+        // Migrate sensitive fields from plaintext prefs to encrypted storage
+        migrateSensitiveField("api_key")
+        migrateSensitiveField("api_url")
+        migrateSensitiveField("api_model")
+    }
+
+    private fun migrateSensitiveField(key: String) {
+        val plainValue = prefs.getString(key, null)
+        if (plainValue != null) {
+            securePrefs.edit().putString(key, plainValue).apply()
+            prefs.edit().remove(key).apply()
+        }
     }
 
     private val _useRemoteServer = MutableStateFlow(prefs.getBoolean("use_remote_server", false))
     val useRemoteServer: StateFlow<Boolean> = _useRemoteServer
 
-    private val _apiUrl = MutableStateFlow(prefs.getString("api_url", "") ?: "")
+    private val _apiUrl = MutableStateFlow(securePrefs.getString("api_url", "") ?: "")
     val apiUrl: StateFlow<String> = _apiUrl
 
-    private val _apiKey = MutableStateFlow(prefs.getString("api_key", "") ?: "")
+    private val _apiKey = MutableStateFlow(securePrefs.getString("api_key", "") ?: "")
     val apiKey: StateFlow<String> = _apiKey
 
-    private val _apiModel = MutableStateFlow(prefs.getString("api_model", "") ?: "")
+    private val _apiModel = MutableStateFlow(securePrefs.getString("api_model", "") ?: "")
     val apiModel: StateFlow<String> = _apiModel
 
     private val _systemPrompt = MutableStateFlow(prefs.getString("system_prompt", "") ?: "")
@@ -48,17 +76,17 @@ class AppSettings(context: Context) {
     }
 
     fun setApiUrl(url: String) {
-        prefs.edit().putString("api_url", url).apply()
+        securePrefs.edit().putString("api_url", url).apply()
         _apiUrl.value = url
     }
 
     fun setApiKey(key: String) {
-        prefs.edit().putString("api_key", key).apply()
+        securePrefs.edit().putString("api_key", key).apply()
         _apiKey.value = key
     }
 
     fun setApiModel(model: String) {
-        prefs.edit().putString("api_model", model).apply()
+        securePrefs.edit().putString("api_model", model).apply()
         _apiModel.value = model
     }
 

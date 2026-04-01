@@ -99,6 +99,9 @@ dependencies {
     // AppCompat (for per-app language support on pre-API 33)
     implementation("androidx.appcompat:appcompat:1.7.0")
 
+    // Encrypted SharedPreferences for secure API key storage
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // ExifInterface for EXIF rotation
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
