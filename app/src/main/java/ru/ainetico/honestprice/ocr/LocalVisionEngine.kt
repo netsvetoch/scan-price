@@ -28,10 +28,10 @@ class LocalVisionEngine(private val appContext: Context) {
 
     private const val PROMPT = "This is a photo of a price tag from a Russian store. " +
             "Return ONLY a JSON object, no markdown, no explanation.\n" +
-            "Example: {\"product_name\":\"Молоко 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}\n" +
-            "Example without discount: {\"product_name\":\"Хлеб\",\"price_regular\":45.00,\"price_discount\":null,\"weight_value\":500,\"weight_unit\":\"г\"}\n" +
+            "Example: {\"product_name\":\"Молоко 3.2%\",\"product_description\":\"Простоквашино, ультрапастеризованное, жирн. 3.2%\",\"price_regular\":89.99,\"price_discount\":69.99,\"weight_value\":900,\"weight_unit\":\"мл\"}\n" +
             "Rules:\n" +
-            "- product_name: full product name from the tag\n" +
+            "- product_name: short product name from the tag\n" +
+            "- product_description: additional details in small print (brand, composition, variety), or null if none\n" +
             "- price_regular: regular price number\n" +
             "- price_discount: discounted/card price number. Use null if there is NO discount. Never use 0.\n" +
             "- weight_value: weight or volume number EXACTLY as written on the tag (e.g. 500 for 500г, 1 for 1кг)\n" +
@@ -169,6 +169,7 @@ class LocalVisionEngine(private val appContext: Context) {
 
       ParsedPriceTag(
         productName = json.optStringOrNull("product_name"),
+        productDescription = json.optStringOrNull("product_description"),
         priceRegular = json.optStringOrNull("price_regular")?.toBigDecimalSafe(),
         priceDiscount = if (discount != null && discount.compareTo(java.math.BigDecimal.ZERO) == 0) null else discount,
         weightValue = json.optStringOrNull("weight_value")?.toBigDecimalSafe(),

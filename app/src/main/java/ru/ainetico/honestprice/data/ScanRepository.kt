@@ -35,6 +35,7 @@ class ScanRepositoryImpl(private val scanDao: ScanDao) : ScanRepository {
             existing.copy(
                 status = ScanStatus.COMPLETED,
                 productName = tag.productName,
+                productDescription = tag.productDescription,
                 priceRegular = tag.priceRegular?.toPlainString(),
                 priceDiscount = tag.priceDiscount?.toPlainString(),
                 weightValue = tag.weightValue?.toPlainString(),
@@ -73,6 +74,7 @@ class ScanRepositoryImpl(private val scanDao: ScanDao) : ScanRepository {
             existing.copy(
                 status = newStatus,
                 productName = tag.productName,
+                productDescription = tag.productDescription,
                 priceRegular = tag.priceRegular?.toPlainString(),
                 priceDiscount = tag.priceDiscount?.toPlainString(),
                 weightValue = tag.weightValue?.toPlainString(),

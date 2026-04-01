@@ -11,6 +11,7 @@ data class Scan(
     val imagePath: String? = null,
     val thumbnailPath: String? = null,
     val productName: String? = null,
+    val productDescription: String? = null,
     val priceRegular: String? = null,
     val priceDiscount: String? = null,
     val weightValue: String? = null,

@@ -26,7 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -48,8 +47,8 @@ import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.model.AnalysisResult
 import ru.ainetico.honestprice.ui.camera.CameraEvent
-import ru.ainetico.honestprice.ui.camera.CameraState
 import ru.ainetico.honestprice.ui.camera.CameraScreen
+import ru.ainetico.honestprice.ui.camera.CameraState
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,7 +118,10 @@ fun HistoryScreen(
         title = { Text(stringResource(R.string.app_title)) },
         actions = {
           IconButton(onClick = onNavigateToSettings) {
-            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
+            Icon(
+              Icons.Filled.Settings,
+              contentDescription = stringResource(R.string.settings_title)
+            )
           }
         }
       )
@@ -180,9 +182,11 @@ fun HistoryScreen(
       }
 
       scans.isEmpty() -> {
-        Box(Modifier
-          .fillMaxSize()
-          .padding(padding), contentAlignment = Alignment.Center) {
+        Box(
+          Modifier
+            .fillMaxSize()
+            .padding(padding), contentAlignment = Alignment.Center
+        ) {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
               stringResource(R.string.history_empty),
@@ -218,8 +222,10 @@ fun HistoryScreen(
   // Camera BottomSheet
   if (showSheet) {
     val cameraState by cameraViewModel.state.collectAsState()
-    val sheetModifier = when (cameraState) {
-      is CameraState.Scanning -> Modifier.height(320.dp)
+    val isVertical by cameraViewModel.isVerticalFrame.collectAsState()
+    val sheetModifier = when {
+      cameraState is CameraState.Scanning && isVertical -> Modifier.fillMaxHeight(0.85f)
+      cameraState is CameraState.Scanning -> Modifier.height(320.dp)
       else -> Modifier.fillMaxHeight(0.85f)
     }
 

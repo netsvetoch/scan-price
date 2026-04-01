@@ -22,6 +22,7 @@
     <string name="camera_permission_needed">Для сканирования нужен доступ к камере</string>
     <string name="camera_open_settings">Открыть настройки</string>
     <string name="result_product_name">Название товара</string>
+    <string name="result_product_description">Описание (дополнительные сведения)</string>
     <string name="result_price_regular">Цена</string>
     <string name="result_price_discount">По скидке</string>
     <string name="result_weight">Вес / Объём</string>
@@ -29,7 +30,7 @@
     <string name="result_store">Магазин</string>
     <string name="result_barcode">Штрихкод</string>
     <string name="result_honest_price">Честная цена</string>
-    <string name="result_regular_per_unit">обычная: %s ₽/%s</string>
+    <string name="result_regular_per_unit">без скидки: %s ₽/%s</string>
     <string name="result_cancel">Отмена</string>
     <string name="result_delete">Удалить</string>
     <string name="result_save">Сохранить</string>
@@ -42,6 +43,7 @@
     <string name="settings_check_connection">Проверить соединение</string>
     <string name="settings_api_model">Модель</string>
     <string name="settings_api_key">API ключ (необязательно)</string>
+    <string name="settings_system_prompt">Системный промпт</string>
     <string name="settings_remote_active">✓ Удалённая модель будет использоваться при сканировании</string>
     <string name="settings_export_title">Экспорт данных</string>
     <string name="settings_export_description">Экспортирует все сканирования в CSV и фотографии ценников в ZIP-архив.</string>

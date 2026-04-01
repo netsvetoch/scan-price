@@ -36,7 +36,7 @@ class DataExporter(private val context: Context) {
         val imageFiles = mutableMapOf<String, File>() // hash → original file
 
         csvFile.bufferedWriter().use { writer ->
-            writer.write("product_name,price_regular,price_discount,weight_value,weight_unit,store_name,latitude,longitude,image_hash,created_at")
+            writer.write("product_name,product_description,price_regular,price_discount,weight_value,weight_unit,store_name,latitude,longitude,image_hash,created_at")
             writer.newLine()
 
             for (scan in scans) {
@@ -51,6 +51,7 @@ class DataExporter(private val context: Context) {
 
                 writer.write(buildCsvLine(
                     escapeCsv(scan.productName ?: ""),
+                    escapeCsv(scan.productDescription ?: ""),
                     scan.priceRegular ?: "",
                     scan.priceDiscount ?: "",
                     scan.weightValue ?: "",

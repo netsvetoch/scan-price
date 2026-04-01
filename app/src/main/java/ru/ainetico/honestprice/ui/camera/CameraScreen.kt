@@ -15,12 +15,14 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,15 +31,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CropRotate
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -48,18 +51,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -77,6 +79,9 @@ fun CameraScreen(
 ) {
   val context = LocalContext.current
   val state by viewModel.state.collectAsState()
+  val isVertical by viewModel.isVerticalFrame.collectAsState()
+  val frameAspectRatio =
+    if (isVertical) 1f / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO else ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
   // Navigation events handled by parent (HistoryScreen)
 
   // Permission state
@@ -132,16 +137,20 @@ fun CameraScreen(
           Box(
             modifier = Modifier
               .padding(24.dp)
+              .fillMaxWidth()
+              .aspectRatio(frameAspectRatio)
               .clip(RoundedCornerShape(16.dp))
               .border(2.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(16.dp))
+              .background(Color.DarkGray),
+            contentAlignment = Alignment.Center
           ) {
             Image(
               bitmap = remoteError.croppedBitmap.asImageBitmap(),
               contentDescription = null,
               modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .clip(RoundedCornerShape(16.dp)),
-              contentScale = ContentScale.FillWidth,
+              contentScale = ContentScale.Fit,
               alpha = 0.5f
             )
           }
@@ -174,14 +183,18 @@ fun CameraScreen(
           Box(
             modifier = Modifier
               .padding(24.dp)
+              .fillMaxWidth()
+              .aspectRatio(frameAspectRatio)
               .clip(RoundedCornerShape(16.dp))
               .border(2.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(16.dp))
+              .background(Color.DarkGray),
+            contentAlignment = Alignment.Center
           ) {
             Image(
               bitmap = error.previewBitmap.asImageBitmap(),
               contentDescription = null,
               modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .clip(RoundedCornerShape(16.dp)),
               contentScale = ContentScale.Fit,
               alpha = 0.5f
@@ -215,12 +228,13 @@ fun CameraScreen(
         var viewWidth by remember { mutableStateOf(0f) }
         var viewHeight by remember { mutableStateOf(0f) }
 
-        Box(modifier = Modifier
-          .fillMaxSize()
-          .onGloballyPositioned { coords ->
-            viewWidth = coords.size.width.toFloat()
-            viewHeight = coords.size.height.toFloat()
-          }
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { coords ->
+              viewWidth = coords.size.width.toFloat()
+              viewHeight = coords.size.height.toFloat()
+            }
         ) {
           Image(
             bitmap = adjusting.bitmap.asImageBitmap(),
@@ -229,8 +243,8 @@ fun CameraScreen(
               .fillMaxSize()
               .graphicsLayer(
                 translationX = offsetX,
-                  translationY = offsetY,
-                  scaleX = zoom,
+                translationY = offsetY,
+                scaleX = zoom,
                 scaleY = zoom
               )
               .pointerInput(Unit) {
@@ -244,15 +258,16 @@ fun CameraScreen(
           )
 
           // Frame overlay on top
-          FrameOverlay(modifier = Modifier.fillMaxSize())
+          FrameOverlay(modifier = Modifier.fillMaxSize(), aspectRatio = frameAspectRatio)
 
-          // Hint text
-          Box(
+          // Hint text + rotate button
+          Row(
             modifier = Modifier
               .fillMaxWidth()
               .align(Alignment.TopCenter)
-              .padding(top = 16.dp),
-            contentAlignment = Alignment.Center
+              .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
           ) {
             Text(
               text = "Передвиньте изображение, чтобы ценник попал в рамку",
@@ -260,9 +275,23 @@ fun CameraScreen(
               fontSize = 14.sp,
               textAlign = TextAlign.Center,
               modifier = Modifier
+                .weight(1f)
                 .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                 .padding(horizontal = 16.dp, vertical = 8.dp)
             )
+            Button(
+              onClick = { viewModel.toggleFrameOrientation() },
+              colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.4f)),
+              modifier = Modifier.size(48.dp),
+              contentPadding = PaddingValues(0.dp),
+              shape = CircleShape
+            ) {
+              Icon(
+                Icons.Filled.CropRotate,
+                contentDescription = "Повернуть рамку",
+                tint = Color.White
+              )
+            }
           }
 
           // Confirm button
@@ -274,7 +303,14 @@ fun CameraScreen(
             contentAlignment = Alignment.Center
           ) {
             Button(onClick = {
-              viewModel.confirmAdjustment(adjusting.bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
+              viewModel.confirmAdjustment(
+                adjusting.bitmap,
+                viewWidth,
+                viewHeight,
+                offsetX,
+                offsetY,
+                zoom
+              )
             }) {
               Text("Сканировать")
             }
@@ -310,18 +346,21 @@ fun CameraScreen(
           Box(
             modifier = Modifier
               .padding(horizontal = 24.dp)
+              .fillMaxWidth()
+              .aspectRatio(frameAspectRatio)
               .clip(RoundedCornerShape(16.dp))
               .border(2.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-              .background(Color.DarkGray)
+              .background(Color.DarkGray),
+            contentAlignment = Alignment.Center
           ) {
             if (scanning.displayBitmap != null) {
               Image(
                 bitmap = scanning.displayBitmap.asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier
-                  .fillMaxWidth()
+                  .fillMaxSize()
                   .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.FillWidth
+                contentScale = ContentScale.Fit
               )
               ScanningOverlay(modifier = Modifier.matchParentSize())
             }
@@ -341,7 +380,7 @@ fun CameraScreen(
         ) {
           Text(
             text = stringResource(R.string.camera_permission_needed),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             textAlign = TextAlign.Center
           )
@@ -373,23 +412,31 @@ fun CameraScreen(
         ) {
           Button(
             onClick = { galleryLauncher.launch("image/*") },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier.size(56.dp),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
+            Icon(
+              Icons.Filled.PhotoLibrary,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
           }
           // Invisible placeholder matching capture button size
           Spacer(modifier = Modifier.size(72.dp))
           Button(
             onClick = { viewModel.onManualEntry() },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier.size(56.dp),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.EditNote, contentDescription = null, tint = Color.White)
+            Icon(
+              Icons.Filled.EditNote,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
           }
         }
       }
@@ -402,7 +449,21 @@ fun CameraScreen(
         )
 
         // Darkened frame overlay
-        FrameOverlay(modifier = Modifier.fillMaxSize())
+        FrameOverlay(modifier = Modifier.fillMaxSize(), aspectRatio = frameAspectRatio)
+
+        // Rotate frame button
+        Button(
+          onClick = { viewModel.toggleFrameOrientation() },
+          colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(top = 16.dp, end = 16.dp)
+            .size(48.dp),
+          contentPadding = PaddingValues(0.dp),
+          shape = CircleShape
+        ) {
+          Icon(Icons.Filled.CropRotate, contentDescription = "Повернуть рамку", tint = Color.White)
+        }
 
         // Bottom controls
         Row(
@@ -483,10 +544,13 @@ fun CameraScreen(
  * ~85% width, 50% height aspect ratio.
  */
 @Composable
-private fun FrameOverlay(modifier: Modifier = Modifier) {
+private fun FrameOverlay(
+  modifier: Modifier = Modifier,
+  aspectRatio: Float = ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
+) {
   Canvas(modifier = modifier) {
     val frameWidth = size.width * ru.ainetico.honestprice.FrameConfig.WIDTH_FRACTION
-    val frameHeight = frameWidth / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
+    val frameHeight = frameWidth / aspectRatio
     val left = (size.width - frameWidth) / 2f
     val top =
       (size.height - frameHeight) / 2f - size.height * ru.ainetico.honestprice.FrameConfig.VERTICAL_OFFSET_FRACTION

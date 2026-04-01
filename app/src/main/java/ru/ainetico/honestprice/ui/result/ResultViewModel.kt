@@ -20,6 +20,7 @@ import java.math.BigDecimal
 data class ResultState(
   val scanId: Long? = null,
   val productName: String = "",
+  val productDescription: String = "",
   val priceRegular: String = "",
   val priceDiscount: String = "",
   val weightValue: String = "",
@@ -68,6 +69,7 @@ class ResultViewModel(
     _state.value = ResultState(
       scanId = scan.id,
       productName = scan.productName ?: "",
+      productDescription = scan.productDescription ?: "",
       priceRegular = scan.priceRegular ?: "",
       priceDiscount = scan.priceDiscount ?: "",
       weightValue = scan.weightValue ?: "",
@@ -93,6 +95,7 @@ class ResultViewModel(
     _state.value = ResultState(
       scanId = scanId,
       productName = tag.productName ?: "",
+      productDescription = tag.productDescription ?: "",
       priceRegular = tag.priceRegular?.toPlainString() ?: "",
       priceDiscount = tag.priceDiscount?.toPlainString() ?: "",
       weightValue = tag.weightValue?.toPlainString() ?: "",
@@ -115,6 +118,10 @@ class ResultViewModel(
 
   fun updateProductName(value: String) {
     _state.update { it.copy(productName = value) }
+  }
+
+  fun updateProductDescription(value: String) {
+    _state.update { it.copy(productDescription = value) }
   }
 
   fun updatePriceRegular(value: String) {
@@ -175,12 +182,10 @@ class ResultViewModel(
     val result = calculator.calculate(tag)
     _state.update {
       it.copy(
-        pricePerUnit = result?.pricePerUnit?.setScale(2, java.math.RoundingMode.HALF_UP)
-          ?.toPlainString() ?: "",
-        pricePerUnitDiscount = result?.pricePerUnitDiscount?.setScale(
-          2,
-          java.math.RoundingMode.HALF_UP
-        )?.toPlainString() ?: "",
+        pricePerUnit = result?.pricePerUnit?.round(java.math.MathContext(3))
+          ?.stripTrailingZeros()?.toPlainString() ?: "",
+        pricePerUnitDiscount = result?.pricePerUnitDiscount?.round(java.math.MathContext(3))
+          ?.stripTrailingZeros()?.toPlainString() ?: "",
         displayUnit = result?.displayUnit ?: s.weightUnit
       )
     }
@@ -218,6 +223,7 @@ class ResultViewModel(
 
         val tag = ParsedPriceTag(
           productName = s.productName.ifBlank { null },
+          productDescription = s.productDescription.ifBlank { null },
           priceRegular = s.priceRegular.toBigDecimalOrNull(),
           priceDiscount = s.priceDiscount.toBigDecimalOrNull(),
           weightValue = s.weightValue.toBigDecimalOrNull(),

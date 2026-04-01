@@ -37,7 +37,7 @@ class ImageAnalyzer(
         val tag: ParsedPriceTag = if (useRemote) {
             try {
                 Log.d("ImageAnalyzer", "Using remote model...")
-                remoteClient.analyze(bitmap, appSettings.apiUrl.value, appSettings.apiKey.value, appSettings.apiModel.value)
+                remoteClient.analyze(bitmap, appSettings.apiUrl.value, appSettings.apiKey.value, appSettings.apiModel.value, appSettings.systemPrompt.value)
             } catch (e: Exception) {
                 Log.e("ImageAnalyzer", "Remote failed: ${e.message}")
                 throw RemoteAnalysisException("Ошибка при подключении к серверу", e)

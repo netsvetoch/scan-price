@@ -116,6 +116,17 @@ fun ResultScreen(
         colors = colorsFor(state.productName)
       )
 
+      // Product description
+      OutlinedTextField(
+        value = state.productDescription,
+        onValueChange = { viewModel.updateProductDescription(it) },
+        label = { Text(stringResource(R.string.result_product_description)) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = false,
+        maxLines = 3,
+        colors = colorsFor(state.productDescription)
+      )
+
       // Prices row
       Row(
         modifier = Modifier.fillMaxWidth(),

@@ -22,18 +22,19 @@ class RemoteVisionClient {
 
     companion object {
         private const val TAG = "RemoteVisionClient"
-        private const val TIMEOUT_MS = 30_000
+        private const val TIMEOUT_MS = 60_000
 
-        private const val SYSTEM_PROMPT = "Analyze this Russian store price tag photo. Extract product info into JSON.\n\n" +
+        const val DEFAULT_SYSTEM_PROMPT = "Analyze this Russian store price tag photo. Extract product info into JSON.\n\n" +
                 "Rules:\n" +
-                "- product_name: full name as written on the tag\n" +
+                "- product_name: short product name as written on the tag\n" +
+                "- product_description: additional details in small print (composition, brand details, etc.), null if none\n" +
                 "- price_regular: regular price as a number, null if unreadable\n" +
                 "- price_discount: discounted/loyalty card price as a number, null if NO discount exists\n" +
                 "- weight_value: number exactly as on tag (500 for \"500г\", 1 for \"1кг\")\n" +
                 "- weight_unit: one of г, кг, мл, л, шт — null if not shown"
     }
 
-    suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String, model: String = ""): ParsedPriceTag =
+    suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String, model: String = "", customPrompt: String = ""): ParsedPriceTag =
         withContext(Dispatchers.IO) {
             try {
                 val base64Image = bitmapToBase64(bitmap)
@@ -43,7 +44,7 @@ class RemoteVisionClient {
                 val messagesArray = JSONArray().apply {
                     put(JSONObject().apply {
                         put("role", "system")
-                        put("content", SYSTEM_PROMPT)
+                        put("content", customPrompt)
                     })
                     put(JSONObject().apply {
                         put("role", "user")
@@ -65,11 +66,12 @@ class RemoteVisionClient {
                 val jsonSchema = JSONObject().apply {
                     put("type", "object")
                     put("required", JSONArray().apply {
-                        put("product_name"); put("price_regular"); put("price_discount")
-                        put("weight_value"); put("weight_unit")
+                        put("product_name"); put("product_description"); put("price_regular")
+                        put("price_discount"); put("weight_value"); put("weight_unit")
                     })
                     put("properties", JSONObject().apply {
                         put("product_name", JSONObject().put("type", "string"))
+                        put("product_description", JSONObject().put("type", JSONArray().apply { put("string"); put("null") }))
                         put("price_regular", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
                         put("price_discount", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
                         put("weight_value", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
@@ -84,7 +86,6 @@ class RemoteVisionClient {
                 val requestBody = JSONObject().apply {
                     if (model.isNotBlank()) put("model", model)
                     put("messages", messagesArray)
-                    put("max_tokens", 512)
                     put("temperature", 0.1)
                     put("stream", false)
                     put("response_format", JSONObject().apply {
@@ -134,12 +135,15 @@ class RemoteVisionClient {
         }
 
     private fun parseResponse(content: String): ParsedPriceTag {
+        Log.d(TAG, "parseResponse input (${content.length} chars): '${content.take(500)}'")
+
         val jsonMatch = Regex("""\{[^{}]*"product_name"[^{}]*\}""").find(content)
         val jsonStr = jsonMatch?.value ?: content
             .replace(Regex("""```json\s*"""), "")
             .replace(Regex("""```\s*"""), "")
             .trim()
 
+        Log.d(TAG, "Parsing JSON: '$jsonStr'")
         val json = JSONObject(jsonStr)
 
         val unit = json.optStringOrNull("weight_unit")?.lowercase()?.let { raw ->
@@ -157,6 +161,7 @@ class RemoteVisionClient {
 
         return ParsedPriceTag(
             productName = json.optStringOrNull("product_name"),
+            productDescription = json.optStringOrNull("product_description"),
             priceRegular = json.optStringOrNull("price_regular")?.toBigDecimalSafe(),
             priceDiscount = if (discount != null && discount.compareTo(BigDecimal.ZERO) == 0) null else discount,
             weightValue = json.optStringOrNull("weight_value")?.toBigDecimalSafe(),

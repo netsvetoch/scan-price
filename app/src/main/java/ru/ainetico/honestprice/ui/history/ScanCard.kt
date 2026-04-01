@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.data.Scan
 import ru.ainetico.honestprice.model.WeightUnit
+import java.math.BigDecimal
+import java.math.MathContext
 
 @Composable
 fun ScanCard(scan: Scan, onClick: () -> Unit) {
@@ -68,7 +70,8 @@ fun ScanCard(scan: Scan, onClick: () -> Unit) {
           )
         }
       }
-      val honestPrice = scan.pricePerUnitDiscount ?: scan.pricePerUnit
+      val honestPrice = (scan.pricePerUnitDiscount ?: scan.pricePerUnit)
+        ?.let { BigDecimal(it).round(MathContext(3)).stripTrailingZeros().toPlainString() }
       val unitName =
         scan.displayUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }?.displayName
           ?: ""

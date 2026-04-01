@@ -54,6 +54,16 @@ class CameraViewModel(
   private val _event = MutableStateFlow<CameraEvent?>(null)
   val event: StateFlow<CameraEvent?> = _event
 
+  private val _isVerticalFrame = MutableStateFlow(false)
+  val isVerticalFrame: StateFlow<Boolean> = _isVerticalFrame
+
+  fun toggleFrameOrientation() {
+    _isVerticalFrame.value = !_isVerticalFrame.value
+  }
+
+  private val currentAspectRatio: Float
+    get() = if (_isVerticalFrame.value) 1f / FrameConfig.ASPECT_RATIO else FrameConfig.ASPECT_RATIO
+
   private var scanningJob: Job? = null
   private var lastScanId: Long? = null
   private var lastImagePath: String? = null
@@ -125,7 +135,14 @@ class CameraViewModel(
    * @param offsetX/offsetY — drag offset in screen pixels
    * @param zoom — pinch zoom factor
    */
-  fun confirmAdjustment(bitmap: Bitmap, viewWidth: Float, viewHeight: Float, offsetX: Float, offsetY: Float, zoom: Float) {
+  fun confirmAdjustment(
+    bitmap: Bitmap,
+    viewWidth: Float,
+    viewHeight: Float,
+    offsetX: Float,
+    offsetY: Float,
+    zoom: Float
+  ) {
     _state.value = CameraState.Scanning(null, "Кадрирование…")
     scanningJob = viewModelScope.launch {
       try {
@@ -278,7 +295,7 @@ class CameraViewModel(
 
     // Step 3: Frame rectangle in view coordinates
     val frameW = viewW * FrameConfig.WIDTH_FRACTION
-    val frameH = frameW / FrameConfig.ASPECT_RATIO
+    val frameH = frameW / currentAspectRatio
     val frameLeft = (viewW - frameW) / 2f
     val frameTop = (viewH - frameH) / 2f - viewH * FrameConfig.VERTICAL_OFFSET_FRACTION
 
@@ -295,14 +312,17 @@ class CameraViewModel(
     val cropW = bmpRight - bmpLeft
     val cropH = bmpBottom - bmpTop
 
-    Log.d("CameraViewModel", "cropAligned: view=${viewW}x${viewH} pan=$panX,$panY zoom=$zoom → bmp crop ($bmpLeft,$bmpTop ${cropW}x${cropH})")
+    Log.d(
+      "CameraViewModel",
+      "cropAligned: view=${viewW}x${viewH} pan=$panX,$panY zoom=$zoom → bmp crop ($bmpLeft,$bmpTop ${cropW}x${cropH})"
+    )
 
     return Bitmap.createBitmap(bitmap, bmpLeft, bmpTop, cropW, cropH)
   }
 
   private fun cropToFrame(bitmap: Bitmap): Bitmap {
     val frameWidth = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
-    val frameHeight = (frameWidth / FrameConfig.ASPECT_RATIO).toInt()
+    val frameHeight = (frameWidth / currentAspectRatio).toInt()
     val left = (bitmap.width - frameWidth) / 2
     val top =
       ((bitmap.height - frameHeight) / 2f - bitmap.height * FrameConfig.VERTICAL_OFFSET_FRACTION).toInt()
