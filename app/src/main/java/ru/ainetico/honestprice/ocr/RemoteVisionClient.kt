@@ -33,7 +33,7 @@ class RemoteVisionClient {
                 "- weight_unit: one of г, кг, мл, л, шт — null if not shown"
     }
 
-    suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String): ParsedPriceTag =
+    suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String, model: String = ""): ParsedPriceTag =
         withContext(Dispatchers.IO) {
             try {
                 val base64Image = bitmapToBase64(bitmap)
@@ -82,6 +82,7 @@ class RemoteVisionClient {
                 }
 
                 val requestBody = JSONObject().apply {
+                    if (model.isNotBlank()) put("model", model)
                     put("messages", messagesArray)
                     put("max_tokens", 512)
                     put("temperature", 0.1)

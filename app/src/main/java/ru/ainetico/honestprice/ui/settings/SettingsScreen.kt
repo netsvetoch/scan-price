@@ -21,6 +21,7 @@ fun SettingsScreen(
     onBack: () -> Unit
 ) {
     var apiUrl by remember { mutableStateOf(appSettings.apiUrl.value) }
+    var apiModel by remember { mutableStateOf(appSettings.apiModel.value) }
     var apiKey by remember { mutableStateOf(appSettings.apiKey.value) }
 
     Scaffold(
@@ -63,6 +64,18 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+            )
+
+            OutlinedTextField(
+                value = apiModel,
+                onValueChange = {
+                    apiModel = it
+                    appSettings.setApiModel(it)
+                },
+                label = { Text(stringResource(R.string.settings_api_model)) },
+                placeholder = { Text("gpt-4o-mini") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
 
             OutlinedTextField(

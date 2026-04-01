@@ -17,6 +17,9 @@ class AppSettings(context: Context) {
     private val _apiKey = MutableStateFlow(prefs.getString("api_key", "") ?: "")
     val apiKey: StateFlow<String> = _apiKey
 
+    private val _apiModel = MutableStateFlow(prefs.getString("api_model", "") ?: "")
+    val apiModel: StateFlow<String> = _apiModel
+
     fun isRemoteModelConfigured(): Boolean {
         return _apiUrl.value.isNotBlank()
     }
@@ -29,5 +32,10 @@ class AppSettings(context: Context) {
     fun setApiKey(key: String) {
         prefs.edit().putString("api_key", key).apply()
         _apiKey.value = key
+    }
+
+    fun setApiModel(model: String) {
+        prefs.edit().putString("api_model", model).apply()
+        _apiModel.value = model
     }
 }
