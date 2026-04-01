@@ -23,6 +23,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,11 +49,17 @@ import java.net.URL
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteModelSection(appSettings: AppSettings) {
-    var useRemote by remember { mutableStateOf(appSettings.useRemoteServer.value) }
+    val savedUseRemote by appSettings.useRemoteServer.collectAsState(initial = false)
+    var useRemote by remember { mutableStateOf(savedUseRemote) }
+    LaunchedEffect(savedUseRemote) { useRemote = savedUseRemote }
+
     var apiUrl by remember { mutableStateOf(appSettings.apiUrl.value) }
     var apiModel by remember { mutableStateOf(appSettings.apiModel.value) }
     var apiKey by remember { mutableStateOf(appSettings.apiKey.value) }
-    var systemPrompt by remember { mutableStateOf(appSettings.systemPrompt.value) }
+
+    val savedSystemPrompt by appSettings.systemPrompt.collectAsState(initial = "")
+    var systemPrompt by remember { mutableStateOf(savedSystemPrompt) }
+    LaunchedEffect(savedSystemPrompt) { systemPrompt = savedSystemPrompt }
 
     var modelList by remember { mutableStateOf<List<String>>(emptyList()) }
     var connectionStatus by remember { mutableStateOf("") }
@@ -82,7 +90,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
             checked = useRemote,
             onCheckedChange = {
                 useRemote = it
-                appSettings.setUseRemoteServer(it)
+                scope.launch { appSettings.setUseRemoteServer(it) }
             }
         )
     }
@@ -219,7 +227,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
                 value = systemPrompt,
                 onValueChange = {
                     systemPrompt = it
-                    appSettings.setSystemPrompt(it)
+                    scope.launch { appSettings.setSystemPrompt(it) }
                 },
                 label = { Text(stringResource(R.string.settings_system_prompt)) },
                 placeholder = { Text(ru.ainetico.honestprice.ocr.RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) },
