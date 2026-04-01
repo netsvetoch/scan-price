@@ -2,7 +2,6 @@ package ru.ainetico.honestprice
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -25,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.lifecycleScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,15 +37,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.analyzer.ImageAnalyzer
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.data.ScanRepositoryImpl
+import ru.ainetico.honestprice.data.ScanRepository
 import ru.ainetico.honestprice.location.LocationProvider
 import ru.ainetico.honestprice.navigation.AppNavigationViewModel
 import ru.ainetico.honestprice.navigation.Screen
-import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 import ru.ainetico.honestprice.ui.common.SwipeBackOverlay
 import ru.ainetico.honestprice.ui.history.HistoryScreen
@@ -57,6 +54,7 @@ import ru.ainetico.honestprice.ui.result.ResultViewModel
 import ru.ainetico.honestprice.ui.theme.ScanPriceTheme
 import ru.ainetico.honestprice.widget.updateLastScanWidget
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 private const val TRANSITION_DURATION = 300
 private const val ACTION_SCAN = "ru.ainetico.honestprice.ACTION_SCAN"
@@ -66,8 +64,10 @@ private const val ACTION_MANUAL = "ru.ainetico.honestprice.ACTION_MANUAL"
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var localVisionEngine: LocalVisionEngine
-    private lateinit var modelDownloader: ModelDownloader
+    @Inject lateinit var appSettings: AppSettings
+    @Inject lateinit var modelDownloader: ModelDownloader
+    @Inject lateinit var database: AppDatabase
+    @Inject lateinit var scanRepository: ScanRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,31 +79,19 @@ class MainActivity : AppCompatActivity() {
                 ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
         }
 
-        localVisionEngine = LocalVisionEngine(applicationContext)
-        modelDownloader = ModelDownloader(applicationContext)
-
-        // Init engine if models already downloaded, otherwise wait for user to trigger download
-        lifecycleScope.launch {
-            if (modelDownloader.isModelDownloaded()) {
-                Log.i("MainActivity", "Models already present, initializing vision engine...")
-                localVisionEngine.initialize()
-                Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-            } else {
-                // Wait for user-initiated download to complete
-                modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed }
-                Log.i("MainActivity", "Download completed, initializing vision engine...")
-                localVisionEngine.initialize()
-                Log.i("MainActivity", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-            }
-        }
-
-        val appSettings = AppSettings(applicationContext)
         val launchAction = intent?.action
         val initialOnboardingCompleted = runBlocking { appSettings.onboardingCompleted.first() }
 
         setContent {
             ScanPriceTheme {
-                HonestPriceApp(localVisionEngine, modelDownloader, appSettings, launchAction, initialOnboardingCompleted)
+                HonestPriceApp(
+                    appSettings = appSettings,
+                    modelDownloader = modelDownloader,
+                    database = database,
+                    scanRepository = scanRepository,
+                    launchAction = launchAction,
+                    initialOnboardingCompleted = initialOnboardingCompleted
+                )
             }
         }
     }
@@ -111,21 +99,19 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun HonestPriceApp(
-    localVisionEngine: LocalVisionEngine,
-    modelDownloader: ModelDownloader,
     appSettings: AppSettings,
+    modelDownloader: ModelDownloader,
+    database: AppDatabase,
+    scanRepository: ScanRepository,
     launchAction: String? = null,
     initialOnboardingCompleted: Boolean = false
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val db = remember { AppDatabase.getInstance(context) }
     val startDestination = if (initialOnboardingCompleted) Screen.History.route else Screen.Onboarding.route
 
     // Shared instances
-    val repository = remember { ScanRepositoryImpl(db.scanDao()) }
-    val analyzer = remember { ImageAnalyzer(localVisionEngine, PriceCalculator(), appSettings) }
-    val cameraViewModel = remember { CameraViewModel(analyzer, repository, context.applicationContext) }
+    val cameraViewModel: CameraViewModel = hiltViewModel()
     val navViewModel = remember { AppNavigationViewModel(initialShowCamera = launchAction == ACTION_SCAN) }
     val navState by navViewModel.state.collectAsState()
 
@@ -166,8 +152,8 @@ fun HonestPriceApp(
         }
         composable(Screen.History.route) {
             HistoryDestination(
-                db = db,
-                repository = repository,
+                db = database,
+                repository = scanRepository,
                 appSettings = appSettings,
                 modelDownloader = modelDownloader,
                 cameraViewModel = cameraViewModel,
@@ -188,8 +174,8 @@ fun HonestPriceApp(
             ResultDestination(
                 scanId = scanId,
                 navState = navState,
-                repository = repository,
-                db = db,
+                repository = scanRepository,
+                db = database,
                 context = context,
                 navViewModel = navViewModel,
                 onNavigateToHistory = {
@@ -202,7 +188,7 @@ fun HonestPriceApp(
         }
         composable(Screen.ResultManual.route) {
             val viewModel = remember {
-                ResultViewModel(repository, db.storeDao(), LocationProvider(context), PriceCalculator())
+                ResultViewModel(scanRepository, database.storeDao(), LocationProvider(context), PriceCalculator())
             }
             LaunchedEffect(Unit) { viewModel.loadManual() }
             ResultScreen(
@@ -221,7 +207,7 @@ fun HonestPriceApp(
 @Composable
 private fun HistoryDestination(
     db: AppDatabase,
-    repository: ScanRepositoryImpl,
+    repository: ScanRepository,
     appSettings: AppSettings,
     modelDownloader: ModelDownloader,
     cameraViewModel: CameraViewModel,
@@ -231,7 +217,7 @@ private fun HistoryDestination(
     onNavigateToResult: (Long) -> Unit,
     onNavigateToManualEntry: () -> Unit
 ) {
-    val historyViewModel = remember { HistoryViewModel(repository) }
+    val historyViewModel: HistoryViewModel = hiltViewModel()
     var overlayScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
     var showSettings by remember { mutableStateOf(false) }
 
@@ -295,7 +281,7 @@ private fun HistoryDestination(
 private fun ResultDestination(
     scanId: Long,
     navState: ru.ainetico.honestprice.navigation.AppNavigationState,
-    repository: ScanRepositoryImpl,
+    repository: ScanRepository,
     db: AppDatabase,
     context: Context,
     navViewModel: AppNavigationViewModel,
