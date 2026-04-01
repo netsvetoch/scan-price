@@ -156,7 +156,7 @@ fun HonestPriceApp(
         popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(TRANSITION_DURATION)) + fadeOut(tween(TRANSITION_DURATION / 2)) }
     ) {
         composable(Screen.Onboarding.route) {
-            OnboardingScreen(modelDownloader = modelDownloader, onComplete = {
+            OnboardingScreen(appSettings = appSettings, modelDownloader = modelDownloader, onComplete = {
                 navController.navigate(Screen.History.route) {
                     popUpTo(Screen.Onboarding.route) { inclusive = true }
                 }

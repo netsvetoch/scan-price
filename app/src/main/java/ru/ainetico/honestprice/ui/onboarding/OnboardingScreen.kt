@@ -1,7 +1,6 @@
 package ru.ainetico.honestprice.ui.onboarding
 
 import android.Manifest
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -43,18 +42,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.ModelDownloader
 
-private fun completeOnboarding(context: Context, onComplete: () -> Unit) {
-  context.getSharedPreferences("honest_price_prefs", Context.MODE_PRIVATE)
-    .edit()
-    .putBoolean("onboarding_completed", true)
-    .apply()
-  onComplete()
-}
-
 @Composable
-fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
+fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader, onComplete: () -> Unit) {
   val context = LocalContext.current
   val pagerState = rememberPagerState(pageCount = { 3 })
   val coroutineScope = rememberCoroutineScope()
@@ -72,7 +64,10 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
   val locationPermissionLauncher = rememberLauncherForActivityResult(
     ActivityResultContracts.RequestPermission()
   ) { _ ->
-    completeOnboarding(context, onComplete)
+    coroutineScope.launch {
+      appSettings.setOnboardingCompleted(true)
+      onComplete()
+    }
   }
 
   Column(
@@ -184,7 +179,12 @@ fun OnboardingScreen(modelDownloader: ModelDownloader, onComplete: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(
-          onClick = { completeOnboarding(context, onComplete) },
+          onClick = {
+            coroutineScope.launch {
+              appSettings.setOnboardingCompleted(true)
+              onComplete()
+            }
+          },
           modifier = Modifier.fillMaxWidth()
         ) {
           Text(stringResource(R.string.onboarding_skip))
