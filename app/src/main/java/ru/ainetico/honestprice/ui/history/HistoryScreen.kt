@@ -59,26 +59,8 @@ import ru.ainetico.honestprice.ui.camera.CameraEvent
 import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraState
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
-import java.text.SimpleDateFormat
+import ru.ainetico.honestprice.util.formatRelativeDate
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-
-private fun formatDateHeader(timestamp: Long): String {
-  val scanCal = Calendar.getInstance().apply { timeInMillis = timestamp }
-  val todayCal = Calendar.getInstance()
-
-  val sameDay = scanCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR) &&
-      scanCal.get(Calendar.DAY_OF_YEAR) == todayCal.get(Calendar.DAY_OF_YEAR)
-  if (sameDay) return "Сегодня"
-
-  todayCal.add(Calendar.DAY_OF_YEAR, -1)
-  val yesterday = scanCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR) &&
-      scanCal.get(Calendar.DAY_OF_YEAR) == todayCal.get(Calendar.DAY_OF_YEAR)
-  if (yesterday) return "Вчера"
-
-  return SimpleDateFormat("d MMMM yyyy", Locale("ru")).format(Date(timestamp))
-}
 
 private fun dateKey(timestamp: Long): String {
   val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
@@ -254,7 +236,7 @@ fun HistoryScreen(
         ) {
           grouped.forEach { (key, groupScans) ->
             val isExpanded = expandedState.getOrPut(key) { key == todayKey }
-            val header = formatDateHeader(groupScans.first().createdAt)
+            val header = formatRelativeDate(groupScans.first().createdAt)
 
             item(key = "header_$key") {
               Row(

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import ru.ainetico.honestprice.MainActivity
 import ru.ainetico.honestprice.data.AppDatabase
 import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.honestprice.util.formatRelativeDate
 import java.math.BigDecimal
 import java.math.MathContext
 import java.text.SimpleDateFormat
@@ -108,8 +109,10 @@ class LastScanWidget : GlanceAppWidget() {
                                 }
 
                                 Spacer(modifier = GlanceModifier.height(2.dp))
-                                val dateStr = SimpleDateFormat("d MMM, HH:mm", Locale("ru"))
+                                val relDate = formatRelativeDate(lastScan.createdAt)
+                                val time = SimpleDateFormat("HH:mm", Locale("ru"))
                                     .format(Date(lastScan.createdAt))
+                                val dateStr = "$relDate, $time"
                                 val store = lastScan.storeName
                                 val subtitle = listOfNotNull(store, dateStr).joinToString(" · ")
                                 Text(
