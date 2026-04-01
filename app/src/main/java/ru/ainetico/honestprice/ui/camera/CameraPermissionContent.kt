@@ -102,7 +102,7 @@ fun BottomGalleryControls(
     ) {
       Icon(
         Icons.Filled.PhotoLibrary,
-        contentDescription = null,
+        contentDescription = stringResource(R.string.camera_gallery),
         tint = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }
@@ -116,7 +116,7 @@ fun BottomGalleryControls(
     ) {
       Icon(
         Icons.Filled.Edit,
-        contentDescription = null,
+        contentDescription = stringResource(R.string.camera_manual),
         tint = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }

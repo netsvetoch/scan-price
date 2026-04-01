@@ -222,7 +222,7 @@ fun CameraScreen(
             ) {
               Icon(
                 if (torchEnabled) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
-                contentDescription = null,
+                contentDescription = stringResource(if (torchEnabled) R.string.camera_torch_on else R.string.camera_torch_off),
                 tint = Color.White
               )
             }
@@ -284,7 +284,7 @@ fun CameraScreen(
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
+            Icon(Icons.Filled.PhotoLibrary, contentDescription = stringResource(R.string.camera_gallery), tint = Color.White)
           }
 
           // Capture button
@@ -319,7 +319,7 @@ fun CameraScreen(
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.Edit, contentDescription = null, tint = Color.White)
+            Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.camera_manual), tint = Color.White)
           }
         }
       }

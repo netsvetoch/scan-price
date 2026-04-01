@@ -125,4 +125,6 @@
     <string name="camera_frame_hint">Передвиньте изображение, чтобы ценник попал в рамку</string>
     <string name="camera_rotate_frame">Повернуть рамку</string>
     <string name="camera_scan_button">Сканировать</string>
+    <string name="camera_torch_on">Выключить фонарик</string>
+    <string name="camera_torch_off">Включить фонарик</string>
 </resources>
