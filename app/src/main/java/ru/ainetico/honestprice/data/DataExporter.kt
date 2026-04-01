@@ -114,9 +114,14 @@ class DataExporter(private val context: Context) {
     }
 
     private fun escapeCsv(value: String): String {
-        return if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            "\"${value.replace("\"", "\"\"")}\""
+        // Prevent CSV injection: prefix formula-triggering characters with a tab
+        val safe = if (value.isNotEmpty() && value[0] in charArrayOf('=', '+', '-', '@', '\t')) {
+            "\t$value"
         } else value
+
+        return if (safe.contains(",") || safe.contains("\"") || safe.contains("\n") || safe.contains("\t")) {
+            "\"${safe.replace("\"", "\"\"")}\""
+        } else safe
     }
 
     private fun buildCsvLine(vararg fields: String): String = fields.joinToString(",")
