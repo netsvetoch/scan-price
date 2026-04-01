@@ -56,12 +56,14 @@ import ru.ainetico.honestprice.ui.result.ResultScreen
 import ru.ainetico.honestprice.ui.result.ResultViewModel
 import ru.ainetico.honestprice.ui.theme.ScanPriceTheme
 import ru.ainetico.honestprice.widget.updateLastScanWidget
+import dagger.hilt.android.AndroidEntryPoint
 
 private const val TRANSITION_DURATION = 300
 private const val ACTION_SCAN = "ru.ainetico.honestprice.ACTION_SCAN"
 private const val ACTION_GALLERY = "ru.ainetico.honestprice.ACTION_GALLERY"
 private const val ACTION_MANUAL = "ru.ainetico.honestprice.ACTION_MANUAL"
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var localVisionEngine: LocalVisionEngine
