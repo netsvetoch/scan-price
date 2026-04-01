@@ -40,11 +40,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 import org.json.JSONObject
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppSettings
-import java.net.HttpURLConnection
-import java.net.URL
+import ru.ainetico.honestprice.ocr.ApiHttpClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -250,21 +250,21 @@ fun RemoteModelSection(appSettings: AppSettings) {
 
 private suspend fun fetchModels(baseUrl: String, apiKey: String): List<String> =
     withContext(Dispatchers.IO) {
-        val url = URL("$baseUrl/models")
-        val conn = (url.openConnection() as HttpURLConnection).apply {
-            connectTimeout = 10_000
-            readTimeout = 10_000
-            if (apiKey.isNotBlank()) {
-                setRequestProperty("Authorization", "Bearer $apiKey")
+        val request = Request.Builder()
+            .url("$baseUrl/models")
+            .apply {
+                if (apiKey.isNotBlank()) {
+                    addHeader("Authorization", "Bearer $apiKey")
+                }
             }
-        }
+            .build()
 
-        try {
-            val response = conn.inputStream.bufferedReader().readText()
-            val json = JSONObject(response)
+        ApiHttpClient.quickClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw RuntimeException("HTTP ${response.code}: ${response.body?.string()?.take(100)}")
+            }
+            val json = JSONObject(response.body!!.string())
             val data = json.getJSONArray("data")
             (0 until data.length()).map { data.getJSONObject(it).getString("id") }
-        } finally {
-            conn.disconnect()
         }
     }

@@ -39,7 +39,7 @@ Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBa
 `ImageAnalyzer` orchestrates two engines:
 
 1. **`LocalVisionEngine`** — On-device llama.cpp inference with a GGUF model (Qwen3.5-0.8B). Preprocesses images to 640px max, JPEG quality 60. Slow (30-120s) but fully offline.
-2. **`RemoteVisionClient`** — OpenAI-compatible API. Base64 JPEG + JSON Schema for structured output. Configurable endpoint/model/key in settings.
+2. **`RemoteVisionClient`** — OpenAI-compatible API via OkHttp. Base64 JPEG + JSON Schema for structured output. Configurable endpoint/model/key in settings.
 
 The remote engine is preferred when configured; local is the offline fallback.
 
@@ -60,7 +60,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS) and `Store` (au
 
 ## SDK & Build
 
-- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1
+- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12
 - Min SDK 24, Target/Compile SDK 36
 - KSP for annotation processing (Room)
 - ProGuard enabled for release builds
@@ -81,4 +81,4 @@ JUnit 4 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `Ima
 - API key/URL/model stored in `EncryptedSharedPreferences` (`secure_settings`), backed by Android Keystore AES-256-GCM
 - `AppSettings`: credential setters use `commit()` (synchronous, EncryptedSharedPreferences); non-sensitive setters are `suspend fun` via DataStore. `isRemoteModelConfigured()` is also `suspend`.
 - CSV export sanitizes formula-triggering characters (`=`, `+`, `-`, `@`, `\t`) with tab prefix to prevent injection
-- `RemoteVisionClient` HTTP connections are closed in `finally` blocks
+- `RemoteVisionClient` and `RemoteModelSection` use OkHttp via shared `ApiHttpClient` singleton (`ocr/ApiHttpClient.kt`). Response bodies auto-closed via `.use {}`.

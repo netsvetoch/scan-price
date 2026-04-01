@@ -5,14 +5,15 @@ import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.model.WeightUnit
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Sends image to OpenAI-compatible API for price tag analysis.
@@ -22,7 +23,6 @@ class RemoteVisionClient {
 
     companion object {
         private const val TAG = "RemoteVisionClient"
-        private const val TIMEOUT_MS = 60_000
 
         const val DEFAULT_SYSTEM_PROMPT = "Analyze this Russian store price tag photo. Extract product info into JSON.\n\n" +
                 "Rules:\n" +
@@ -32,6 +32,8 @@ class RemoteVisionClient {
                 "- price_discount: discounted/loyalty card price as a number, null if NO discount exists\n" +
                 "- weight_value: number exactly as on tag (500 for \"500г\", 1 for \"1кг\")\n" +
                 "- weight_unit: one of г, кг, мл, л, шт — null if not shown"
+
+        private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
     }
 
     suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String, model: String = "", customPrompt: String = ""): ParsedPriceTag =
@@ -98,28 +100,24 @@ class RemoteVisionClient {
                     })
                 }
 
-                val url = URL("$baseUrl/chat/completions")
-                val conn = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "POST"
-                    connectTimeout = TIMEOUT_MS
-                    readTimeout = TIMEOUT_MS
-                    setRequestProperty("Content-Type", "application/json")
-                    if (apiKey.isNotBlank()) {
-                        setRequestProperty("Authorization", "Bearer $apiKey")
+                val request = Request.Builder()
+                    .url("$baseUrl/chat/completions")
+                    .post(requestBody.toString().toRequestBody(JSON_MEDIA_TYPE))
+                    .apply {
+                        if (apiKey.isNotBlank()) {
+                            addHeader("Authorization", "Bearer $apiKey")
+                        }
                     }
-                    doOutput = true
-                }
+                    .build()
 
-                try {
-                    conn.outputStream.use { it.write(requestBody.toString().toByteArray()) }
-
-                    val responseCode = conn.responseCode
-                    if (responseCode != 200) {
-                        val error = conn.errorStream?.use { it.bufferedReader().readText() } ?: "Unknown error"
-                        throw RuntimeException("API error $responseCode: ${error.take(200)}")
+                ApiHttpClient.client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        val error = response.body?.string()?.take(200) ?: "Unknown error"
+                        throw RuntimeException("API error ${response.code}: $error")
                     }
 
-                    val responseBody = conn.inputStream.use { it.bufferedReader().readText() }
+                    val responseBody = response.body?.string()
+                        ?: throw RuntimeException("Empty response body")
                     Log.d(TAG, "Response: ${responseBody.take(300)}")
 
                     val content = JSONObject(responseBody)
@@ -129,8 +127,6 @@ class RemoteVisionClient {
                         .getString("content")
 
                     parseResponse(content)
-                } finally {
-                    conn.disconnect()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Remote analysis failed", e)

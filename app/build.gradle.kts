@@ -105,6 +105,9 @@ dependencies {
     // Preferences DataStore
     implementation(libs.datastore.preferences)
 
+    // OkHttp
+    implementation(libs.okhttp)
+
     // ExifInterface for EXIF rotation
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
