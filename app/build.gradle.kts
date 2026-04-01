@@ -133,7 +133,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
 
     // Encrypted SharedPreferences for secure API key storage
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.security:security-crypto:1.0.0")
 
     // Preferences DataStore
     implementation(libs.datastore.preferences)

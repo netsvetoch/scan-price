@@ -66,7 +66,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ## SDK & Build
 
-- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12, Hilt 2.59.2, Paging 3.3.6
+- Kotlin 2.2.10, Compose BOM 2025.12.00, Room 2.7.1, CameraX 1.4.1, OkHttp 4.12, Hilt 2.59.2, Paging 3.3.6, security-crypto 1.0.0
 - Min SDK 24, Target/Compile SDK 36
 - KSP for annotation processing (Room, Hilt)
 - ProGuard enabled for release builds
@@ -74,6 +74,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ### Build Gotchas
 
+- **`security-crypto` 1.0.0 uses `MasterKeys` API** (not `MasterKey.Builder` from 1.1.0-alpha). Don't upgrade to alpha — no stable 1.1.0 exists.
 - **Gradle KTS imports**: `java.util.Properties` (and similar) must use `import` at top of `.kts` file — inline `java.util.Properties()` fails with "Unresolved reference 'util'"
 - **`BuildConfig` requires opt-in** on AGP 9+: `buildFeatures { buildConfig = true }` in `app/build.gradle.kts`. Needed for `BuildConfig.DEBUG` guards on sensitive logging.
 - **Hilt requires 2.59+** for AGP 9.x compatibility (AGP 9 dropped `BaseExtension`)
