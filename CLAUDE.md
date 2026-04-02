@@ -24,11 +24,11 @@ adb logcat -s AndroidRuntime         # Read crash logs from connected device
 
 ### Layers
 
-- **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`. One-shot events (navigation, snackbar) use `Channel<Event>(Channel.BUFFERED)` + `receiveAsFlow()`, NOT `StateFlow<Event?>` + `eventConsumed()`. Camera screen is decomposed into extracted composables: `CameraPreview`, `FrameOverlay`, `CameraPermissionContent`, `AdjustingContent` (gesture handler), each in its own file.
+- **UI** (`ui/`): 100% Compose screens. Each feature folder has a Screen + ViewModel. State via `StateFlow`. One-shot events (navigation, snackbar) use `Channel<Event>(Channel.BUFFERED)` + `receiveAsFlow()`, NOT `StateFlow<Event?>` + `eventConsumed()`. Camera screen is decomposed into extracted composables: `CameraPreview`, `FrameOverlay`, `CameraPermissionContent`, `AdjustingContent` (gesture handler), each in its own file. Crop geometry lives in `ImageCropper` object (`ui/camera/`), not in the ViewModel. Navigation graph in `ui/navigation/AppNavGraph.kt`; `MainActivity` is a thin shell.
 - **No `runBlocking` on main thread.** For async data needed before first frame (e.g. onboarding check), use nullable state + `LaunchedEffect` + early return: `var x by remember { mutableStateOf<T?>(null) }; LaunchedEffect(Unit) { x = flow.first() }; val value = x ?: return`.
 - **Service** (`ocr/`, `analyzer/`): Vision engine abstraction. `ImageAnalyzer` routes to local or remote engine based on user settings.
 - **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (Preferences DataStore for non-sensitive settings as `Flow<T>`; EncryptedSharedPreferences for API credentials as `StateFlow<T>`).
-- **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines.
+- **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines. `FileHashVerifier` (SHA256), `DownloadNotificationHelper` (download notifications) extracted from `ModelDownloader`.
 - **Calculator** (`calculator/`): `PriceCalculator` converts prices to per-unit for comparison. Validates business values: rejects negative/zero prices and weights, ignores discount ≥ regular price.
 
 ### Navigation Flow
@@ -42,6 +42,8 @@ Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBa
 
 1. **`LocalVisionEngine`** — On-device llama.cpp inference with a GGUF model (Qwen3.5-0.8B). Preprocesses images to 640px max, JPEG quality 60. Slow (30-120s) but fully offline.
 2. **`RemoteVisionClient`** — OpenAI-compatible API via OkHttp. Base64 JPEG + JSON Schema for structured output. Configurable endpoint/model/key in settings.
+
+`image/ImagePreprocessor` is the canonical home for bitmap utilities (`bitmapToJpeg`, `downscaleToMaxSide`, `cropBitmap`). Add new bitmap helpers there, not inside engine classes.
 
 The remote engine is preferred when configured; local is the offline fallback.
 
@@ -88,10 +90,11 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ## Testing
 
-JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`. No UI tests. `PriceCalculatorTest` uses JUnit 5 `@ParameterizedTest`/`@CsvSource`; all others use JUnit 4.
+JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageCropper`, `FileHashVerifier`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`. No UI tests. `PriceCalculatorTest` uses JUnit 5 `@ParameterizedTest`/`@CsvSource`; all others use JUnit 4.
 
 ### Testing Gotchas
 
+- Pure `object`s with only `java.*` deps (e.g. `FileHashVerifier`) use plain JUnit 5 — no Robolectric needed. Classes using `Bitmap` or `android.*` need Robolectric (JUnit 4).
 - Classes using `android.util.Log` need `@RunWith(RobolectricTestRunner::class)`
 - `BigDecimal` equality: use `compareTo() == 0`, not `assertEquals` (scale differs: `89.90` ≠ `89.9`)
 - `PriceResult` requires `source: ParsedPriceTag` parameter — easy to miss in test constructors
