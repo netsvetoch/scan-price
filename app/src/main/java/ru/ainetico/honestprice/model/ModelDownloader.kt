@@ -7,8 +7,6 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +19,8 @@ import java.io.File
  * Survives app background, force stop, and process death.
  */
 class ModelDownloader(
-  private val context: Context
+  private val context: Context,
+  private val scope: CoroutineScope
 ) {
 
   companion object {
@@ -62,7 +61,6 @@ class ModelDownloader(
 
   private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
   private val notificationHelper = DownloadNotificationHelper(context)
-  private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
     notificationHelper.createChannels()

@@ -4,6 +4,9 @@ import android.app.DownloadManager
 import android.app.NotificationManager
 import android.content.Context
 import io.mockk.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -24,7 +27,7 @@ class ModelDownloaderTest {
             // ModelDownloader constructor calls context.getString() for progress labels
             every { getString(any()) } returns "test label"
         }
-        downloader = ModelDownloader(context)
+        downloader = ModelDownloader(context, CoroutineScope(Dispatchers.IO + SupervisorJob()))
     }
 
     // --- Initial state ---

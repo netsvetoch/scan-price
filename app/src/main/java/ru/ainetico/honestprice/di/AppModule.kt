@@ -6,6 +6,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.location.LocationProvider
 import javax.inject.Singleton
@@ -23,5 +26,12 @@ object AppModule {
   @Singleton
   fun provideLocationProvider(@ApplicationContext context: Context): LocationProvider {
     return LocationProvider(context)
+  }
+
+  @Provides
+  @Singleton
+  @ApplicationScope
+  fun provideApplicationScope(): CoroutineScope {
+    return CoroutineScope(Dispatchers.IO + SupervisorJob())
   }
 }

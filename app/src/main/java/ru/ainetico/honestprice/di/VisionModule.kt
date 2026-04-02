@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppSettings
+import kotlinx.coroutines.CoroutineScope
 import ru.ainetico.honestprice.model.ModelDownloader
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
@@ -43,7 +44,10 @@ object VisionModule {
 
   @Provides
   @Singleton
-  fun provideModelDownloader(@ApplicationContext context: Context): ModelDownloader {
-    return ModelDownloader(context)
+  fun provideModelDownloader(
+    @ApplicationContext context: Context,
+    @ApplicationScope scope: CoroutineScope
+  ): ModelDownloader {
+    return ModelDownloader(context, scope)
   }
 }
