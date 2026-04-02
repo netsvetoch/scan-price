@@ -46,6 +46,12 @@ import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.ocr.ApiHttpClient
 
+private sealed interface ConnectionStatus {
+    data object Idle : ConnectionStatus
+    data class Success(val message: String) : ConnectionStatus
+    data class Error(val message: String) : ConnectionStatus
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteModelSection(appSettings: AppSettings) {
@@ -68,7 +74,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
     LaunchedEffect(savedSystemPrompt) { systemPrompt = savedSystemPrompt }
 
     var modelList by remember { mutableStateOf<List<String>>(emptyList()) }
-    var connectionStatus by remember { mutableStateOf("") }
+    var connectionStatus by remember { mutableStateOf<ConnectionStatus>(ConnectionStatus.Idle) }
     var isChecking by remember { mutableStateOf(false) }
     var modelsExpanded by remember { mutableStateOf(false) }
 
@@ -120,7 +126,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
                         apiUrl = cleaned
                         appSettings.setApiUrl("https://$cleaned")
                         modelList = emptyList()
-                        connectionStatus = ""
+                        connectionStatus = ConnectionStatus.Idle
                     },
                     label = { Text(stringResource(R.string.settings_api_url)) },
                     prefix = { Text("https://") },
@@ -133,16 +139,20 @@ fun RemoteModelSection(appSettings: AppSettings) {
                     onClick = {
                         scope.launch {
                             isChecking = true
-                            connectionStatus = ""
+                            connectionStatus = ConnectionStatus.Idle
                             modelList = emptyList()
                             try {
                                 val models = fetchModels("https://${apiUrl.trimEnd('/')}", apiKey)
                                 modelList = models
-                                connectionStatus = context.resources.getQuantityString(
-                                    R.plurals.settings_models_found, models.size, models.size
+                                connectionStatus = ConnectionStatus.Success(
+                                    context.resources.getQuantityString(
+                                        R.plurals.settings_models_found, models.size, models.size
+                                    )
                                 )
                             } catch (e: Exception) {
-                                connectionStatus = "✗ ${e.message?.take(50)}"
+                                connectionStatus = ConnectionStatus.Error(
+                                    e.message?.take(50) ?: "Unknown error"
+                                )
                                 Log.e("Settings", "Connection check failed", e)
                             }
                             isChecking = false
@@ -163,13 +173,18 @@ fun RemoteModelSection(appSettings: AppSettings) {
             }
 
             // Connection status
-            if (connectionStatus.isNotBlank()) {
-                Text(
-                    text = connectionStatus,
+            when (val status = connectionStatus) {
+                is ConnectionStatus.Success -> Text(
+                    text = "✓ ${status.message}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (connectionStatus.startsWith("✓")) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.primary
                 )
+                is ConnectionStatus.Error -> Text(
+                    text = "✗ ${status.message}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+                ConnectionStatus.Idle -> {}
             }
 
             // API key
@@ -179,7 +194,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
                     apiKey = it
                     appSettings.setApiKey(it)
                     modelList = emptyList()
-                    connectionStatus = ""
+                    connectionStatus = ConnectionStatus.Idle
                 },
                 label = { Text(stringResource(R.string.settings_api_key)) },
                 placeholder = { Text("sk-...") },

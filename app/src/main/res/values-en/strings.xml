@@ -89,8 +89,8 @@
     <string name="settings_export_no_data">No data to export</string>
     <string name="settings_export_error">Error: %s</string>
     <plurals name="settings_models_found">
-        <item quantity="one">✓ %d model</item>
-        <item quantity="other">✓ %d models</item>
+        <item quantity="one">%d model</item>
+        <item quantity="other">%d models</item>
     </plurals>
     <plurals name="settings_scan_count">
         <item quantity="one">%d entry</item>
