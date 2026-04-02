@@ -38,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import ru.ainetico.honestprice.ui.theme.Dimens
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -162,7 +163,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     if (isChecking) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(Dimens.ConnectionSpinnerSize), strokeWidth = Dimens.ScanningStrokeWidth)
                     } else {
                         Icon(
                             Icons.Filled.Refresh,

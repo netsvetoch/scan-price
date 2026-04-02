@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.ModelDownloader
@@ -103,7 +104,7 @@ fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader,
         Box(
           modifier = Modifier
             .padding(horizontal = 4.dp)
-            .size(8.dp)
+            .size(Dimens.DotIndicatorSize)
             .background(color, CircleShape)
         )
       }
@@ -208,7 +209,7 @@ private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState, down
     Icon(
       imageVector = Icons.Filled.CloudDownload,
       contentDescription = null,
-      modifier = Modifier.size(96.dp),
+      modifier = Modifier.size(Dimens.OnboardingIconSize),
       tint = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(24.dp))
@@ -312,7 +313,7 @@ private fun CameraPage() {
     Icon(
       imageVector = Icons.Filled.CameraAlt,
       contentDescription = null,
-      modifier = Modifier.size(96.dp),
+      modifier = Modifier.size(Dimens.OnboardingIconSize),
       tint = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(24.dp))
@@ -351,7 +352,7 @@ private fun LocationPage() {
     Icon(
       imageVector = Icons.Filled.LocationOn,
       contentDescription = null,
-      modifier = Modifier.size(96.dp),
+      modifier = Modifier.size(Dimens.OnboardingIconSize),
       tint = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(24.dp))

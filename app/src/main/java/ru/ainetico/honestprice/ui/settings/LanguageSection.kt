@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
+import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +81,7 @@ fun LanguageSection() {
             ExposedDropdownMenuBox(
                 expanded = languageExpanded,
                 onExpandedChange = { languageExpanded = it },
-                modifier = Modifier.width(160.dp)
+                modifier = Modifier.width(Dimens.LanguageDropdownWidth)
             ) {
                 OutlinedTextField(
                     value = languageOptions.first { it.first == selectedLanguage }.second,

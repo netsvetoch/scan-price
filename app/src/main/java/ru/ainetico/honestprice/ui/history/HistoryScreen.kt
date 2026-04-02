@@ -47,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
+import ru.ainetico.honestprice.ui.theme.Dimens
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
@@ -136,7 +137,7 @@ fun HistoryScreen(
           onClick = onNavigateToManualEntry,
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-          modifier = Modifier.size(48.dp)
+          modifier = Modifier.size(Dimens.FabSizeSmall)
         ) {
           Icon(Icons.Filled.Edit, stringResource(R.string.history_fab_manual))
         }
@@ -144,19 +145,19 @@ fun HistoryScreen(
           onClick = { galleryLauncher.launch("image/*") },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-          modifier = Modifier.size(48.dp)
+          modifier = Modifier.size(Dimens.FabSizeSmall)
         ) {
           Icon(Icons.Filled.Collections, stringResource(R.string.history_fab_gallery))
         }
         FloatingActionButton(
           onClick = { onShowSheetChange(true) },
           shape = CircleShape,
-          modifier = Modifier.size(64.dp)
+          modifier = Modifier.size(Dimens.FabSizeLarge)
         ) {
           Icon(
             Icons.Filled.CameraAlt,
             stringResource(R.string.history_fab_camera),
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(Dimens.FabIconSize)
           )
         }
       }
@@ -178,7 +179,7 @@ fun HistoryScreen(
             ru.ainetico.honestprice.ui.common.ShimmerBox(
               modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
+                .height(Dimens.SkeletonItemHeight)
             )
           }
         }
@@ -258,7 +259,7 @@ fun HistoryScreen(
                   .padding(16.dp),
                 contentAlignment = Alignment.Center
               ) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                CircularProgressIndicator(modifier = Modifier.size(Dimens.AppendIndicatorSize))
               }
             }
           }
@@ -275,7 +276,7 @@ fun HistoryScreen(
       derivedStateOf {
         when {
           cameraState is CameraState.Scanning && isVertical -> Modifier.fillMaxHeight(0.85f)
-          cameraState is CameraState.Scanning -> Modifier.height(320.dp)
+          cameraState is CameraState.Scanning -> Modifier.height(Dimens.ScanningSheetHeight)
           else -> Modifier.fillMaxHeight(0.85f)
         }
       }

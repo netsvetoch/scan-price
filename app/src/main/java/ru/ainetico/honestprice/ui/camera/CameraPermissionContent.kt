@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 /**
  * Shown when camera permission is not granted.
@@ -58,7 +59,7 @@ fun CameraPermissionContent(
     Text(
       text = stringResource(R.string.camera_permission_needed),
       color = MaterialTheme.colorScheme.onSurface,
-      fontSize = 16.sp,
+      fontSize = Dimens.FontSizeBody,
       textAlign = TextAlign.Center
     )
     Spacer(modifier = Modifier.height(16.dp))
@@ -89,14 +90,14 @@ fun BottomGalleryControls(
   Row(
     modifier = modifier
       .fillMaxWidth()
-      .padding(bottom = 48.dp, start = 32.dp, end = 32.dp),
+      .padding(bottom = Dimens.BottomControlsBottomPadding, start = Dimens.BottomControlsSidePadding, end = Dimens.BottomControlsSidePadding),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically
   ) {
     Button(
       onClick = onGallery,
       colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-      modifier = Modifier.size(56.dp),
+      modifier = Modifier.size(Dimens.ActionButtonSize),
       contentPadding = PaddingValues(0.dp),
       shape = CircleShape
     ) {
@@ -110,7 +111,7 @@ fun BottomGalleryControls(
     Button(
       onClick = onManualEntry,
       colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-      modifier = Modifier.size(56.dp),
+      modifier = Modifier.size(Dimens.ActionButtonSize),
       contentPadding = PaddingValues(0.dp),
       shape = CircleShape
     ) {

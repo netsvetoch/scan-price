@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 @Composable
 fun ResultScreen(
@@ -103,7 +104,7 @@ fun ResultScreen(
             contentDescription = null,
             modifier = Modifier
               .fillMaxWidth()
-              .clip(RoundedCornerShape(12.dp)),
+              .clip(RoundedCornerShape(Dimens.CornerRadiusMedium)),
             contentScale = ContentScale.FillWidth
           )
         } else {

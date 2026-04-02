@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 @Composable
 fun CameraScreen(
@@ -186,7 +187,7 @@ fun CameraScreen(
         BottomGalleryControls(
           onGallery = { galleryLauncher.launch("image/*") },
           onManualEntry = { viewModel.onManualEntry() },
-          captureButton = { Spacer(modifier = Modifier.size(72.dp)) },
+          captureButton = { Spacer(modifier = Modifier.size(Dimens.CaptureButtonSize)) },
           modifier = Modifier.align(Alignment.BottomCenter)
         )
       }
@@ -218,7 +219,7 @@ fun CameraScreen(
                 cameraRef?.cameraControl?.enableTorch(torchEnabled)
               },
               colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.4f)),
-              modifier = Modifier.size(48.dp),
+              modifier = Modifier.size(Dimens.ToolbarButtonSize),
               contentPadding = PaddingValues(0.dp),
               shape = CircleShape
             ) {
@@ -233,7 +234,7 @@ fun CameraScreen(
           Button(
             onClick = { viewModel.toggleFrameOrientation() },
             colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.4f)),
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(Dimens.ToolbarButtonSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
@@ -254,15 +255,15 @@ fun CameraScreen(
             ),
             modifier = Modifier
               .align(Alignment.BottomCenter)
-              .padding(bottom = 132.dp)
-              .size(40.dp),
+              .padding(bottom = Dimens.ZoomToggleBottomOffset)
+              .size(Dimens.ZoomToggleSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
             Text(
               if (isZoomed) "x2" else "x1",
               color = if (isZoomed) Color.Black else Color.White,
-              fontSize = 13.sp
+              fontSize = Dimens.FontSizeCaption
             )
           }
         }
@@ -272,7 +273,7 @@ fun CameraScreen(
           modifier = Modifier
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
-            .padding(bottom = 48.dp, start = 32.dp, end = 32.dp),
+            .padding(bottom = Dimens.BottomControlsBottomPadding, start = Dimens.BottomControlsSidePadding, end = Dimens.BottomControlsSidePadding),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically
         ) {
@@ -282,7 +283,7 @@ fun CameraScreen(
             colors = ButtonDefaults.buttonColors(
               containerColor = Color.White.copy(alpha = 0.4f)
             ),
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(Dimens.ActionButtonSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
@@ -299,13 +300,13 @@ fun CameraScreen(
               colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White
               ),
-            modifier = Modifier.size(72.dp),
+            modifier = Modifier.size(Dimens.CaptureButtonSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
             Box(
               modifier = Modifier
-                .size(60.dp)
+                .size(Dimens.CaptureButtonInner)
                 .clip(CircleShape)
                 .border(2.dp, Color.Black.copy(alpha = 0.2f), CircleShape)
             )
@@ -317,7 +318,7 @@ fun CameraScreen(
             colors = ButtonDefaults.buttonColors(
               containerColor = Color.White.copy(alpha = 0.4f)
             ),
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(Dimens.ActionButtonSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
@@ -349,8 +350,8 @@ private fun ErrorContent(
         .padding(24.dp)
         .fillMaxWidth()
         .aspectRatio(frameAspectRatio)
-        .clip(RoundedCornerShape(16.dp))
-        .border(2.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(16.dp))
+        .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
+        .border(Dimens.FrameBorderInner, MaterialTheme.colorScheme.error, RoundedCornerShape(Dimens.CornerRadiusLarge))
         .background(Color.DarkGray),
       contentAlignment = Alignment.Center
     ) {
@@ -359,7 +360,7 @@ private fun ErrorContent(
         contentDescription = null,
         modifier = Modifier
           .fillMaxSize()
-          .clip(RoundedCornerShape(16.dp)),
+          .clip(RoundedCornerShape(Dimens.CornerRadiusLarge)),
         contentScale = ContentScale.Fit,
         alpha = 0.5f
       )
@@ -406,9 +407,9 @@ private fun ScanningContent(
       modifier = Modifier.padding(bottom = 12.dp)
     ) {
       CircularProgressIndicator(
-        modifier = Modifier.size(18.dp),
+        modifier = Modifier.size(Dimens.ScanningIndicatorSize),
         color = MaterialTheme.colorScheme.primary,
-        strokeWidth = 2.dp
+        strokeWidth = Dimens.ScanningStrokeWidth
       )
       Text(
         text = status,
@@ -421,8 +422,8 @@ private fun ScanningContent(
         .padding(horizontal = 24.dp)
         .fillMaxWidth()
         .aspectRatio(frameAspectRatio)
-        .clip(RoundedCornerShape(16.dp))
-        .border(2.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+        .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
+        .border(Dimens.FrameBorderInner, Color.White.copy(alpha = 0.3f), RoundedCornerShape(Dimens.CornerRadiusLarge))
         .background(Color.DarkGray),
       contentAlignment = Alignment.Center
     ) {
@@ -432,7 +433,7 @@ private fun ScanningContent(
           contentDescription = null,
           modifier = Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(RoundedCornerShape(Dimens.CornerRadiusLarge)),
           contentScale = ContentScale.Fit
         )
         ScanningOverlay(modifier = Modifier.matchParentSize())

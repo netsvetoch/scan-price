@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 /**
  * Gallery image adjustment screen — user drags/zooms to align the price tag within the frame overlay.
@@ -100,17 +101,17 @@ fun AdjustingContent(
       Text(
         text = stringResource(R.string.camera_frame_hint),
         color = Color.White,
-        fontSize = 14.sp,
+        fontSize = Dimens.FontSizeSubtitle,
         textAlign = TextAlign.Center,
         modifier = Modifier
           .weight(1f)
-          .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+          .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(Dimens.CornerRadiusSmall))
           .padding(horizontal = 16.dp, vertical = 8.dp)
       )
       Button(
         onClick = onToggleOrientation,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.4f)),
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier.size(Dimens.ToolbarButtonSize),
         contentPadding = PaddingValues(0.dp),
         shape = CircleShape
       ) {

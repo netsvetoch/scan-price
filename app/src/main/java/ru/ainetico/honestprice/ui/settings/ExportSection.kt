@@ -24,6 +24,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import ru.ainetico.honestprice.ui.theme.Dimens
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.R
@@ -92,8 +93,8 @@ fun ExportSection(
         ) {
             if (isExporting) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(Dimens.ExportSpinnerSize),
+                    strokeWidth = Dimens.ScanningStrokeWidth,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
                 Spacer(modifier = Modifier.width(8.dp))

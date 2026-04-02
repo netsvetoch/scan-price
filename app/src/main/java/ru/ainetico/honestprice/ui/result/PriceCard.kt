@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.ui.theme.PriceGreen
 import ru.ainetico.honestprice.ui.theme.PriceGreenLight
 import ru.ainetico.honestprice.model.WeightUnit
@@ -39,26 +40,26 @@ fun PriceCard(
   Box(
     modifier = modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(16.dp))
+      .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
       .background(
         Brush.linearGradient(
           colors = listOf(PriceGreenLight, PriceGreen)
         )
       )
-      .padding(20.dp),
+      .padding(Dimens.PriceCardPadding),
     contentAlignment = Alignment.Center
   ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
       Text(
         text = stringResource(R.string.result_honest_price),
         color = Color.White.copy(alpha = 0.8f),
-        fontSize = 14.sp
+        fontSize = Dimens.FontSizeSubtitle
       )
       Spacer(modifier = Modifier.height(4.dp))
       Text(
         text = "$mainPrice ₽/${displayUnit.displayName}",
         color = Color.White,
-        fontSize = 32.sp,
+        fontSize = Dimens.FontSizePrice,
         fontWeight = FontWeight.Bold
       )
       if (showRegular) {
@@ -70,7 +71,7 @@ fun PriceCard(
             displayUnit.displayName
           ),
           color = Color.White.copy(alpha = 0.7f),
-          fontSize = 13.sp
+          fontSize = Dimens.FontSizeCaption
         )
       }
     }

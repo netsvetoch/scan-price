@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import ru.ainetico.honestprice.FrameConfig
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 /**
  * Draws a darkened overlay with a transparent "frame" cutout — rounded rect,
@@ -28,15 +29,16 @@ fun FrameOverlay(
     val frameHeight = if (aspectRatio >= 1f) baseHeight else baseWidth
     val left = (size.width - frameWidth) / 2f
     val top = FrameConfig.frameTop(size.height, frameHeight, density)
-    val cornerRadius = 16.dp.toPx()
+    val cornerRadius = Dimens.CornerRadiusLarge.toPx()
+    val borderOffset = Dimens.FrameBorderOffset.toPx()
 
     // Outer border (dark) for contrast on light backgrounds
     drawRoundRect(
       color = Color(0xAA000000),
-      topLeft = Offset(left - 1.dp.toPx(), top - 1.dp.toPx()),
-      size = Size(frameWidth + 2.dp.toPx(), frameHeight + 2.dp.toPx()),
-      cornerRadius = CornerRadius(cornerRadius + 1.dp.toPx()),
-      style = Stroke(width = 3.dp.toPx())
+      topLeft = Offset(left - borderOffset, top - borderOffset),
+      size = Size(frameWidth + borderOffset * 2, frameHeight + borderOffset * 2),
+      cornerRadius = CornerRadius(cornerRadius + borderOffset),
+      style = Stroke(width = Dimens.FrameBorderOuter.toPx())
     )
 
     // Inner border (white) for contrast on dark backgrounds
@@ -45,7 +47,7 @@ fun FrameOverlay(
       topLeft = Offset(left, top),
       size = Size(frameWidth, frameHeight),
       cornerRadius = CornerRadius(cornerRadius),
-      style = Stroke(width = 2.dp.toPx())
+      style = Stroke(width = Dimens.FrameBorderInner.toPx())
     )
   }
 }

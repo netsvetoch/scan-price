@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.data.Scan
+import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.ui.theme.PriceGreen
 import ru.ainetico.honestprice.model.WeightUnit
 import java.math.BigDecimal
@@ -88,7 +89,7 @@ fun ScanCard(scan: Scan, onClick: () -> Unit) {
           "$honestPrice ₽/$unitName",
           color = PriceGreen,
           fontWeight = FontWeight.Bold,
-          fontSize = 18.sp
+          fontSize = Dimens.FontSizeCardPrice
         )
       }
     }
