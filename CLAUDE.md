@@ -91,7 +91,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 
 ## Testing
 
-JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageCropper`, `FileHashVerifier`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`. No UI tests. `PriceCalculatorTest` uses JUnit 5 `@ParameterizedTest`/`@CsvSource`; all others use JUnit 4.
+JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightUnit`, `ImagePreprocessor`, `ImageCropper`, `FileHashVerifier`, `ImageAnalyzer`, `RemoteVisionClient`, `ScanRepository`, `DataExporter`, `PriceTagParser`, `LocalVisionEngine`, `ModelDownloader`, `AppNavigationViewModel`. No UI tests. `PriceCalculatorTest` uses JUnit 5 `@ParameterizedTest`/`@CsvSource`; `AppNavigationViewModelTest` uses plain JUnit 5; all others use JUnit 4.
 
 ### Testing Gotchas
 
@@ -101,6 +101,8 @@ JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightU
 - `PriceResult` requires `source: ParsedPriceTag` parameter — easy to miss in test constructors
 - `AppSettings` mocking: non-sensitive fields (`systemPrompt`, `localPrompt`, etc.) use `flowOf("")`; encrypted fields (`apiUrl`, `apiKey`, `apiModel`) use `MutableStateFlow("")`; `isRemoteModelConfigured()` needs `coEvery` (suspend)
 - Vision engine mocking: `coEvery { engine.analyze(any(), any()) }` must return `VisionResult.Success(tag)` or `VisionResult.Error(msg)`, not raw `ParsedPriceTag`. `RemoteVisionClient` constructor requires `AppSettings` (use `mockk<AppSettings>()` in tests that only call `parseResponse`).
+- `ModelDownloader` constructor calls `context.getString()` for progress labels — Robolectric `RuntimeEnvironment.getApplication()` throws `Resources$NotFoundException`. Use `spyk(context) { every { getString(any()) } returns "test label" }` to mock string resources.
+- `AppNavigationViewModel` has no Android deps (just `ViewModel` + `StateFlow`) — use plain JUnit 5, no Robolectric needed.
 
 ## Security
 
