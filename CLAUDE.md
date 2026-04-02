@@ -80,6 +80,7 @@ Room with 2 entities: `Scan` (price tag data + image path + GPS, indexed on `cre
 - Min SDK 24, Target/Compile SDK 36
 - KSP for annotation processing (Room, Hilt)
 - ProGuard enabled for release builds
+- **ProGuard keeps**: Only JNI (`com.arm.aichat.**`) and Room entities/DAOs need `-keep` rules. App business logic (`model/`, `ocr/`, `analyzer/`, `calculator/`) uses manual `JSONObject` parsing — no reflection, no keeps needed.
 - Release build: R8 minification + resource shrinking enabled. Signing via `keystore.properties` (gitignored) with debug fallback. See `keystore.properties.example` for format.
 
 ### Build Gotchas

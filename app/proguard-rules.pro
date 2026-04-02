@@ -19,21 +19,9 @@
 -keep class ru.ainetico.honestprice.data.StoreDao { *; }
 -keep class ru.ainetico.honestprice.data.AppDatabase { *; }
 
-# Keep model classes used in JSON parsing
--keep class ru.ainetico.honestprice.model.** { *; }
-
-# Keep OCR/vision engine classes
--keep class ru.ainetico.honestprice.ocr.** { *; }
--keep class ru.ainetico.honestprice.analyzer.** { *; }
--keep class ru.ainetico.honestprice.calculator.** { *; }
--keep class ru.ainetico.honestprice.parser.** { *; }
-
 # Kotlin coroutines
 -dontwarn kotlinx.coroutines.**
 
-# ML Kit
--dontwarn com.google.mlkit.**
-
-# OkHttp (if still transitively included)
+# OkHttp
 -dontwarn okhttp3.**
 -dontwarn okio.**
