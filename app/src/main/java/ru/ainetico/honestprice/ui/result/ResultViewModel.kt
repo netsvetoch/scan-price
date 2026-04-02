@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -63,8 +66,23 @@ class ResultViewModel @javax.inject.Inject constructor(
   private val _storeSuggestions = MutableStateFlow<List<Store>>(emptyList())
   val storeSuggestions: StateFlow<List<Store>> = _storeSuggestions
 
+  private val _storeQuery = MutableStateFlow("")
+
   private val _event = Channel<ResultEvent>(Channel.BUFFERED)
   val event = _event.receiveAsFlow()
+
+  init {
+    @OptIn(FlowPreview::class)
+    viewModelScope.launch {
+      _storeQuery.debounce(300).collectLatest { query ->
+        _storeSuggestions.value = if (query.isBlank()) {
+          storeDao.getAllStores()
+        } else {
+          storeDao.search(query)
+        }
+      }
+    }
+  }
 
   fun loadScan(scan: ru.ainetico.honestprice.data.Scan) {
     val unit = scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
@@ -150,23 +168,13 @@ class ResultViewModel @javax.inject.Inject constructor(
 
   fun updateStoreName(value: String) {
     _state.update { it.copy(storeName = value) }
-    searchStores(value)
+    _storeQuery.value = value
   }
 
   fun updateBarcode(value: String) {
     _state.update { it.copy(barcode = value) }
   }
 
-
-  private fun searchStores(query: String) {
-    viewModelScope.launch {
-      _storeSuggestions.value = if (query.isBlank()) {
-        storeDao.getAllStores()
-      } else {
-        storeDao.search(query)
-      }
-    }
-  }
 
   private fun recalculatePrice() {
     val s = _state.value
