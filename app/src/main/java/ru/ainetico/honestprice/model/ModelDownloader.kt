@@ -43,8 +43,10 @@ class ModelDownloader(
 
   }
 
+  @androidx.compose.runtime.Stable
   data class FileProgress(val label: String, val progress: Int, val done: Boolean = false)
 
+  @androidx.compose.runtime.Stable
   sealed class DownloadState {
     object Idle : DownloadState()
     data class Downloading(val file1: FileProgress, val file2: FileProgress) : DownloadState()

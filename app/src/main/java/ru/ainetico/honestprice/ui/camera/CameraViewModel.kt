@@ -23,6 +23,7 @@ import ru.ainetico.honestprice.data.ScanRepository
 import java.io.File
 import java.io.FileOutputStream
 
+@androidx.compose.runtime.Stable
 sealed class CameraState {
   object Preview : CameraState()
   data class Adjusting(val bitmap: Bitmap) : CameraState()  // gallery image — user aligns price tag

@@ -22,6 +22,7 @@ import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.model.WeightUnit
 import java.math.BigDecimal
 
+@androidx.compose.runtime.Immutable
 data class ResultState(
   val scanId: Long? = null,
   val productName: String = "",
