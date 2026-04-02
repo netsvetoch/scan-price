@@ -39,14 +39,9 @@ fun LocalModelSection(
     val downloadState by modelDownloader.state.collectAsState()
     val modelsDownloaded = modelDownloader.isModelDownloaded()
 
-    Text(
-        text = stringResource(R.string.settings_local_model_title),
-        style = MaterialTheme.typography.titleMedium
-    )
-    Text(
-        text = stringResource(R.string.settings_local_model_description),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+    SettingsSectionHeader(
+        titleRes = R.string.settings_local_model_title,
+        descriptionRes = R.string.settings_local_model_description
     )
 
     OutlinedTextField(

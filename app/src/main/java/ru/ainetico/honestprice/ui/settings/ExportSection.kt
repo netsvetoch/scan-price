@@ -39,14 +39,9 @@ fun ExportSection(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    Text(
-        text = stringResource(R.string.settings_export_title),
-        style = MaterialTheme.typography.titleMedium
-    )
-    Text(
-        text = stringResource(R.string.settings_export_description),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+    SettingsSectionHeader(
+        titleRes = R.string.settings_export_title,
+        descriptionRes = R.string.settings_export_description
     )
 
     var isExporting by remember { mutableStateOf(false) }

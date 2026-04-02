@@ -89,14 +89,9 @@ fun RemoteModelSection(appSettings: AppSettings) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(R.string.settings_remote_model_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = stringResource(R.string.settings_remote_model_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            SettingsSectionHeader(
+                titleRes = R.string.settings_remote_model_title,
+                descriptionRes = R.string.settings_remote_model_description
             )
         }
         Switch(
