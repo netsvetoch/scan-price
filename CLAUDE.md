@@ -43,7 +43,7 @@ Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBa
 
 ### Dual Vision Pipeline
 
-`ImageAnalyzer` orchestrates two engines via the `VisionEngine` interface (`ocr/VisionEngine.kt`). Both return `VisionResult.Success` | `VisionResult.Error` — never throw from `analyze()`. `ImageAnalyzer` converts errors to `RemoteAnalysisException` or `LocalAnalysisException` for the UI layer.
+`ImageAnalyzer` orchestrates two engines via the `VisionEngine` interface (`ocr/VisionEngine.kt`), injected with `@LocalEngine`/`@RemoteEngine` qualifiers (no concrete type deps). Both return `VisionResult.Success` | `VisionResult.Error` — never throw from `analyze()`. `ImageAnalyzer` converts errors to `RemoteAnalysisException` or `LocalAnalysisException` for the UI layer. Each engine provides `defaultPrompt` via the interface — used as fallback when user prompt is blank.
 
 1. **`LocalVisionEngine`** — On-device llama.cpp inference with a GGUF model (Qwen3.5-0.8B). Preprocesses images to 640px max, JPEG quality 60. Slow (30-120s) but fully offline.
 2. **`RemoteVisionClient`** — OpenAI-compatible API via OkHttp. Base64 JPEG + JSON Schema for structured output. Reads endpoint/model/key from injected `AppSettings`.
@@ -63,7 +63,7 @@ Both engines delegate JSON→`ParsedPriceTag` conversion to `PriceTagParser` (sh
 
 - **No on-device OCR** (Tesseract/ML Kit). They fail on Russian Cyrillic price tags. The app uses multimodal vision LLMs instead — image in, structured JSON out.
 - **Local engine uses grammar-constrained decoding.** JSON Schema is converted to GBNF grammar via llama.cpp, guaranteeing valid JSON output from the local model.
-- **Hilt DI** with modules in `di/`: `DatabaseModule`, `DataModule`, `VisionModule`, `AppModule`. `@HiltViewModel` on `CameraViewModel`, `ResultViewModel`, `HistoryViewModel`. All use `hiltViewModel()` in Compose; overlay instances keyed via `hiltViewModel(key = ...)`. `AppNavigationViewModel` stays manual (intent-derived state).
+- **Hilt DI** with modules in `di/`: `DatabaseModule`, `DataModule`, `VisionModule`, `AppModule`. `@HiltViewModel` on `CameraViewModel`, `ResultViewModel`, `HistoryViewModel`. All use `hiltViewModel()` in Compose; overlay instances keyed via `hiltViewModel(key = ...)`. `AppNavigationViewModel` stays manual (intent-derived state). Vision engines bound both as concrete types (for eager init, companion constants) and as `VisionEngine` via `@LocalEngine`/`@RemoteEngine` qualifiers — qualified providers delegate to concrete singletons to avoid duplicate instances.
 - **Constructor `@Inject` for all dependencies.** No internal `= ConcreteClass()` creation — keeps classes testable and Hilt-compatible.
 - **`@ApplicationScope` CoroutineScope** provided as `@Singleton` in `AppModule` (`Dispatchers.IO + SupervisorJob`). Inject this instead of creating `CoroutineScope(...)` inside classes — keeps lifecycle Hilt-managed and testable.
 - **`@Volatile` on shared mutable state.** Fields written in one coroutine/dispatcher and read in another (e.g. `initialize()` on Main, `analyze()` on IO) must be `@Volatile` to guarantee cross-thread visibility. JVM does not guarantee happens-before without it.
@@ -110,6 +110,7 @@ JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightU
 - `PriceResult` requires `source: ParsedPriceTag` parameter — easy to miss in test constructors
 - `AppSettings` mocking: non-sensitive fields (`systemPrompt`, `localPrompt`, etc.) use `flowOf("")`; encrypted fields (`apiUrl`, `apiKey`, `apiModel`) use `MutableStateFlow("")`; `isRemoteModelConfigured()` needs `coEvery` (suspend)
 - Vision engine mocking: `coEvery { engine.analyze(any(), any()) }` must return `VisionResult.Success(tag)` or `VisionResult.Error(msg)`, not raw `ParsedPriceTag`. `RemoteVisionClient` constructor requires `AppSettings` (use `mockk<AppSettings>()` in tests that only call `parseResponse`).
+- `VisionEngine` mocks need `every { defaultPrompt } returns "..."` — MockK is strict by default and `ImageAnalyzer` reads this property for fallback prompts.
 - `ModelDownloader` constructor calls `context.getString()` for progress labels — Robolectric `RuntimeEnvironment.getApplication()` throws `Resources$NotFoundException`. Use `spyk(context) { every { getString(any()) } returns "test label" }` to mock string resources.
 - `AppNavigationViewModel` has no Android deps (just `ViewModel` + `StateFlow`) — use plain JUnit 5, no Robolectric needed.
 

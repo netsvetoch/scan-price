@@ -8,6 +8,7 @@ import ru.ainetico.honestprice.model.ParsedPriceTag
  * Both engines return [VisionResult] — never throw from [analyze].
  */
 interface VisionEngine {
+    val defaultPrompt: String
     suspend fun analyze(bitmap: Bitmap, prompt: String): VisionResult
 }
 

@@ -15,16 +15,19 @@ import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.model.WeightUnit
-import ru.ainetico.honestprice.ocr.LocalVisionEngine
-import ru.ainetico.honestprice.ocr.RemoteVisionClient
+import ru.ainetico.honestprice.ocr.VisionEngine
 import ru.ainetico.honestprice.ocr.VisionResult
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
 class ImageAnalyzerTest {
 
-    private val localEngine = mockk<LocalVisionEngine>()
-    private val remoteClient = mockk<RemoteVisionClient>()
+    private val localEngine = mockk<VisionEngine> {
+        every { defaultPrompt } returns "local prompt"
+    }
+    private val remoteClient = mockk<VisionEngine> {
+        every { defaultPrompt } returns "remote prompt"
+    }
     private val calculator = PriceCalculator()
     private val appSettings = mockk<AppSettings> {
         coEvery { isRemoteModelConfigured() } returns false
@@ -72,7 +75,8 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze throws RemoteAnalysisException when remote fails`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        val mockRemoteClient = mockk<RemoteVisionClient> {
+        val mockRemoteClient = mockk<VisionEngine> {
+            every { defaultPrompt } returns "remote prompt"
             coEvery { analyze(any(), any()) } returns VisionResult.Error(
                 "Ошибка при подключении к серверу: Connection refused",
                 RuntimeException("Connection refused")
@@ -112,7 +116,9 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze uses local engine when forceLocal is true`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        val mockRemoteClient = mockk<RemoteVisionClient>()
+        val mockRemoteClient = mockk<VisionEngine> {
+            every { defaultPrompt } returns "remote prompt"
+        }
         val remoteSettings = mockk<AppSettings> {
             coEvery { isRemoteModelConfigured() } returns true
             every { apiUrl } returns MutableStateFlow("https://example.com")

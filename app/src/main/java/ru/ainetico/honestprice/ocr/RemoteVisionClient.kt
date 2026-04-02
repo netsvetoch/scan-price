@@ -21,6 +21,8 @@ import java.io.ByteArrayOutputStream
  */
 class RemoteVisionClient(private val appSettings: AppSettings) : VisionEngine {
 
+    override val defaultPrompt: String get() = DEFAULT_SYSTEM_PROMPT
+
     companion object {
         private const val TAG = "RemoteVisionClient"
 

@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.first
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.AnalysisResult
-import ru.ainetico.honestprice.ocr.LocalVisionEngine
-import ru.ainetico.honestprice.ocr.RemoteVisionClient
 import ru.ainetico.honestprice.ocr.VisionEngine
 import ru.ainetico.honestprice.ocr.VisionResult
 
@@ -23,10 +21,10 @@ class RemoteAnalysisException(message: String, cause: Throwable? = null) : Excep
 class LocalAnalysisException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 class ImageAnalyzer(
-    private val localEngine: LocalVisionEngine,
+    private val localEngine: VisionEngine,
     private val calculator: PriceCalculator,
     private val appSettings: AppSettings,
-    private val remoteClient: RemoteVisionClient
+    private val remoteClient: VisionEngine
 ) {
 
     /**
@@ -37,16 +35,17 @@ class ImageAnalyzer(
         val useRemote = !forceLocal && appSettings.isRemoteModelConfigured()
 
         val engine: VisionEngine
-        val prompt: String
+        val promptFlow: String
         if (useRemote) {
             Log.d("ImageAnalyzer", "Using remote model...")
             engine = remoteClient
-            prompt = appSettings.systemPrompt.first().ifBlank { RemoteVisionClient.DEFAULT_SYSTEM_PROMPT }
+            promptFlow = appSettings.systemPrompt.first()
         } else {
             Log.d("ImageAnalyzer", "Using local model...")
             engine = localEngine
-            prompt = appSettings.localPrompt.first().ifBlank { LocalVisionEngine.DEFAULT_PROMPT }
+            promptFlow = appSettings.localPrompt.first()
         }
+        val prompt = promptFlow.ifBlank { engine.defaultPrompt }
 
         val tag = when (val result = engine.analyze(bitmap, prompt)) {
             is VisionResult.Success -> result.tag

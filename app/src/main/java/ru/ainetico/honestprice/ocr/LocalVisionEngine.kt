@@ -20,6 +20,8 @@ import ru.ainetico.honestprice.image.ImagePreprocessor
  */
 class LocalVisionEngine(private val appContext: Context) : VisionEngine {
 
+  override val defaultPrompt: String get() = DEFAULT_PROMPT
+
   companion object {
     private const val TAG = "LocalVisionEngine"
     private const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"

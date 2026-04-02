@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import ru.ainetico.honestprice.model.ModelDownloader
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
+import ru.ainetico.honestprice.ocr.VisionEngine
 import javax.inject.Singleton
 
 @Module
@@ -27,17 +28,27 @@ object VisionModule {
 
   @Provides
   @Singleton
+  @LocalEngine
+  fun provideLocalEngine(engine: LocalVisionEngine): VisionEngine = engine
+
+  @Provides
+  @Singleton
   fun provideRemoteVisionClient(appSettings: AppSettings): RemoteVisionClient {
     return RemoteVisionClient(appSettings)
   }
 
   @Provides
   @Singleton
+  @RemoteEngine
+  fun provideRemoteEngine(client: RemoteVisionClient): VisionEngine = client
+
+  @Provides
+  @Singleton
   fun provideImageAnalyzer(
-    localEngine: LocalVisionEngine,
+    @LocalEngine localEngine: VisionEngine,
     calculator: PriceCalculator,
     appSettings: AppSettings,
-    remoteClient: RemoteVisionClient
+    @RemoteEngine remoteClient: VisionEngine
   ): ImageAnalyzer {
     return ImageAnalyzer(localEngine, calculator, appSettings, remoteClient)
   }
