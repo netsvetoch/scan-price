@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.ui.camera
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -195,7 +196,8 @@ fun CameraScreen(
         CameraPreview(
           modifier = Modifier.fillMaxSize(),
           onPreviewViewReady = { previewViewRef = it },
-          onCameraReady = { cameraRef = it }
+          onCameraReady = { cameraRef = it },
+          onError = { e -> Log.e("CameraScreen", "Camera binding failed", e) }
         )
 
         // Darkened frame overlay

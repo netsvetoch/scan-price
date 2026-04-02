@@ -50,6 +50,7 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
   private val imagePreprocessor = ImagePreprocessor()
   private var engine: InferenceEngine? = null
   private var isReady = false
+  private var initError: String? = null
 
   /**
    * Initialize the engine — load model + mmproj.
@@ -88,9 +89,11 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
       val mmprojFile = File(modelsDir, MMPROJ_FILENAME)
 
       if (!modelFile.exists() || !mmprojFile.exists()) {
-        Log.e(TAG, "Model files not found in ${modelsDir.absolutePath}")
+        val msg = "Model files not found in ${modelsDir.absolutePath}"
+        Log.e(TAG, msg)
         Log.e(TAG, "  Model: ${modelFile.exists()} (${MODEL_FILENAME})")
         Log.e(TAG, "  Mmproj: ${mmprojFile.exists()} (${MMPROJ_FILENAME})")
+        initError = msg
         return
       }
 
@@ -104,6 +107,7 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
       Log.i(TAG, "Local vision engine ready!")
     } catch (e: Exception) {
       Log.e(TAG, "Failed to initialize", e)
+      initError = e.message ?: "Unknown initialization error"
     }
   }
 
@@ -112,8 +116,9 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
   override suspend fun analyze(bitmap: Bitmap, prompt: String): VisionResult {
     val eng = engine
     if (!isReady || eng == null) {
-      Log.e(TAG, "Engine not ready!")
-      return VisionResult.Error("Engine not ready")
+      val reason = initError ?: "Engine not ready"
+      Log.e(TAG, reason)
+      return VisionResult.Error(reason)
     }
 
     return withContext(Dispatchers.IO) {

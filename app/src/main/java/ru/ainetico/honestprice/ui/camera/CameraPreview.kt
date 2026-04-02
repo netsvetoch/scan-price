@@ -24,7 +24,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 fun CameraPreview(
   modifier: Modifier = Modifier,
   onPreviewViewReady: (PreviewView) -> Unit,
-  onCameraReady: (androidx.camera.core.Camera) -> Unit = {}
+  onCameraReady: (androidx.camera.core.Camera) -> Unit = {},
+  onError: (Exception) -> Unit = {}
 ) {
   val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -52,7 +53,7 @@ fun CameraPreview(
           val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
           onCameraReady(camera)
         } catch (e: Exception) {
-          // Camera binding failed — e.g., no back camera
+          onError(e)
         }
       }, ContextCompat.getMainExecutor(ctx))
 

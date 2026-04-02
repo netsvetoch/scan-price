@@ -60,13 +60,11 @@ class ScanRepositoryTest {
         assertEquals("L", updated.displayUnit)
     }
 
-    @Test
-    fun `markCompleted does nothing when scan not found`() = runTest {
+    @Test(expected = IllegalStateException::class)
+    fun `markCompleted throws when scan not found`() = runTest {
         coEvery { dao.getById(999) } returns null
 
         repo.markCompleted(999, ParsedPriceTag(), null)
-
-        coVerify(exactly = 0) { dao.update(any()) }
     }
 
     @Test

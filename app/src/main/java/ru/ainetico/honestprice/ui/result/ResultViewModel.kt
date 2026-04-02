@@ -46,6 +46,7 @@ data class ResultState(
 
 sealed class ResultEvent {
   object Saved : ResultEvent()
+  data class SaveFailed(val message: String) : ResultEvent()
 }
 
 @dagger.hilt.android.lifecycle.HiltViewModel
@@ -246,6 +247,7 @@ class ResultViewModel @javax.inject.Inject constructor(
         _event.trySend(ResultEvent.Saved)
       } catch (e: Exception) {
         _state.update { it.copy(isSaving = false) }
+        _event.trySend(ResultEvent.SaveFailed(e.message ?: "Save failed"))
       }
     }
   }

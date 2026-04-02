@@ -32,7 +32,8 @@ class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: S
     }
 
     override suspend fun markCompleted(scanId: Long, tag: ParsedPriceTag, price: PriceResult?) {
-        val existing = scanDao.getById(scanId) ?: return
+        val existing = scanDao.getById(scanId)
+            ?: throw IllegalStateException("Scan $scanId not found")
         scanDao.update(
             existing.copy(
                 status = ScanStatus.COMPLETED,
@@ -66,7 +67,8 @@ class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: S
         latitude: Double?,
         longitude: Double?
     ) {
-        val existing = scanDao.getById(scanId) ?: return
+        val existing = scanDao.getById(scanId)
+            ?: throw IllegalStateException("Scan $scanId not found")
         val newStatus = if (existing.status == ScanStatus.COMPLETED || existing.status == ScanStatus.EDITED) {
             ScanStatus.EDITED
         } else {

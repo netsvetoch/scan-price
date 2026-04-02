@@ -21,6 +21,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -51,6 +53,7 @@ fun ResultScreen(
 ) {
   val state by viewModel.state.collectAsState()
   val suggestions by viewModel.storeSuggestions.collectAsState()
+  val snackbarHostState = remember { SnackbarHostState() }
   // Handle back button — cancel without saving
   androidx.activity.compose.BackHandler { onCancel() }
 
@@ -58,6 +61,7 @@ fun ResultScreen(
     viewModel.event.collect { e ->
       when (e) {
         is ResultEvent.Saved -> onSaved()
+        is ResultEvent.SaveFailed -> snackbarHostState.showSnackbar(e.message)
       }
     }
   }
@@ -72,7 +76,9 @@ fun ResultScreen(
   fun colorsFor(value: String) =
     if (value.isNotBlank() && !state.isManualEntry) autoFilledColors else defaultColors
 
-  Scaffold { padding ->
+  Scaffold(
+    snackbarHost = { SnackbarHost(snackbarHostState) }
+  ) { padding ->
     Column(
       modifier = Modifier
         .fillMaxSize()
