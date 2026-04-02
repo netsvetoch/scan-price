@@ -2,9 +2,11 @@ package ru.ainetico.honestprice.ui.camera
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.net.Uri
-import android.provider.MediaStore
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -128,8 +130,16 @@ class CameraViewModel @javax.inject.Inject constructor(
     viewModelScope.launch {
       try {
         val bitmap = withContext(Dispatchers.IO) {
-          @Suppress("DEPRECATION")
-          MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+              decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            }
+          } else {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+              BitmapFactory.decodeStream(stream)
+            } ?: throw IllegalStateException("Cannot open URI: $uri")
+          }
         }
         _state.value = CameraState.Adjusting(bitmap)
       } catch (e: Exception) {
