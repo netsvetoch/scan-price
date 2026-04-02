@@ -23,7 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.data.AppSettings
@@ -134,6 +134,7 @@ private fun HistoryDestination(
     onNavigateToManualEntry: () -> Unit
 ) {
     val historyViewModel: HistoryViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
     var overlayScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
     var showSettings by remember { mutableStateOf(false) }
 
@@ -163,11 +164,11 @@ private fun HistoryDestination(
                     viewModel = viewModel,
                     onSaved = {
                         overlayScan = null
-                        MainScope().launch { updateLastScanWidget(context) }
+                        scope.launch { updateLastScanWidget(context) }
                     },
                     onCancel = { overlayScan = null },
                     onDelete = {
-                        MainScope().launch {
+                        scope.launch {
                             repository.delete(scanId)
                             updateLastScanWidget(context)
                         }
@@ -200,6 +201,7 @@ private fun ResultDestination(
     onNavigateToHistory: () -> Unit,
     onPopBack: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val pending = navState.pendingResult
     val scan = navState.pendingScan
     val isFreshScan = pending?.first == scanId
@@ -228,18 +230,18 @@ private fun ResultDestination(
             navViewModel.clearPendingResult()
             navViewModel.setShowCameraSheet(false)
             onNavigateToHistory()
-            MainScope().launch { updateLastScanWidget(context) }
+            scope.launch { updateLastScanWidget(context) }
         },
         onCancel = {
             if (isFreshScan) {
-                MainScope().launch { repository.delete(scanId) }
+                scope.launch { repository.delete(scanId) }
                 navViewModel.clearPendingResult()
             }
             navViewModel.setShowCameraSheet(false)
             onPopBack()
         },
         onDelete = if (!isFreshScan) { {
-            MainScope().launch {
+            scope.launch {
                 repository.delete(scanId)
                 updateLastScanWidget(context)
             }
