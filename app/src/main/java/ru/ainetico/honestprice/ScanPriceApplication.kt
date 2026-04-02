@@ -4,10 +4,9 @@ import android.app.Application
 import android.util.Log
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import ru.ainetico.honestprice.di.ApplicationScope
 import ru.ainetico.honestprice.model.ModelDownloader
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import javax.inject.Inject
@@ -17,8 +16,7 @@ class ScanPriceApplication : Application() {
 
     @Inject lateinit var localVisionEngine: LocalVisionEngine
     @Inject lateinit var modelDownloader: ModelDownloader
-
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override fun onCreate() {
         super.onCreate()
