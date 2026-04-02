@@ -34,6 +34,28 @@ class RemoteVisionClient(private val appSettings: AppSettings) : VisionEngine {
                 "- weight_unit: one of г, кг, мл, л, шт — null if not shown"
 
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+
+        private val PRICE_TAG_SCHEMA_JSON = """
+            {
+              "type": "object",
+              "required": [
+                "product_name", "product_description", "price_regular",
+                "price_discount", "weight_value", "weight_unit"
+              ],
+              "properties": {
+                "product_name":        { "type": "string" },
+                "product_description": { "type": ["string", "null"] },
+                "price_regular":       { "type": ["number", "null"] },
+                "price_discount":      { "type": ["number", "null"] },
+                "weight_value":        { "type": ["number", "null"] },
+                "weight_unit": {
+                  "type": ["string", "null"],
+                  "enum": ["г", "кг", "мл", "л", "шт", null]
+                }
+              },
+              "additionalProperties": false
+            }
+        """.trimIndent()
     }
 
     override suspend fun analyze(bitmap: Bitmap, prompt: String): VisionResult =
@@ -69,25 +91,7 @@ class RemoteVisionClient(private val appSettings: AppSettings) : VisionEngine {
                     })
                 }
 
-                val jsonSchema = JSONObject().apply {
-                    put("type", "object")
-                    put("required", JSONArray().apply {
-                        put("product_name"); put("product_description"); put("price_regular")
-                        put("price_discount"); put("weight_value"); put("weight_unit")
-                    })
-                    put("properties", JSONObject().apply {
-                        put("product_name", JSONObject().put("type", "string"))
-                        put("product_description", JSONObject().put("type", JSONArray().apply { put("string"); put("null") }))
-                        put("price_regular", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
-                        put("price_discount", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
-                        put("weight_value", JSONObject().put("type", JSONArray().apply { put("number"); put("null") }))
-                        put("weight_unit", JSONObject().apply {
-                            put("type", JSONArray().apply { put("string"); put("null") })
-                            put("enum", JSONArray().apply { put("г"); put("кг"); put("мл"); put("л"); put("шт"); put(JSONObject.NULL) })
-                        })
-                    })
-                    put("additionalProperties", false)
-                }
+                val jsonSchema = JSONObject(PRICE_TAG_SCHEMA_JSON)
 
                 val requestBody = JSONObject().apply {
                     if (model.isNotBlank()) put("model", model)
