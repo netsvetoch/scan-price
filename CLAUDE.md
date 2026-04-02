@@ -30,6 +30,11 @@ adb logcat -s AndroidRuntime         # Read crash logs from connected device
 - **Data** (`data/`): Room database (`honest_price.db`), `ScanRepository` interface, `AppSettings` (Preferences DataStore for non-sensitive settings as `Flow<T>`; EncryptedSharedPreferences for API credentials as `StateFlow<T>`).
 - **Model** (`model/`): `ParsedPriceTag` is the core data class output from vision engines. `FileHashVerifier` (SHA256), `DownloadNotificationHelper` (download notifications) extracted from `ModelDownloader`.
 - **Calculator** (`calculator/`): `PriceCalculator` converts prices to per-unit for comparison. Validates business values: rejects negative/zero prices and weights, ignores discount ≥ regular price.
+- **Location** (`location/`): `LocationProvider` for GPS coordinates attached to scans.
+- **Tile** (`tile/`): `ScanTileService` — Android Quick Settings tile for fast camera launch.
+- **Widget** (`widget/`): `LastScanWidget` + `WidgetUpdater` — home screen widget showing the last scan.
+- **Util** (`util/`): `DateUtils` — shared date formatting helpers.
+- **Config** (`FrameConfig.kt`): Camera frame overlay configuration (package root).
 
 ### Navigation Flow
 
