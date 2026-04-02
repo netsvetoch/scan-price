@@ -27,9 +27,13 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.unit.dp
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.EntryPoints
+import dagger.hilt.components.SingletonComponent
 import ru.ainetico.honestprice.MainActivity
 import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.AppDatabase
+import ru.ainetico.honestprice.data.ScanDao
 import ru.ainetico.honestprice.model.WeightUnit
 import ru.ainetico.honestprice.util.formatRelativeDate
 import java.math.BigDecimal
@@ -42,10 +46,16 @@ import java.util.Locale
 
 class LastScanWidget : GlanceAppWidget() {
 
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface WidgetEntryPoint {
+        fun scanDao(): ScanDao
+    }
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val lastScan = withContext(Dispatchers.IO) {
-            val db = AppDatabase.getInstance(context)
-            db.scanDao().getAllScans().firstOrNull()
+            val entryPoint = EntryPoints.get(context.applicationContext, WidgetEntryPoint::class.java)
+            entryPoint.scanDao().getAllScans().firstOrNull()
         }
 
         provideContent {

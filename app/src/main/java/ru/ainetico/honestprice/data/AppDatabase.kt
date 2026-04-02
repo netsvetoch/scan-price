@@ -1,8 +1,6 @@
 package ru.ainetico.honestprice.data
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
@@ -15,30 +13,16 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun storeDao(): StoreDao
 
     companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE scans ADD COLUMN productDescription TEXT")
             }
         }
 
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_scans_createdAt ON scans (createdAt)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_scans_status ON scans (status)")
-            }
-        }
-
-        fun getInstance(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "honest_price.db"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                .build().also { INSTANCE = it }
             }
         }
     }

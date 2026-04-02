@@ -1,6 +1,7 @@
 package ru.ainetico.honestprice.di
 
 import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +19,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getInstance(context)
+        return Room.databaseBuilder(
+            context.applicationContext,
+            AppDatabase::class.java,
+            "honest_price.db"
+        ).addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+        .build()
     }
 
     @Provides

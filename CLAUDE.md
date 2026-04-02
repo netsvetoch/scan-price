@@ -32,7 +32,7 @@ adb logcat -s AndroidRuntime         # Read crash logs from connected device
 - **Calculator** (`calculator/`): `PriceCalculator` converts prices to per-unit for comparison. Validates business values: rejects negative/zero prices and weights, ignores discount ≥ regular price.
 - **Location** (`location/`): `LocationProvider` for GPS coordinates attached to scans.
 - **Tile** (`tile/`): `ScanTileService` — Android Quick Settings tile for fast camera launch.
-- **Widget** (`widget/`): `LastScanWidget` + `WidgetUpdater` — home screen widget showing the last scan.
+- **Widget** (`widget/`): `LastScanWidget` + `WidgetUpdater` — home screen widget showing the last scan. Widget accesses DAOs via Hilt `EntryPoints` (not constructor injection — Glance widgets aren't Hilt-managed).
 - **Util** (`util/`): `DateUtils` — shared date formatting helpers.
 - **Config** (`FrameConfig.kt`): Camera frame overlay configuration (package root).
 
