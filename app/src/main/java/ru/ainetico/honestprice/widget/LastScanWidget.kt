@@ -36,14 +36,17 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 class LastScanWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val db = AppDatabase.getInstance(context)
-        val scans = db.scanDao().getAllScans()
-        val lastScan = scans.firstOrNull()
+        val lastScan = withContext(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(context)
+            db.scanDao().getAllScans().firstOrNull()
+        }
 
         provideContent {
             GlanceTheme {
