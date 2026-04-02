@@ -17,6 +17,10 @@ object FrameConfig {
     /** Bottom controls reserved area in dp (zoom + capture button + padding) */
     const val BOTTOM_INSET_DP = 168f
 
+    /** Effective aspect ratio: inverted when frame is vertical */
+    fun ratio(isVertical: Boolean): Float =
+        if (isVertical) 1f / ASPECT_RATIO else ASPECT_RATIO
+
     /** Calculate frame top position in pixels, centered in free area between controls */
     fun frameTop(containerHeight: Float, frameHeight: Float, density: Float): Float {
         val topInset = TOP_INSET_DP * density

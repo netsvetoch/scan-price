@@ -9,7 +9,7 @@ object ImageCropper {
     private const val TAG = "ImageCropper"
 
     fun cropToFrame(bitmap: Bitmap, density: Float, isVerticalFrame: Boolean): Bitmap {
-        val aspectRatio = if (isVerticalFrame) 1f / FrameConfig.ASPECT_RATIO else FrameConfig.ASPECT_RATIO
+        val aspectRatio = FrameConfig.ratio(isVerticalFrame)
         val baseW = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
         val baseH = (baseW / FrameConfig.ASPECT_RATIO).toInt()
         val frameWidth = if (aspectRatio >= 1f) baseW else baseH
@@ -35,7 +35,7 @@ object ImageCropper {
         density: Float,
         isVerticalFrame: Boolean
     ): Bitmap {
-        val aspectRatio = if (isVerticalFrame) 1f / FrameConfig.ASPECT_RATIO else FrameConfig.ASPECT_RATIO
+        val aspectRatio = FrameConfig.ratio(isVerticalFrame)
 
         val scaleToFill = viewW / bitmap.width
         val totalScale = scaleToFill * zoom

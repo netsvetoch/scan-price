@@ -81,7 +81,7 @@ fun CameraScreen(
     onDispose { view.keepScreenOn = false }
   }
   val frameAspectRatio =
-    if (isVertical) 1f / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO else ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO
+    ru.ainetico.honestprice.FrameConfig.ratio(isVertical)
 
   // Permission state
   var cameraPermissionGranted by remember {
