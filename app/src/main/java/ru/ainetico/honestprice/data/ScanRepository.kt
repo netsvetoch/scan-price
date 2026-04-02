@@ -27,6 +27,19 @@ interface ScanRepository {
 
 class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: ScanDao) : ScanRepository {
 
+    private fun Scan.applyTag(tag: ParsedPriceTag, price: PriceResult?) = copy(
+        productName = tag.productName,
+        productDescription = tag.productDescription,
+        priceRegular = tag.priceRegular?.toPlainString(),
+        priceDiscount = tag.priceDiscount?.toPlainString(),
+        weightValue = tag.weightValue?.toPlainString(),
+        weightUnit = tag.weightUnit?.name,
+        barcode = tag.barcode,
+        pricePerUnit = price?.pricePerUnit?.toPlainString(),
+        pricePerUnitDiscount = price?.pricePerUnitDiscount?.toPlainString(),
+        displayUnit = price?.displayUnit?.name
+    )
+
     override suspend fun createProcessing(imagePath: String): Long {
         return scanDao.insert(Scan(imagePath = imagePath))
     }
@@ -35,19 +48,7 @@ class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: S
         val existing = scanDao.getById(scanId)
             ?: throw IllegalStateException("Scan $scanId not found")
         scanDao.update(
-            existing.copy(
-                status = ScanStatus.COMPLETED,
-                productName = tag.productName,
-                productDescription = tag.productDescription,
-                priceRegular = tag.priceRegular?.toPlainString(),
-                priceDiscount = tag.priceDiscount?.toPlainString(),
-                weightValue = tag.weightValue?.toPlainString(),
-                weightUnit = tag.weightUnit?.name,
-                barcode = tag.barcode,
-                pricePerUnit = price?.pricePerUnit?.toPlainString(),
-                pricePerUnitDiscount = price?.pricePerUnitDiscount?.toPlainString(),
-                displayUnit = price?.displayUnit?.name
-            )
+            existing.applyTag(tag, price).copy(status = ScanStatus.COMPLETED)
         )
     }
 
@@ -75,18 +76,8 @@ class ScanRepositoryImpl @javax.inject.Inject constructor(private val scanDao: S
             ScanStatus.COMPLETED
         }
         scanDao.update(
-            existing.copy(
+            existing.applyTag(tag, price).copy(
                 status = newStatus,
-                productName = tag.productName,
-                productDescription = tag.productDescription,
-                priceRegular = tag.priceRegular?.toPlainString(),
-                priceDiscount = tag.priceDiscount?.toPlainString(),
-                weightValue = tag.weightValue?.toPlainString(),
-                weightUnit = tag.weightUnit?.name,
-                barcode = tag.barcode,
-                pricePerUnit = price?.pricePerUnit?.toPlainString(),
-                pricePerUnitDiscount = price?.pricePerUnitDiscount?.toPlainString(),
-                displayUnit = price?.displayUnit?.name,
                 storeName = storeName,
                 latitude = latitude,
                 longitude = longitude
