@@ -162,6 +162,7 @@ class RemoteVisionClient(private val appSettings: AppSettings) : VisionEngine {
 
         val stream = ByteArrayOutputStream()
         resized.compress(Bitmap.CompressFormat.JPEG, 70, stream)
+        if (resized !== bitmap) resized.recycle()
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
     }
 

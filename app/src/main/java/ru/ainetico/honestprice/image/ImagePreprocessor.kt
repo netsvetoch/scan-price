@@ -18,12 +18,17 @@ class ImagePreprocessor {
         val options = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
         val bitmap = BitmapFactory.decodeFile(filePath, options)
         val rotated = applyExifRotation(bitmap, filePath)
-        return cropRect?.let { cropBitmap(rotated, it) } ?: rotated
+        if (rotated !== bitmap) bitmap.recycle()
+        val result = cropRect?.let { cropBitmap(rotated, it) } ?: rotated
+        if (result !== rotated) rotated.recycle()
+        return result
     }
 
     fun processBitmap(bitmap: Bitmap, cropRect: Rect?): Bitmap {
         val cropped = cropRect?.let { cropBitmap(bitmap, it) } ?: bitmap
-        return downsample(cropped)
+        val result = downsample(cropped)
+        if (result !== cropped && cropped !== bitmap) cropped.recycle()
+        return result
     }
 
     fun calculateInSampleSize(width: Int, height: Int): Int {

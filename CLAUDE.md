@@ -44,6 +44,7 @@ Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBa
 2. **`RemoteVisionClient`** — OpenAI-compatible API via OkHttp. Base64 JPEG + JSON Schema for structured output. Reads endpoint/model/key from injected `AppSettings`.
 
 `image/ImagePreprocessor` is the canonical home for bitmap utilities (`bitmapToJpeg`, `downscaleToMaxSide`, `cropBitmap`). Add new bitmap helpers there, not inside engine classes.
+**Bitmap memory:** When chaining bitmap transforms (crop→downscale→compress), recycle intermediates after use. Use referential identity check (`if (result !== source) source.recycle()`) since some methods return the input unchanged when no-op. Never recycle bitmaps still referenced by callers.
 
 The remote engine is preferred when configured; local is the offline fallback.
 

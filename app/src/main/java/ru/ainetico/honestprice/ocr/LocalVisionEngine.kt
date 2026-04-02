@@ -131,6 +131,9 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
           TAG,
           "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB"
         )
+        // Recycle intermediate bitmaps to free native memory
+        if (resized !== cropped) resized.recycle()
+        if (cropped !== bitmap) cropped.recycle()
 
         val response = eng.analyzeImage(imageBytes, prompt, JSON_SCHEMA)
         if (BuildConfig.DEBUG) Log.d(TAG, "Response (${response.length} chars): '${response.take(500)}'")
