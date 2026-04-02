@@ -16,15 +16,15 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
 
-    @Binds
-    @Singleton
-    abstract fun bindScanRepository(impl: ScanRepositoryImpl): ScanRepository
+  @Binds
+  @Singleton
+  abstract fun bindScanRepository(impl: ScanRepositoryImpl): ScanRepository
 
-    companion object {
-        @Provides
-        @Singleton
-        fun provideAppSettings(@ApplicationContext context: Context): AppSettings {
-            return AppSettings(context)
-        }
+  companion object {
+    @Provides
+    @Singleton
+    fun provideAppSettings(@ApplicationContext context: Context): AppSettings {
+      return AppSettings(context)
     }
+  }
 }

@@ -18,32 +18,32 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object VisionModule {
 
-    @Provides
-    @Singleton
-    fun provideLocalVisionEngine(@ApplicationContext context: Context): LocalVisionEngine {
-        return LocalVisionEngine(context)
-    }
+  @Provides
+  @Singleton
+  fun provideLocalVisionEngine(@ApplicationContext context: Context): LocalVisionEngine {
+    return LocalVisionEngine(context)
+  }
 
-    @Provides
-    @Singleton
-    fun provideRemoteVisionClient(appSettings: AppSettings): RemoteVisionClient {
-        return RemoteVisionClient(appSettings)
-    }
+  @Provides
+  @Singleton
+  fun provideRemoteVisionClient(appSettings: AppSettings): RemoteVisionClient {
+    return RemoteVisionClient(appSettings)
+  }
 
-    @Provides
-    @Singleton
-    fun provideImageAnalyzer(
-        localEngine: LocalVisionEngine,
-        calculator: PriceCalculator,
-        appSettings: AppSettings,
-        remoteClient: RemoteVisionClient
-    ): ImageAnalyzer {
-        return ImageAnalyzer(localEngine, calculator, appSettings, remoteClient)
-    }
+  @Provides
+  @Singleton
+  fun provideImageAnalyzer(
+    localEngine: LocalVisionEngine,
+    calculator: PriceCalculator,
+    appSettings: AppSettings,
+    remoteClient: RemoteVisionClient
+  ): ImageAnalyzer {
+    return ImageAnalyzer(localEngine, calculator, appSettings, remoteClient)
+  }
 
-    @Provides
-    @Singleton
-    fun provideModelDownloader(@ApplicationContext context: Context): ModelDownloader {
-        return ModelDownloader(context)
-    }
+  @Provides
+  @Singleton
+  fun provideModelDownloader(@ApplicationContext context: Context): ModelDownloader {
+    return ModelDownloader(context)
+  }
 }

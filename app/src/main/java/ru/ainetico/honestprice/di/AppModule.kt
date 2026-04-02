@@ -14,14 +14,14 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Provides
-    fun providePriceCalculator(): PriceCalculator {
-        return PriceCalculator()
-    }
+  @Provides
+  fun providePriceCalculator(): PriceCalculator {
+    return PriceCalculator()
+  }
 
-    @Provides
-    @Singleton
-    fun provideLocationProvider(@ApplicationContext context: Context): LocationProvider {
-        return LocationProvider(context)
-    }
+  @Provides
+  @Singleton
+  fun provideLocationProvider(@ApplicationContext context: Context): LocationProvider {
+    return LocationProvider(context)
+  }
 }

@@ -155,7 +155,14 @@ fun CameraScreen(
           frameAspectRatio = frameAspectRatio,
           onToggleOrientation = { viewModel.toggleFrameOrientation() },
           onConfirm = { viewWidth, viewHeight, offsetX, offsetY, zoom ->
-            viewModel.confirmAdjustment(adjusting.bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom)
+            viewModel.confirmAdjustment(
+              adjusting.bitmap,
+              viewWidth,
+              viewHeight,
+              offsetX,
+              offsetY,
+              zoom
+            )
           }
         )
       }
@@ -238,7 +245,11 @@ fun CameraScreen(
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.CropRotate, contentDescription = stringResource(R.string.camera_rotate_frame), tint = Color.White)
+            Icon(
+              Icons.Filled.CropRotate,
+              contentDescription = stringResource(R.string.camera_rotate_frame),
+              tint = Color.White
+            )
           }
         }
 
@@ -273,7 +284,11 @@ fun CameraScreen(
           modifier = Modifier
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
-            .padding(bottom = Dimens.BottomControlsBottomPadding, start = Dimens.BottomControlsSidePadding, end = Dimens.BottomControlsSidePadding),
+            .padding(
+              bottom = Dimens.BottomControlsBottomPadding,
+              start = Dimens.BottomControlsSidePadding,
+              end = Dimens.BottomControlsSidePadding
+            ),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically
         ) {
@@ -287,7 +302,11 @@ fun CameraScreen(
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.PhotoLibrary, contentDescription = stringResource(R.string.camera_gallery), tint = Color.White)
+            Icon(
+              Icons.Filled.PhotoLibrary,
+              contentDescription = stringResource(R.string.camera_gallery),
+              tint = Color.White
+            )
           }
 
           // Capture button
@@ -297,9 +316,9 @@ fun CameraScreen(
                 viewModel.capture(bmp, cropRect = null)
               }
             },
-              colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White
-              ),
+            colors = ButtonDefaults.buttonColors(
+              containerColor = Color.White
+            ),
             modifier = Modifier.size(Dimens.CaptureButtonSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
@@ -322,7 +341,11 @@ fun CameraScreen(
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
-            Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.camera_manual), tint = Color.White)
+            Icon(
+              Icons.Filled.Edit,
+              contentDescription = stringResource(R.string.camera_manual),
+              tint = Color.White
+            )
           }
         }
       }
@@ -351,7 +374,11 @@ private fun ErrorContent(
         .fillMaxWidth()
         .aspectRatio(frameAspectRatio)
         .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
-        .border(Dimens.FrameBorderInner, MaterialTheme.colorScheme.error, RoundedCornerShape(Dimens.CornerRadiusLarge))
+        .border(
+          Dimens.FrameBorderInner,
+          MaterialTheme.colorScheme.error,
+          RoundedCornerShape(Dimens.CornerRadiusLarge)
+        )
         .background(Color.DarkGray),
       contentAlignment = Alignment.Center
     ) {
@@ -423,7 +450,11 @@ private fun ScanningContent(
         .fillMaxWidth()
         .aspectRatio(frameAspectRatio)
         .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
-        .border(Dimens.FrameBorderInner, Color.White.copy(alpha = 0.3f), RoundedCornerShape(Dimens.CornerRadiusLarge))
+        .border(
+          Dimens.FrameBorderInner,
+          Color.White.copy(alpha = 0.3f),
+          RoundedCornerShape(Dimens.CornerRadiusLarge)
+        )
         .background(Color.DarkGray),
       contentAlignment = Alignment.Center
     ) {
