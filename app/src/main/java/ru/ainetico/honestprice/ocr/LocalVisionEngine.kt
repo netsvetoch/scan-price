@@ -11,8 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.model.ParsedPriceTag
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.io.File
+import ru.ainetico.honestprice.image.ImagePreprocessor
 
 /**
  * On-device vision inference using llama.cpp + Qwen3.5 GGUF.
@@ -47,6 +47,7 @@ class LocalVisionEngine(private val appContext: Context) {
         "Use null for any fields you cannot read."
   }
 
+  private val imagePreprocessor = ImagePreprocessor()
   private var engine: InferenceEngine? = null
   private var isReady = false
 
@@ -122,8 +123,8 @@ class LocalVisionEngine(private val appContext: Context) {
       try {
         // Preprocess: crop to frame area, downscale
         val cropped = cropToPriceTag(bitmap)
-        val resized = downscale(cropped, 640)
-        val imageBytes = bitmapToJpeg(resized, quality = 60)
+        val resized = imagePreprocessor.downscaleToMaxSide(cropped, 640)
+        val imageBytes = imagePreprocessor.bitmapToJpeg(resized, quality = 60)
         Log.i(
           TAG,
           "Preprocessed: ${bitmap.width}x${bitmap.height} → crop ${cropped.width}x${cropped.height} → ${resized.width}x${resized.height}, ${imageBytes.size / 1024}KB"
@@ -177,38 +178,6 @@ class LocalVisionEngine(private val appContext: Context) {
     }
 
     return Bitmap.createBitmap(bitmap, left, top, frameWidth, frameHeight)
-  }
-
-  /**
-   * Convert to grayscale — reduces image complexity and size significantly.
-   */
-  private fun toGrayscale(bitmap: Bitmap): Bitmap {
-    val grayscale = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(grayscale)
-    val paint = android.graphics.Paint()
-    val colorMatrix = android.graphics.ColorMatrix()
-    colorMatrix.setSaturation(0f)
-    paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
-    canvas.drawBitmap(bitmap, 0f, 0f, paint)
-    return grayscale
-  }
-
-  private fun downscale(bitmap: Bitmap, maxSide: Int): Bitmap {
-    val longer = maxOf(bitmap.width, bitmap.height)
-    if (longer <= maxSide) return bitmap
-    val scale = maxSide.toFloat() / longer
-    return Bitmap.createScaledBitmap(
-      bitmap,
-      (bitmap.width * scale).toInt(),
-      (bitmap.height * scale).toInt(),
-      true
-    )
-  }
-
-  private fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray {
-    val stream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
-    return stream.toByteArray()
   }
 
 }

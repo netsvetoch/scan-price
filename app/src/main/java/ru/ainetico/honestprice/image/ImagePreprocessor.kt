@@ -64,6 +64,24 @@ class ImagePreprocessor {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
+    fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray {
+        val stream = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+        return stream.toByteArray()
+    }
+
+    fun downscaleToMaxSide(bitmap: Bitmap, maxSide: Int): Bitmap {
+        val longer = maxOf(bitmap.width, bitmap.height)
+        if (longer <= maxSide) return bitmap
+        val scale = maxSide.toFloat() / longer
+        return Bitmap.createScaledBitmap(
+            bitmap,
+            (bitmap.width * scale).toInt(),
+            (bitmap.height * scale).toInt(),
+            true
+        )
+    }
+
     private fun downsample(bitmap: Bitmap): Bitmap {
         val shortSide = minOf(bitmap.width, bitmap.height)
         if (shortSide <= MIN_SHORT_SIDE) return bitmap

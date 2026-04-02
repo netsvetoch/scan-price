@@ -56,4 +56,34 @@ class ImagePreprocessorTest {
         assertEquals(800, result.width)
         assertEquals(600, result.height)
     }
+
+    @Test
+    fun `bitmapToJpeg returns non-empty byte array`() {
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val result = preprocessor.bitmapToJpeg(bitmap, 80)
+        assertTrue(result.isNotEmpty())
+    }
+
+    @Test
+    fun `bitmapToJpeg starts with JPEG magic bytes`() {
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val result = preprocessor.bitmapToJpeg(bitmap, 80)
+        assertEquals(0xFF.toByte(), result[0])
+        assertEquals(0xD8.toByte(), result[1])
+    }
+
+    @Test
+    fun `downscaleToMaxSide shrinks large bitmap`() {
+        val bitmap = Bitmap.createBitmap(1280, 960, Bitmap.Config.ARGB_8888)
+        val result = preprocessor.downscaleToMaxSide(bitmap, 640)
+        assertEquals(640, result.width)
+        assertEquals(480, result.height)
+    }
+
+    @Test
+    fun `downscaleToMaxSide returns same bitmap when already small`() {
+        val bitmap = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
+        val result = preprocessor.downscaleToMaxSide(bitmap, 640)
+        assertSame(bitmap, result)
+    }
 }
