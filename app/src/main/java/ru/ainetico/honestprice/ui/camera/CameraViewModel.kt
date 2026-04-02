@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.FrameConfig
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.analyzer.ImageAnalyzer
 import ru.ainetico.honestprice.analyzer.RemoteAnalysisException
@@ -65,9 +64,6 @@ class CameraViewModel @javax.inject.Inject constructor(
     _isVerticalFrame.value = !_isVerticalFrame.value
   }
 
-  private val currentAspectRatio: Float
-    get() = if (_isVerticalFrame.value) 1f / FrameConfig.ASPECT_RATIO else FrameConfig.ASPECT_RATIO
-
   private var scanningJob: Job? = null
   private var lastScanId: Long? = null
   private var lastImagePath: String? = null
@@ -83,7 +79,7 @@ class CameraViewModel @javax.inject.Inject constructor(
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(
-            cropOp = { withContext(Dispatchers.Default) { cropToFrame(bitmap) } },
+            cropOp = { withContext(Dispatchers.Default) { ImageCropper.cropToFrame(bitmap, appContext.resources.displayMetrics.density, _isVerticalFrame.value) } },
             analyzeBitmap = bitmap,
             cropRect = cropRect
           )
@@ -91,7 +87,7 @@ class CameraViewModel @javax.inject.Inject constructor(
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: RemoteAnalysisException) {
         Log.e("CameraViewModel", "Remote failed", e)
-        val cropped = withContext(Dispatchers.Default) { cropToFrame(bitmap) }
+        val cropped = withContext(Dispatchers.Default) { ImageCropper.cropToFrame(bitmap, appContext.resources.displayMetrics.density, _isVerticalFrame.value) }
         _state.value = CameraState.RemoteError(e.message ?: appContext.getString(R.string.camera_error_server), cropped)
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
@@ -113,7 +109,7 @@ class CameraViewModel @javax.inject.Inject constructor(
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(
-            cropOp = { withContext(Dispatchers.Default) { cropToFrame(bitmap) } },
+            cropOp = { withContext(Dispatchers.Default) { ImageCropper.cropToFrame(bitmap, appContext.resources.displayMetrics.density, _isVerticalFrame.value) } },
             analyzeBitmap = bitmap,
             forceLocal = true,
             analyzingStatus = R.string.camera_analyzing_local
@@ -161,7 +157,7 @@ class CameraViewModel @javax.inject.Inject constructor(
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(
-            cropOp = { withContext(Dispatchers.Default) { cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom) } }
+            cropOp = { withContext(Dispatchers.Default) { ImageCropper.cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom, appContext.resources.displayMetrics.density, _isVerticalFrame.value) } }
           )
         }
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
@@ -238,68 +234,4 @@ class CameraViewModel @javax.inject.Inject constructor(
     return Pair(scanId, analysisResult)
   }
 
-  /**
-   * Crop the area visible inside the frame, accounting for ContentScale.FillWidth + pan + zoom.
-   *
-   * ContentScale.FillWidth scales bitmap to match view width, preserving aspect ratio.
-   * The user then applies pan (offset) and zoom on top.
-   * We need to find which bitmap pixels are inside the frame rectangle.
-   */
-  private fun cropAligned(
-    bitmap: Bitmap, viewW: Float, viewH: Float,
-    panX: Float, panY: Float, zoom: Float
-  ): Bitmap {
-    // Step 1: ContentScale.FillWidth — scale to match view width
-    val scaleToFill = viewW / bitmap.width
-    // Effective scale after user zoom
-    val totalScale = scaleToFill * zoom
-
-    // Step 2: Image center in view coordinates (before pan)
-    val imgCenterX = viewW / 2f
-    val imgCenterY = viewH / 2f
-
-    // Step 3: Frame rectangle in view coordinates
-    val baseW = viewW * FrameConfig.WIDTH_FRACTION
-    val baseH = baseW / FrameConfig.ASPECT_RATIO
-    val frameW = if (currentAspectRatio >= 1f) baseW else baseH
-    val frameH = if (currentAspectRatio >= 1f) baseH else baseW
-    val density = appContext.resources.displayMetrics.density
-    val frameLeft = (viewW - frameW) / 2f
-    val frameTop = FrameConfig.frameTop(viewH, frameH, density)
-
-    // Step 4: Convert frame corners to bitmap coordinates
-    // View point → bitmap: bmpX = (viewX - imgCenterX - panX) / totalScale + bmpWidth/2
-    fun viewToBmpX(vx: Float) = ((vx - imgCenterX - panX) / totalScale + bitmap.width / 2f)
-    fun viewToBmpY(vy: Float) = ((vy - imgCenterY - panY) / totalScale + bitmap.height / 2f)
-
-    val bmpLeft = viewToBmpX(frameLeft).toInt().coerceIn(0, bitmap.width - 1)
-    val bmpTop = viewToBmpY(frameTop).toInt().coerceIn(0, bitmap.height - 1)
-    val bmpRight = viewToBmpX(frameLeft + frameW).toInt().coerceIn(bmpLeft + 1, bitmap.width)
-    val bmpBottom = viewToBmpY(frameTop + frameH).toInt().coerceIn(bmpTop + 1, bitmap.height)
-
-    val cropW = bmpRight - bmpLeft
-    val cropH = bmpBottom - bmpTop
-
-    Log.d(
-      "CameraViewModel",
-      "cropAligned: view=${viewW}x${viewH} pan=$panX,$panY zoom=$zoom → bmp crop ($bmpLeft,$bmpTop ${cropW}x${cropH})"
-    )
-
-    return Bitmap.createBitmap(bitmap, bmpLeft, bmpTop, cropW, cropH)
-  }
-
-  private fun cropToFrame(bitmap: Bitmap): Bitmap {
-    val baseW = (bitmap.width * FrameConfig.WIDTH_FRACTION).toInt()
-    val baseH = (baseW / FrameConfig.ASPECT_RATIO).toInt()
-    val frameWidth = if (currentAspectRatio >= 1f) baseW else baseH
-    val frameHeight = if (currentAspectRatio >= 1f) baseH else baseW
-    val density = appContext.resources.displayMetrics.density
-    val left = (bitmap.width - frameWidth) / 2
-    val top = FrameConfig.frameTop(bitmap.height.toFloat(), frameHeight.toFloat(), density).toInt().coerceAtLeast(0)
-
-    if (frameWidth <= 0 || frameHeight <= 0 || left + frameWidth > bitmap.width || top + frameHeight > bitmap.height) {
-      return bitmap
-    }
-    return Bitmap.createBitmap(bitmap, left, top, frameWidth, frameHeight)
-  }
 }
