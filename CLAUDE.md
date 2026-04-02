@@ -66,6 +66,7 @@ Both engines delegate JSON→`ParsedPriceTag` conversion to `PriceTagParser` (sh
 - **Hilt DI** with modules in `di/`: `DatabaseModule`, `DataModule`, `VisionModule`, `AppModule`. `@HiltViewModel` on `CameraViewModel`, `ResultViewModel`, `HistoryViewModel`. All use `hiltViewModel()` in Compose; overlay instances keyed via `hiltViewModel(key = ...)`. `AppNavigationViewModel` stays manual (intent-derived state).
 - **Constructor `@Inject` for all dependencies.** No internal `= ConcreteClass()` creation — keeps classes testable and Hilt-compatible.
 - **`@ApplicationScope` CoroutineScope** provided as `@Singleton` in `AppModule` (`Dispatchers.IO + SupervisorJob`). Inject this instead of creating `CoroutineScope(...)` inside classes — keeps lifecycle Hilt-managed and testable.
+- **`@Volatile` on shared mutable state.** Fields written in one coroutine/dispatcher and read in another (e.g. `initialize()` on Main, `analyze()` on IO) must be `@Volatile` to guarantee cross-thread visibility. JVM does not guarantee happens-before without it.
 - **Eager init in `ScanPriceApplication`**: `LocalVisionEngine` and `ModelDownloader` injected and initialized at app startup via `@Inject lateinit var`.
 - **History uses Paging 3** with `insertSeparators()` for date headers. `HistoryViewModel` exposes `Flow<PagingData<ScanListItem>>` (sealed interface: `ScanItem` | `DateHeader`). `formatRelativeDate` needs `Context` so date label formatting stays in Compose, not ViewModel.
 

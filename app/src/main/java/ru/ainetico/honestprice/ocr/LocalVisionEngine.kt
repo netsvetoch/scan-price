@@ -48,9 +48,9 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
   }
 
   private val imagePreprocessor = ImagePreprocessor()
-  private var engine: InferenceEngine? = null
-  private var isReady = false
-  private var initError: String? = null
+  @Volatile private var engine: InferenceEngine? = null
+  @Volatile private var isReady = false
+  @Volatile private var initError: String? = null
 
   /**
    * Initialize the engine — load model + mmproj.
