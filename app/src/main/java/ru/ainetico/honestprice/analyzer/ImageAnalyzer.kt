@@ -7,20 +7,26 @@ import kotlinx.coroutines.flow.first
 import ru.ainetico.honestprice.calculator.PriceCalculator
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.AnalysisResult
-import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
+import ru.ainetico.honestprice.ocr.VisionEngine
+import ru.ainetico.honestprice.ocr.VisionResult
 
 /**
  * Exception thrown when remote API fails — UI can offer "Process locally" button.
  */
 class RemoteAnalysisException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
+/**
+ * Exception thrown when local engine fails.
+ */
+class LocalAnalysisException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
 class ImageAnalyzer(
     private val localEngine: LocalVisionEngine,
     private val calculator: PriceCalculator,
     private val appSettings: AppSettings,
-    private val remoteClient: RemoteVisionClient = RemoteVisionClient()
+    private val remoteClient: RemoteVisionClient
 ) {
 
     /**
@@ -30,19 +36,29 @@ class ImageAnalyzer(
     suspend fun analyze(bitmap: Bitmap, cropRect: Rect?, forceLocal: Boolean = false): AnalysisResult {
         val useRemote = !forceLocal && appSettings.isRemoteModelConfigured()
 
-        val tag: ParsedPriceTag = if (useRemote) {
-            try {
-                Log.d("ImageAnalyzer", "Using remote model...")
-                val systemPrompt = appSettings.systemPrompt.first().ifBlank { RemoteVisionClient.DEFAULT_SYSTEM_PROMPT }
-                remoteClient.analyze(bitmap, appSettings.apiUrl.value, appSettings.apiKey.value, appSettings.apiModel.value, systemPrompt)
-            } catch (e: Exception) {
-                Log.e("ImageAnalyzer", "Remote failed: ${e.message}")
-                throw RemoteAnalysisException("Ошибка при подключении к серверу", e)
-            }
+        val engine: VisionEngine
+        val prompt: String
+        if (useRemote) {
+            Log.d("ImageAnalyzer", "Using remote model...")
+            engine = remoteClient
+            prompt = appSettings.systemPrompt.first().ifBlank { RemoteVisionClient.DEFAULT_SYSTEM_PROMPT }
         } else {
             Log.d("ImageAnalyzer", "Using local model...")
-            val prompt = appSettings.localPrompt.first().ifBlank { LocalVisionEngine.DEFAULT_PROMPT }
-            localEngine.analyze(bitmap, prompt)
+            engine = localEngine
+            prompt = appSettings.localPrompt.first().ifBlank { LocalVisionEngine.DEFAULT_PROMPT }
+        }
+
+        val tag = when (val result = engine.analyze(bitmap, prompt)) {
+            is VisionResult.Success -> result.tag
+            is VisionResult.Error -> {
+                if (useRemote) {
+                    Log.e("ImageAnalyzer", "Remote failed: ${result.message}")
+                    throw RemoteAnalysisException(result.message, result.cause)
+                } else {
+                    Log.e("ImageAnalyzer", "Local failed: ${result.message}")
+                    throw LocalAnalysisException(result.message, result.cause)
+                }
+            }
         }
 
         val price = calculator.calculate(tag)

@@ -38,10 +38,10 @@ Settings and scan detail views render as swipe-back overlays (`ui/common/SwipeBa
 
 ### Dual Vision Pipeline
 
-`ImageAnalyzer` orchestrates two engines:
+`ImageAnalyzer` orchestrates two engines via the `VisionEngine` interface (`ocr/VisionEngine.kt`). Both return `VisionResult.Success` | `VisionResult.Error` — never throw from `analyze()`. `ImageAnalyzer` converts errors to `RemoteAnalysisException` or `LocalAnalysisException` for the UI layer.
 
 1. **`LocalVisionEngine`** — On-device llama.cpp inference with a GGUF model (Qwen3.5-0.8B). Preprocesses images to 640px max, JPEG quality 60. Slow (30-120s) but fully offline.
-2. **`RemoteVisionClient`** — OpenAI-compatible API via OkHttp. Base64 JPEG + JSON Schema for structured output. Configurable endpoint/model/key in settings.
+2. **`RemoteVisionClient`** — OpenAI-compatible API via OkHttp. Base64 JPEG + JSON Schema for structured output. Reads endpoint/model/key from injected `AppSettings`.
 
 `image/ImagePreprocessor` is the canonical home for bitmap utilities (`bitmapToJpeg`, `downscaleToMaxSide`, `cropBitmap`). Add new bitmap helpers there, not inside engine classes.
 
@@ -99,6 +99,7 @@ JUnit 4 + JUnit 5 + MockK + Robolectric. Tests cover `PriceCalculator`, `WeightU
 - `BigDecimal` equality: use `compareTo() == 0`, not `assertEquals` (scale differs: `89.90` ≠ `89.9`)
 - `PriceResult` requires `source: ParsedPriceTag` parameter — easy to miss in test constructors
 - `AppSettings` mocking: non-sensitive fields (`systemPrompt`, `localPrompt`, etc.) use `flowOf("")`; encrypted fields (`apiUrl`, `apiKey`, `apiModel`) use `MutableStateFlow("")`; `isRemoteModelConfigured()` needs `coEvery` (suspend)
+- Vision engine mocking: `coEvery { engine.analyze(any(), any()) }` must return `VisionResult.Success(tag)` or `VisionResult.Error(msg)`, not raw `ParsedPriceTag`. `RemoteVisionClient` constructor requires `AppSettings` (use `mockk<AppSettings>()` in tests that only call `parseResponse`).
 
 ## Security
 

@@ -1,16 +1,18 @@
 package ru.ainetico.honestprice.ocr
 
+import io.mockk.mockk
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.WeightUnit
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
 class RemoteVisionClientTest {
 
-    private val client = RemoteVisionClient()
+    private val client = RemoteVisionClient(mockk<AppSettings>())
 
     @Test
     fun `parseResponse extracts all fields from valid JSON`() {

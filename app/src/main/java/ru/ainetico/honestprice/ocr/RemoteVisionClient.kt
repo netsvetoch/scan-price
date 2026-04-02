@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
 import ru.ainetico.honestprice.BuildConfig
+import ru.ainetico.honestprice.data.AppSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -18,7 +19,7 @@ import java.io.ByteArrayOutputStream
  * Sends image to OpenAI-compatible API for price tag analysis.
  * Used when user configures an external server in settings.
  */
-class RemoteVisionClient {
+class RemoteVisionClient(private val appSettings: AppSettings) : VisionEngine {
 
     companion object {
         private const val TAG = "RemoteVisionClient"
@@ -35,9 +36,13 @@ class RemoteVisionClient {
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
     }
 
-    suspend fun analyze(bitmap: Bitmap, apiUrl: String, apiKey: String, model: String = "", customPrompt: String = ""): ParsedPriceTag =
+    override suspend fun analyze(bitmap: Bitmap, prompt: String): VisionResult =
         withContext(Dispatchers.IO) {
             try {
+                val apiUrl = appSettings.apiUrl.value
+                val apiKey = appSettings.apiKey.value
+                val model = appSettings.apiModel.value
+
                 val base64Image = bitmapToBase64(bitmap)
                 val baseUrl = apiUrl.trimEnd('/')
                 Log.d(TAG, "Sending to $baseUrl (image: ${base64Image.length} chars)")
@@ -45,7 +50,7 @@ class RemoteVisionClient {
                 val messagesArray = JSONArray().apply {
                     put(JSONObject().apply {
                         put("role", "system")
-                        put("content", customPrompt)
+                        put("content", prompt)
                     })
                     put(JSONObject().apply {
                         put("role", "user")
@@ -125,11 +130,11 @@ class RemoteVisionClient {
                         .getJSONObject("message")
                         .getString("content")
 
-                    parseResponse(content)
+                    VisionResult.Success(parseResponse(content))
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Remote analysis failed", e)
-                throw e
+                VisionResult.Error("Ошибка при подключении к серверу: ${e.message}", e)
             }
         }
 

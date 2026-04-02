@@ -18,7 +18,7 @@ import ru.ainetico.honestprice.image.ImagePreprocessor
  * On-device vision inference using llama.cpp + Qwen3.5 GGUF.
  * Fully offline — no network required.
  */
-class LocalVisionEngine(private val appContext: Context) {
+class LocalVisionEngine(private val appContext: Context) : VisionEngine {
 
   companion object {
     private const val TAG = "LocalVisionEngine"
@@ -109,14 +109,11 @@ class LocalVisionEngine(private val appContext: Context) {
 
   fun isAvailable(): Boolean = isReady
 
-  /**
-   * Analyze a price tag image. Returns ParsedPriceTag.
-   */
-  suspend fun analyze(bitmap: Bitmap, prompt: String = DEFAULT_PROMPT): ParsedPriceTag {
+  override suspend fun analyze(bitmap: Bitmap, prompt: String): VisionResult {
     val eng = engine
     if (!isReady || eng == null) {
       Log.e(TAG, "Engine not ready!")
-      return ParsedPriceTag()
+      return VisionResult.Error("Engine not ready")
     }
 
     return withContext(Dispatchers.IO) {
@@ -135,30 +132,25 @@ class LocalVisionEngine(private val appContext: Context) {
 
         if (response.isBlank()) {
           Log.w(TAG, "Empty response from model")
-          return@withContext ParsedPriceTag()
+          return@withContext VisionResult.Error("Empty response from model")
         }
 
-        parseResponse(response)
+        VisionResult.Success(parseResponse(response))
       } catch (e: Exception) {
         Log.e(TAG, "Analysis failed", e)
-        ParsedPriceTag()
+        VisionResult.Error("Analysis failed: ${e.message}", e)
       }
     }
   }
 
   private fun parseResponse(content: String): ParsedPriceTag {
-    return try {
-      if (BuildConfig.DEBUG) Log.d(TAG, "Parsing JSON: $content")
-      val json = JSONObject(content)
-      PriceTagParser.parse(json).also {
-        Log.i(
-          TAG, "Parsed: name=${it.productName}, regular=${it.priceRegular}, " +
-                  "discount=${it.priceDiscount}, weight=${it.weightValue} ${it.weightUnit}"
-        )
-      }
-    } catch (e: Exception) {
-      Log.e(TAG, "Failed to parse: $content", e)
-      ParsedPriceTag()
+    if (BuildConfig.DEBUG) Log.d(TAG, "Parsing JSON: $content")
+    val json = JSONObject(content)
+    return PriceTagParser.parse(json).also {
+      Log.i(
+        TAG, "Parsed: name=${it.productName}, regular=${it.priceRegular}, " +
+                "discount=${it.priceDiscount}, weight=${it.weightValue} ${it.weightUnit}"
+      )
     }
   }
 

@@ -26,8 +26,8 @@ object VisionModule {
 
     @Provides
     @Singleton
-    fun provideRemoteVisionClient(): RemoteVisionClient {
-        return RemoteVisionClient()
+    fun provideRemoteVisionClient(appSettings: AppSettings): RemoteVisionClient {
+        return RemoteVisionClient(appSettings)
     }
 
     @Provides

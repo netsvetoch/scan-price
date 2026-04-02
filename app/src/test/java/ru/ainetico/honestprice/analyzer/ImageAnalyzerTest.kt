@@ -17,12 +17,14 @@ import ru.ainetico.honestprice.model.ParsedPriceTag
 import ru.ainetico.honestprice.model.WeightUnit
 import ru.ainetico.honestprice.ocr.LocalVisionEngine
 import ru.ainetico.honestprice.ocr.RemoteVisionClient
+import ru.ainetico.honestprice.ocr.VisionResult
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
 class ImageAnalyzerTest {
 
     private val localEngine = mockk<LocalVisionEngine>()
+    private val remoteClient = mockk<RemoteVisionClient>()
     private val calculator = PriceCalculator()
     private val appSettings = mockk<AppSettings> {
         coEvery { isRemoteModelConfigured() } returns false
@@ -33,16 +35,18 @@ class ImageAnalyzerTest {
         every { localPrompt } returns flowOf("")
     }
 
-    private val analyzer = ImageAnalyzer(localEngine, calculator, appSettings)
+    private val analyzer = ImageAnalyzer(localEngine, calculator, appSettings, remoteClient)
 
     @Test
     fun `analyze returns complete result from local engine`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag(
-            productName = "Молоко",
-            priceRegular = BigDecimal("89.90"),
-            weightValue = BigDecimal("1"),
-            weightUnit = WeightUnit.L
+        coEvery { localEngine.analyze(any(), any()) } returns VisionResult.Success(
+            ParsedPriceTag(
+                productName = "Молоко",
+                priceRegular = BigDecimal("89.90"),
+                weightValue = BigDecimal("1"),
+                weightUnit = WeightUnit.L
+            )
         )
 
         val result = analyzer.analyze(bitmap, null)
@@ -57,7 +61,7 @@ class ImageAnalyzerTest {
     @Test
     fun `analyze returns null price when no price detected`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag()
+        coEvery { localEngine.analyze(any(), any()) } returns VisionResult.Success(ParsedPriceTag())
 
         val result = analyzer.analyze(bitmap, null)
 
@@ -69,7 +73,10 @@ class ImageAnalyzerTest {
     fun `analyze throws RemoteAnalysisException when remote fails`() = runTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         val mockRemoteClient = mockk<RemoteVisionClient> {
-            coEvery { analyze(any(), any(), any(), any(), any()) } throws RuntimeException("Connection refused")
+            coEvery { analyze(any(), any()) } returns VisionResult.Error(
+                "Ошибка при подключении к серверу: Connection refused",
+                RuntimeException("Connection refused")
+            )
         }
         val remoteSettings = mockk<AppSettings> {
             coEvery { isRemoteModelConfigured() } returns true
@@ -85,7 +92,20 @@ class ImageAnalyzerTest {
             remoteAnalyzer.analyze(bitmap, null)
             fail("Expected RemoteAnalysisException")
         } catch (e: RemoteAnalysisException) {
-            assertEquals("Ошибка при подключении к серверу", e.message)
+            assertTrue(e.message!!.contains("Ошибка при подключении к серверу"))
+        }
+    }
+
+    @Test
+    fun `analyze throws LocalAnalysisException when local fails`() = runTest {
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        coEvery { localEngine.analyze(any(), any()) } returns VisionResult.Error("Engine not ready")
+
+        try {
+            analyzer.analyze(bitmap, null)
+            fail("Expected LocalAnalysisException")
+        } catch (e: LocalAnalysisException) {
+            assertEquals("Engine not ready", e.message)
         }
     }
 
@@ -102,9 +122,11 @@ class ImageAnalyzerTest {
             every { localPrompt } returns flowOf("")
         }
         val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings, mockRemoteClient)
-        coEvery { localEngine.analyze(any(), any()) } returns ParsedPriceTag(
-            productName = "Хлеб",
-            priceRegular = BigDecimal("45.00")
+        coEvery { localEngine.analyze(any(), any()) } returns VisionResult.Success(
+            ParsedPriceTag(
+                productName = "Хлеб",
+                priceRegular = BigDecimal("45.00")
+            )
         )
 
         val result = remoteAnalyzer.analyze(bitmap, null, forceLocal = true)
