@@ -25,8 +25,7 @@ object FrameConfig {
   fun frameTop(containerHeight: Float, frameHeight: Float, density: Float): Float {
     val topInset = TOP_INSET_DP * density
     val bottomInset = BOTTOM_INSET_DP * density
-    val freeTop = topInset
     val freeHeight = containerHeight - topInset - bottomInset
-    return freeTop + (freeHeight - frameHeight) / 2f
+    return topInset + (freeHeight - frameHeight) / 2f
   }
 }

@@ -9,7 +9,12 @@
       "Bash(./gradlew :app:compileDebugKotlin :app:testDebugUnitTest)",
       "Bash(./gradlew -v)",
       "Bash(./gradlew :app:lintDebug)",
-      "Bash(./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug)"
+      "Bash(./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug)",
+      "Bash(./gradlew :app:compileDebugKotlin :app:compileDebugUnitTestKotlin)",
+      "Bash(./gradlew :app:testDebugUnitTest :app:lintDebug)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(./gradlew :app:lintDebug :app:testDebugUnitTest)"
     ]
   }
 }

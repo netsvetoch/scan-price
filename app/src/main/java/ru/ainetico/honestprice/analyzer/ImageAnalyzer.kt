@@ -1,7 +1,6 @@
 package ru.ainetico.honestprice.analyzer
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.util.Log
 import kotlinx.coroutines.flow.first
 import ru.ainetico.honestprice.calculator.PriceCalculator
@@ -33,7 +32,6 @@ class ImageAnalyzer(
    */
   suspend fun analyze(
     bitmap: Bitmap,
-    cropRect: Rect?,
     forceLocal: Boolean = false
   ): AnalysisResult {
     val useRemote = !forceLocal && appSettings.isRemoteModelConfigured()

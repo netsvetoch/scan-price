@@ -1,28 +1,13 @@
 package ru.ainetico.honestprice.image
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.graphics.Rect
 import androidx.core.graphics.scale
-import androidx.exifinterface.media.ExifInterface
 
 class ImagePreprocessor {
 
   companion object {
     const val MIN_SHORT_SIDE = 1080
-  }
-
-  fun processFile(filePath: String, cropRect: Rect?): Bitmap {
-    val (width, height) = getImageDimensions(filePath)
-    val inSampleSize = calculateInSampleSize(width, height)
-    val options = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
-    val bitmap = BitmapFactory.decodeFile(filePath, options)
-    val rotated = applyExifRotation(bitmap, filePath)
-    if (rotated !== bitmap) bitmap.recycle()
-    val result = cropRect?.let { cropBitmap(rotated, it) } ?: rotated
-    if (result !== rotated) rotated.recycle()
-    return result
   }
 
   fun processBitmap(bitmap: Bitmap, cropRect: Rect?): Bitmap {
@@ -55,26 +40,6 @@ class ImagePreprocessor {
       safeRect.width(),
       safeRect.height()
     )
-  }
-
-  private fun getImageDimensions(filePath: String): Pair<Int, Int> {
-    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    BitmapFactory.decodeFile(filePath, options)
-    return options.outWidth to options.outHeight
-  }
-
-  private fun applyExifRotation(bitmap: Bitmap, filePath: String): Bitmap {
-    val exif = ExifInterface(filePath)
-    val orientation =
-      exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-    val degrees = when (orientation) {
-      ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-      ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-      ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-      else -> return bitmap
-    }
-    val matrix = Matrix().apply { postRotate(degrees) }
-    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
   }
 
   fun bitmapToJpeg(bitmap: Bitmap, quality: Int): ByteArray {

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -45,18 +44,3 @@ fun ShimmerImageSkeleton(
   )
 }
 
-/**
- * Text line skeleton.
- */
-@Composable
-fun ShimmerLine(
-  modifier: Modifier = Modifier,
-  height: Dp = 16.dp
-) {
-  ShimmerBox(
-    modifier = modifier
-        .fillMaxWidth()
-        .height(height),
-    cornerRadius = 4.dp
-  )
-}

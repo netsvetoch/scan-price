@@ -39,7 +39,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +47,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.model.AnalysisResult
 import ru.ainetico.honestprice.ui.camera.CameraEvent
@@ -74,7 +72,6 @@ fun HistoryScreen(
   val context = LocalContext.current
 
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-  val scope = rememberCoroutineScope()
 
   val galleryLauncher = rememberLauncherForActivityResult(
     ActivityResultContracts.GetContent()
@@ -103,14 +100,6 @@ fun HistoryScreen(
           onNavigateToManualEntry()
         }
       }
-    }
-  }
-
-  // Helper to close sheet with animation
-  fun closeSheet() {
-    scope.launch {
-      sheetState.hide()
-      onShowSheetChange(false)
     }
   }
 

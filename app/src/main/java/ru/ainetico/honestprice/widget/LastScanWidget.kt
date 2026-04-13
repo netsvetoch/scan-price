@@ -24,7 +24,7 @@ import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
+import androidx.glance.color.ColorProvider
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
@@ -152,9 +152,8 @@ class LastScanWidget : GlanceAppWidget() {
                   style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     color = ColorProvider(
-                      androidx.compose.ui.graphics.Color(
-                        0xFF4CAF50
-                      )
+                      day = androidx.compose.ui.graphics.Color(0xFF4CAF50),
+                      night = androidx.compose.ui.graphics.Color(0xFF4CAF50)
                     )
                   )
                 )

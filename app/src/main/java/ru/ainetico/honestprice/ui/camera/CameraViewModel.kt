@@ -240,22 +240,6 @@ class CameraViewModel @javax.inject.Inject constructor(
     }
   }
 
-  fun retake() {
-    scanningJob?.cancel()
-    // Clean up incomplete scan
-    val scanId = lastScanId
-    val imagePath = lastImagePath
-    lastScanId = null
-    lastImagePath = null
-    if (scanId != null || imagePath != null) {
-      viewModelScope.launch(Dispatchers.IO) {
-        scanId?.let { scanRepository.delete(it) }
-        imagePath?.let { File(it).delete() }
-      }
-    }
-    _state.value = CameraState.Preview
-  }
-
   fun onManualEntry() {
     _event.trySend(CameraEvent.NavigateToManualEntry)
   }
@@ -299,7 +283,7 @@ class CameraViewModel @javax.inject.Inject constructor(
 
     val scanId = withContext(Dispatchers.IO) { scanRepository.createProcessing(imagePath) }
     lastScanId = scanId
-    val analysisResult = imageAnalyzer.analyze(analyzeBitmap ?: cropped, cropRect, forceLocal)
+    val analysisResult = imageAnalyzer.analyze(analyzeBitmap ?: cropped, forceLocal)
 
     return Pair(scanId, analysisResult)
   }

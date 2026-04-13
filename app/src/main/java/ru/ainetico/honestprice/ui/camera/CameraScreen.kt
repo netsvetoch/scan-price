@@ -184,9 +184,7 @@ fun CameraScreen(
               data = Uri.fromParts("package", context.packageName, null)
             }
             context.startActivity(intent)
-          },
-          onGallery = { galleryLauncher.launch("image/*") },
-          onManualEntry = { viewModel.onManualEntry() }
+          }
         )
 
         // Bottom controls

@@ -26,9 +26,9 @@ class ModelDownloader(
   companion object {
     private const val TAG = "ModelDownloader"
 
-    val MODEL_URL =
+    const val MODEL_URL =
       "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
-    val MMPROJ_URL =
+    const val MMPROJ_URL =
       "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
 
     const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
@@ -71,10 +71,6 @@ class ModelDownloader(
 
   init {
     notificationHelper.createChannels()
-  }
-
-  fun showReadyNotification() {
-    notificationHelper.showReadyNotification()
   }
 
   fun isModelDownloaded(): Boolean {
@@ -267,7 +263,6 @@ class ModelDownloader(
           DownloadManager.STATUS_FAILED -> {
             val reasonIdx = cursor.getColumnIndex(DownloadManager.COLUMN_REASON)
             val reason = if (reasonIdx >= 0) cursor.getInt(reasonIdx) else -1
-            completed = true
             throw RuntimeException("Download failed: reason=$reason")
           }
         }

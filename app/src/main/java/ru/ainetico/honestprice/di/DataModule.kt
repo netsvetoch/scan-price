@@ -16,6 +16,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
 
+  @Suppress("unused")
   @Binds
   @Singleton
   abstract fun bindScanRepository(impl: ScanRepositoryImpl): ScanRepository

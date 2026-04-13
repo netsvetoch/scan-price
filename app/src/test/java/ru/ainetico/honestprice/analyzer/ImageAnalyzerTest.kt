@@ -52,7 +52,7 @@ class ImageAnalyzerTest {
             )
         )
 
-        val result = analyzer.analyze(bitmap, null)
+        val result = analyzer.analyze(bitmap)
 
         assertEquals("Молоко", result.tag.productName)
         assertEquals(BigDecimal("89.90"), result.tag.priceRegular)
@@ -66,7 +66,7 @@ class ImageAnalyzerTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         coEvery { localEngine.analyze(any(), any()) } returns VisionResult.Success(ParsedPriceTag())
 
-        val result = analyzer.analyze(bitmap, null)
+        val result = analyzer.analyze(bitmap)
 
         assertNull(result.tag.priceRegular)
         assertNull(result.price)
@@ -93,7 +93,7 @@ class ImageAnalyzerTest {
         val remoteAnalyzer = ImageAnalyzer(localEngine, calculator, remoteSettings, mockRemoteClient)
 
         try {
-            remoteAnalyzer.analyze(bitmap, null)
+            remoteAnalyzer.analyze(bitmap)
             fail("Expected RemoteAnalysisException")
         } catch (e: RemoteAnalysisException) {
             assertTrue(e.message!!.contains("Ошибка при подключении к серверу"))
@@ -106,7 +106,7 @@ class ImageAnalyzerTest {
         coEvery { localEngine.analyze(any(), any()) } returns VisionResult.Error("Engine not ready")
 
         try {
-            analyzer.analyze(bitmap, null)
+            analyzer.analyze(bitmap)
             fail("Expected LocalAnalysisException")
         } catch (e: LocalAnalysisException) {
             assertEquals("Engine not ready", e.message)
@@ -135,7 +135,7 @@ class ImageAnalyzerTest {
             )
         )
 
-        val result = remoteAnalyzer.analyze(bitmap, null, forceLocal = true)
+        val result = remoteAnalyzer.analyze(bitmap, forceLocal = true)
 
         assertEquals("Хлеб", result.tag.productName)
     }

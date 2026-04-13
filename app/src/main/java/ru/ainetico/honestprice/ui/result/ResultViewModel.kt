@@ -172,11 +172,6 @@ class ResultViewModel @javax.inject.Inject constructor(
     _storeQuery.value = value
   }
 
-  fun updateBarcode(value: String) {
-    _state.update { it.copy(barcode = value) }
-  }
-
-
   private fun recalculatePrice() {
     val s = _state.value
     val regular = s.priceRegular.toBigDecimalOrNull()
