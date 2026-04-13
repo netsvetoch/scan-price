@@ -21,11 +21,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -82,10 +82,10 @@ fun ResultScreen(
   ) { padding ->
     Column(
       modifier = Modifier
-        .fillMaxSize()
-        .padding(padding)
-        .padding(horizontal = 16.dp)
-        .verticalScroll(rememberScrollState()),
+          .fillMaxSize()
+          .padding(padding)
+          .padding(horizontal = 16.dp)
+          .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
       Spacer(modifier = Modifier.height(8.dp))
@@ -103,8 +103,8 @@ fun ResultScreen(
             bitmap = bitmap!!.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(Dimens.CornerRadiusMedium)),
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Dimens.CornerRadiusMedium)),
             contentScale = ContentScale.FillWidth
           )
         } else {
@@ -220,8 +220,8 @@ fun ResultScreen(
       // Action buttons
       Row(
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(vertical = 8.dp),
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         OutlinedButton(

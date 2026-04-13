@@ -36,7 +36,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.ui.theme.Dimens
 
@@ -105,7 +104,10 @@ fun AdjustingContent(
         textAlign = TextAlign.Center,
         modifier = Modifier
           .weight(1f)
-          .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(Dimens.CornerRadiusSmall))
+          .background(
+            Color.Black.copy(alpha = 0.5f),
+            RoundedCornerShape(Dimens.CornerRadiusSmall)
+          )
           .padding(horizontal = 16.dp, vertical = 8.dp)
       )
       Button(

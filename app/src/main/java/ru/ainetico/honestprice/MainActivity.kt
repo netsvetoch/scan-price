@@ -1,11 +1,11 @@
 package ru.ainetico.honestprice
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,18 +16,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
-import ru.ainetico.honestprice.model.ModelDownloader
-
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.data.ScanRepository
-
+import ru.ainetico.honestprice.model.ModelDownloader
 import ru.ainetico.honestprice.navigation.AppNavigationViewModel
 import ru.ainetico.honestprice.navigation.Screen
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
 import ru.ainetico.honestprice.ui.navigation.AppNavGraph
 import ru.ainetico.honestprice.ui.theme.ScanPriceTheme
-import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 private const val ACTION_SCAN = "ru.ainetico.honestprice.ACTION_SCAN"
@@ -37,88 +35,94 @@ private const val ACTION_MANUAL = "ru.ainetico.honestprice.ACTION_MANUAL"
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    @Inject lateinit var appSettings: AppSettings
-    @Inject lateinit var modelDownloader: ModelDownloader
+  @Inject
+  lateinit var appSettings: AppSettings
 
-    @Inject lateinit var scanRepository: ScanRepository
+  @Inject
+  lateinit var modelDownloader: ModelDownloader
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+  @Inject
+  lateinit var scanRepository: ScanRepository
 
-        // Request max display refresh rate (120Hz+)
-        window.attributes = window.attributes.apply {
-            preferredDisplayModeId = display?.supportedModes
-                ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
-        }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
 
-        val launchAction = intent?.action
-
-        setContent {
-            ScanPriceTheme {
-                HonestPriceApp(
-                    appSettings = appSettings,
-                    modelDownloader = modelDownloader,
-                    scanRepository = scanRepository,
-                    launchAction = launchAction
-                )
-            }
-        }
+    // Request max display refresh rate (120Hz+)
+    window.attributes = window.attributes.apply {
+      preferredDisplayModeId = display?.supportedModes
+        ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
     }
+
+    val launchAction = intent?.action
+
+    setContent {
+      ScanPriceTheme {
+        HonestPriceApp(
+          appSettings = appSettings,
+          modelDownloader = modelDownloader,
+          scanRepository = scanRepository,
+          launchAction = launchAction
+        )
+      }
+    }
+  }
 }
 
 @Composable
 fun HonestPriceApp(
-    appSettings: AppSettings,
-    modelDownloader: ModelDownloader,
-    scanRepository: ScanRepository,
-    launchAction: String? = null
+  appSettings: AppSettings,
+  modelDownloader: ModelDownloader,
+  scanRepository: ScanRepository,
+  launchAction: String? = null
 ) {
-    // Load onboarding state asynchronously to avoid blocking the main thread
-    var onboardingCompleted by remember { mutableStateOf<Boolean?>(null) }
-    LaunchedEffect(Unit) {
-        onboardingCompleted = appSettings.onboardingCompleted.first()
+  // Load onboarding state asynchronously to avoid blocking the main thread
+  var onboardingCompleted by remember { mutableStateOf<Boolean?>(null) }
+  LaunchedEffect(Unit) {
+    onboardingCompleted = appSettings.onboardingCompleted.first()
+  }
+
+  val initialOnboardingCompleted = onboardingCompleted ?: return
+
+  val navController = rememberNavController()
+  val context = LocalContext.current
+  val startDestination =
+    if (initialOnboardingCompleted) Screen.History.route else Screen.Onboarding.route
+
+  // Shared instances
+  val cameraViewModel: CameraViewModel = hiltViewModel()
+  val navViewModel =
+    remember { AppNavigationViewModel(initialShowCamera = launchAction == ACTION_SCAN) }
+  val navState by navViewModel.state.collectAsState()
+
+  // Gallery launcher for ACTION_GALLERY shortcut
+  val shortcutGalleryLauncher = rememberLauncherForActivityResult(
+    ActivityResultContracts.GetContent()
+  ) { uri: android.net.Uri? ->
+    uri?.let {
+      cameraViewModel.importFromGallery(it, context)
+      navViewModel.setShowCameraSheet(true)
     }
+  }
 
-    val initialOnboardingCompleted = onboardingCompleted ?: return
-
-    val navController = rememberNavController()
-    val context = LocalContext.current
-    val startDestination = if (initialOnboardingCompleted) Screen.History.route else Screen.Onboarding.route
-
-    // Shared instances
-    val cameraViewModel: CameraViewModel = hiltViewModel()
-    val navViewModel = remember { AppNavigationViewModel(initialShowCamera = launchAction == ACTION_SCAN) }
-    val navState by navViewModel.state.collectAsState()
-
-    // Gallery launcher for ACTION_GALLERY shortcut
-    val shortcutGalleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: android.net.Uri? ->
-        uri?.let {
-            cameraViewModel.importFromGallery(it, context)
-            navViewModel.setShowCameraSheet(true)
-        }
+  // Handle shortcut actions after NavHost is ready
+  LaunchedEffect(launchAction) {
+    if (!initialOnboardingCompleted) return@LaunchedEffect
+    when (launchAction) {
+      ACTION_MANUAL -> navController.navigate(Screen.ResultManual.route)
+      ACTION_GALLERY -> shortcutGalleryLauncher.launch("image/*")
     }
+  }
 
-    // Handle shortcut actions after NavHost is ready
-    LaunchedEffect(launchAction) {
-        if (!initialOnboardingCompleted) return@LaunchedEffect
-        when (launchAction) {
-            ACTION_MANUAL -> navController.navigate(Screen.ResultManual.route)
-            ACTION_GALLERY -> shortcutGalleryLauncher.launch("image/*")
-        }
-    }
-
-    AppNavGraph(
-        navController = navController,
-        startDestination = startDestination,
-        appSettings = appSettings,
-        modelDownloader = modelDownloader,
-        scanRepository = scanRepository,
-        cameraViewModel = cameraViewModel,
-        navViewModel = navViewModel,
-        navState = navState,
-        context = context
-    )
+  AppNavGraph(
+    navController = navController,
+    startDestination = startDestination,
+    appSettings = appSettings,
+    modelDownloader = modelDownloader,
+    scanRepository = scanRepository,
+    cameraViewModel = cameraViewModel,
+    navViewModel = navViewModel,
+    navState = navState,
+    context = context
+  )
 }

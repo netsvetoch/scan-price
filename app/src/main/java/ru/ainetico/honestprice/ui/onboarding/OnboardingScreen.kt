@@ -41,14 +41,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.AppSettings
 import ru.ainetico.honestprice.model.ModelDownloader
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 @Composable
-fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader, onComplete: () -> Unit) {
-  val context = LocalContext.current
+fun OnboardingScreen(
+  appSettings: AppSettings,
+  modelDownloader: ModelDownloader,
+  onComplete: () -> Unit
+) {
+  LocalContext.current
   val pagerState = rememberPagerState(pageCount = { 3 })
   val coroutineScope = rememberCoroutineScope()
   val downloadState by modelDownloader.state.collectAsState()
@@ -73,8 +77,8 @@ fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader,
 
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp),
+        .fillMaxSize()
+        .padding(16.dp),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     HorizontalPager(
@@ -91,8 +95,8 @@ fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader,
     // Dot indicator
     Row(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 16.dp),
+          .fillMaxWidth()
+          .padding(vertical = 16.dp),
       horizontalArrangement = Arrangement.Center
     ) {
       repeat(3) { index ->
@@ -103,9 +107,9 @@ fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader,
         }
         Box(
           modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .size(Dimens.DotIndicatorSize)
-            .background(color, CircleShape)
+              .padding(horizontal = 4.dp)
+              .size(Dimens.DotIndicatorSize)
+              .background(color, CircleShape)
         )
       }
     }
@@ -198,11 +202,14 @@ fun OnboardingScreen(appSettings: AppSettings, modelDownloader: ModelDownloader,
 }
 
 @Composable
-private fun ModelDownloadPage(downloadState: ModelDownloader.DownloadState, downloadStarted: Boolean) {
+private fun ModelDownloadPage(
+  downloadState: ModelDownloader.DownloadState,
+  downloadStarted: Boolean
+) {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(24.dp),
+        .fillMaxSize()
+        .padding(24.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
   ) {
@@ -305,8 +312,8 @@ private fun FileProgressRow(fp: ModelDownloader.FileProgress) {
 private fun CameraPage() {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(24.dp),
+        .fillMaxSize()
+        .padding(24.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
   ) {
@@ -344,8 +351,8 @@ private fun CameraPage() {
 private fun LocationPage() {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(24.dp),
+        .fillMaxSize()
+        .padding(24.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
   ) {

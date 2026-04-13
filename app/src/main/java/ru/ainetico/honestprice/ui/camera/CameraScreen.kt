@@ -3,9 +3,9 @@ package ru.ainetico.honestprice.ui.camera
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.util.Log
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
@@ -58,7 +58,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.ui.theme.Dimens
@@ -214,8 +213,8 @@ fun CameraScreen(
         // Top buttons: torch + rotate
         Row(
           modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(top = 16.dp, end = 16.dp),
+              .align(Alignment.TopEnd)
+              .padding(top = 16.dp, end = 16.dp),
           horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           // Torch button
@@ -225,7 +224,11 @@ fun CameraScreen(
                 torchEnabled = !torchEnabled
                 cameraRef?.cameraControl?.enableTorch(torchEnabled)
               },
-              colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.4f)),
+              colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White.copy(
+                  alpha = 0.4f
+                )
+              ),
               modifier = Modifier.size(Dimens.ToolbarButtonSize),
               contentPadding = PaddingValues(0.dp),
               shape = CircleShape
@@ -265,9 +268,9 @@ fun CameraScreen(
               containerColor = if (isZoomed) Color.White else Color.White.copy(alpha = 0.4f)
             ),
             modifier = Modifier
-              .align(Alignment.BottomCenter)
-              .padding(bottom = Dimens.ZoomToggleBottomOffset)
-              .size(Dimens.ZoomToggleSize),
+                .align(Alignment.BottomCenter)
+                .padding(bottom = Dimens.ZoomToggleBottomOffset)
+                .size(Dimens.ZoomToggleSize),
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape
           ) {
@@ -282,13 +285,13 @@ fun CameraScreen(
         // Bottom controls
         Row(
           modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.BottomCenter)
-            .padding(
-              bottom = Dimens.BottomControlsBottomPadding,
-              start = Dimens.BottomControlsSidePadding,
-              end = Dimens.BottomControlsSidePadding
-            ),
+              .fillMaxWidth()
+              .align(Alignment.BottomCenter)
+              .padding(
+                  bottom = Dimens.BottomControlsBottomPadding,
+                  start = Dimens.BottomControlsSidePadding,
+                  end = Dimens.BottomControlsSidePadding
+              ),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically
         ) {
@@ -325,9 +328,9 @@ fun CameraScreen(
           ) {
             Box(
               modifier = Modifier
-                .size(Dimens.CaptureButtonInner)
-                .clip(CircleShape)
-                .border(2.dp, Color.Black.copy(alpha = 0.2f), CircleShape)
+                  .size(Dimens.CaptureButtonInner)
+                  .clip(CircleShape)
+                  .border(2.dp, Color.Black.copy(alpha = 0.2f), CircleShape)
             )
           }
 
@@ -370,24 +373,24 @@ private fun ErrorContent(
   ) {
     Box(
       modifier = Modifier
-        .padding(24.dp)
-        .fillMaxWidth()
-        .aspectRatio(frameAspectRatio)
-        .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
-        .border(
-          Dimens.FrameBorderInner,
-          MaterialTheme.colorScheme.error,
-          RoundedCornerShape(Dimens.CornerRadiusLarge)
-        )
-        .background(Color.DarkGray),
+          .padding(24.dp)
+          .fillMaxWidth()
+          .aspectRatio(frameAspectRatio)
+          .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
+          .border(
+              Dimens.FrameBorderInner,
+              MaterialTheme.colorScheme.error,
+              RoundedCornerShape(Dimens.CornerRadiusLarge)
+          )
+          .background(Color.DarkGray),
       contentAlignment = Alignment.Center
     ) {
       Image(
         bitmap = previewBitmap.asImageBitmap(),
         contentDescription = null,
         modifier = Modifier
-          .fillMaxSize()
-          .clip(RoundedCornerShape(Dimens.CornerRadiusLarge)),
+            .fillMaxSize()
+            .clip(RoundedCornerShape(Dimens.CornerRadiusLarge)),
         contentScale = ContentScale.Fit,
         alpha = 0.5f
       )
@@ -446,16 +449,16 @@ private fun ScanningContent(
 
     Box(
       modifier = Modifier
-        .padding(horizontal = 24.dp)
-        .fillMaxWidth()
-        .aspectRatio(frameAspectRatio)
-        .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
-        .border(
-          Dimens.FrameBorderInner,
-          Color.White.copy(alpha = 0.3f),
-          RoundedCornerShape(Dimens.CornerRadiusLarge)
-        )
-        .background(Color.DarkGray),
+          .padding(horizontal = 24.dp)
+          .fillMaxWidth()
+          .aspectRatio(frameAspectRatio)
+          .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
+          .border(
+              Dimens.FrameBorderInner,
+              Color.White.copy(alpha = 0.3f),
+              RoundedCornerShape(Dimens.CornerRadiusLarge)
+          )
+          .background(Color.DarkGray),
       contentAlignment = Alignment.Center
     ) {
       if (displayBitmap != null) {
@@ -463,8 +466,8 @@ private fun ScanningContent(
           bitmap = displayBitmap.asImageBitmap(),
           contentDescription = null,
           modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(Dimens.CornerRadiusLarge)),
+              .fillMaxSize()
+              .clip(RoundedCornerShape(Dimens.CornerRadiusLarge)),
           contentScale = ContentScale.Fit
         )
         ScanningOverlay(modifier = Modifier.matchParentSize())

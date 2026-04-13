@@ -50,7 +50,8 @@ fun CameraPreview(
         val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
         try {
           cameraProvider.unbindAll()
-          val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+          val camera =
+            cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
           onCameraReady(camera)
         } catch (e: Exception) {
           onError(e)

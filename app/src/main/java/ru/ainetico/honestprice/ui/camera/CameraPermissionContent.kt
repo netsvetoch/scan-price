@@ -1,9 +1,5 @@
 package ru.ainetico.honestprice.ui.camera
 
-import android.Manifest
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.ui.theme.Dimens
 
@@ -47,12 +42,12 @@ fun CameraPermissionContent(
   onManualEntry: () -> Unit,
   modifier: Modifier = Modifier
 ) {
-  val context = LocalContext.current
+  LocalContext.current
 
   Column(
     modifier = modifier
-      .fillMaxSize()
-      .padding(32.dp),
+        .fillMaxSize()
+        .padding(32.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
   ) {
@@ -89,8 +84,12 @@ fun BottomGalleryControls(
 ) {
   Row(
     modifier = modifier
-      .fillMaxWidth()
-      .padding(bottom = Dimens.BottomControlsBottomPadding, start = Dimens.BottomControlsSidePadding, end = Dimens.BottomControlsSidePadding),
+        .fillMaxWidth()
+        .padding(
+            bottom = Dimens.BottomControlsBottomPadding,
+            start = Dimens.BottomControlsSidePadding,
+            end = Dimens.BottomControlsSidePadding
+        ),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically
   ) {

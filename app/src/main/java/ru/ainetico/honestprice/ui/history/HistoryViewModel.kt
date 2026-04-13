@@ -35,6 +35,7 @@ class HistoryViewModel @javax.inject.Inject constructor(
         when {
           after != null && beforeDate != afterDate ->
             ScanListItem.DateHeader(afterDate!!, after.scan.createdAt)
+
           else -> null
         }
       }

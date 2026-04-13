@@ -24,91 +24,91 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
-import ru.ainetico.honestprice.ui.theme.Dimens
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.ainetico.honestprice.R
 import ru.ainetico.honestprice.data.DataExporter
 import ru.ainetico.honestprice.data.ScanRepository
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 @Composable
 fun ExportSection(
-    scanRepository: ScanRepository,
-    scanCount: Int
+  scanRepository: ScanRepository,
+  scanCount: Int
 ) {
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+  val scope = rememberCoroutineScope()
+  val context = LocalContext.current
 
-    SettingsSectionHeader(
-        titleRes = R.string.settings_export_title,
-        descriptionRes = R.string.settings_export_description
-    )
+  SettingsSectionHeader(
+    titleRes = R.string.settings_export_title,
+    descriptionRes = R.string.settings_export_description
+  )
 
-    var isExporting by remember { mutableStateOf(false) }
-    var exportStatus by remember { mutableStateOf("") }
-    var isExportError by remember { mutableStateOf(false) }
+  var isExporting by remember { mutableStateOf(false) }
+  var exportStatus by remember { mutableStateOf("") }
+  var isExportError by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Button(
-            onClick = {
-                scope.launch {
-                    isExporting = true
-                    exportStatus = ""
-                    isExportError = false
-                    try {
-                        val scans = withContext(Dispatchers.IO) {
-                            scanRepository.getAllScans()
-                        }
-                        if (scans.isEmpty()) {
-                            exportStatus = context.getString(R.string.settings_export_no_data)
-                            isExportError = false
-                        } else {
-                            val exporter = DataExporter(context)
-                            val result = exporter.export(scans)
-                            val files = listOfNotNull(result.csvFile, result.zipFile)
-                            exporter.shareFiles(files)
-                            exportStatus = context.resources.getQuantityString(
-                                R.plurals.settings_export_success, scans.size, scans.size
-                            )
-                            isExportError = false
-                        }
-                    } catch (e: Exception) {
-                        exportStatus = context.getString(R.string.settings_export_error, e.message)
-                        isExportError = true
-                        Log.e("Settings", "Export failed", e)
-                    }
-                    isExporting = false
-                }
-            },
-            enabled = !isExporting && scanCount > 0
-        ) {
-            if (isExporting) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(Dimens.ExportSpinnerSize),
-                    strokeWidth = Dimens.ScanningStrokeWidth,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(12.dp),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Button(
+      onClick = {
+        scope.launch {
+          isExporting = true
+          exportStatus = ""
+          isExportError = false
+          try {
+            val scans = withContext(Dispatchers.IO) {
+              scanRepository.getAllScans()
             }
-            Text(stringResource(R.string.settings_export_button))
+            if (scans.isEmpty()) {
+              exportStatus = context.getString(R.string.settings_export_no_data)
+              isExportError = false
+            } else {
+              val exporter = DataExporter(context)
+              val result = exporter.export(scans)
+              val files = listOfNotNull(result.csvFile, result.zipFile)
+              exporter.shareFiles(files)
+              exportStatus = context.resources.getQuantityString(
+                R.plurals.settings_export_success, scans.size, scans.size
+              )
+              isExportError = false
+            }
+          } catch (e: Exception) {
+            exportStatus = context.getString(R.string.settings_export_error, e.message)
+            isExportError = true
+            Log.e("Settings", "Export failed", e)
+          }
+          isExporting = false
         }
-        Text(
-            text = pluralStringResource(R.plurals.settings_scan_count, scanCount, scanCount),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+      },
+      enabled = !isExporting && scanCount > 0
+    ) {
+      if (isExporting) {
+        CircularProgressIndicator(
+          modifier = Modifier.size(Dimens.ExportSpinnerSize),
+          strokeWidth = Dimens.ScanningStrokeWidth,
+          color = MaterialTheme.colorScheme.onPrimary
         )
+        Spacer(modifier = Modifier.width(8.dp))
+      }
+      Text(stringResource(R.string.settings_export_button))
     }
+    Text(
+      text = pluralStringResource(R.plurals.settings_scan_count, scanCount, scanCount),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+  }
 
-    if (exportStatus.isNotBlank()) {
-        Text(
-            text = exportStatus,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (isExportError) MaterialTheme.colorScheme.error
-            else MaterialTheme.colorScheme.primary
-        )
-    }
+  if (exportStatus.isNotBlank()) {
+    Text(
+      text = exportStatus,
+      style = MaterialTheme.typography.bodySmall,
+      color = if (isExportError) MaterialTheme.colorScheme.error
+      else MaterialTheme.colorScheme.primary
+    )
+  }
 }

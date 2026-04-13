@@ -8,18 +8,18 @@ import androidx.compose.ui.res.stringResource
 
 @Composable
 fun SettingsSectionHeader(
-    @StringRes titleRes: Int,
-    @StringRes descriptionRes: Int? = null
+  @StringRes titleRes: Int,
+  @StringRes descriptionRes: Int? = null
 ) {
+  Text(
+    text = stringResource(titleRes),
+    style = MaterialTheme.typography.titleMedium
+  )
+  if (descriptionRes != null) {
     Text(
-        text = stringResource(titleRes),
-        style = MaterialTheme.typography.titleMedium
+      text = stringResource(descriptionRes),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    if (descriptionRes != null) {
-        Text(
-            text = stringResource(descriptionRes),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+  }
 }

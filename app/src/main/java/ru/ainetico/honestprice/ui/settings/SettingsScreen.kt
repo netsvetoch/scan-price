@@ -29,46 +29,49 @@ import ru.ainetico.honestprice.model.ModelDownloader
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    appSettings: AppSettings,
-    scanRepository: ScanRepository,
-    modelDownloader: ModelDownloader,
-    onBack: () -> Unit
+  appSettings: AppSettings,
+  scanRepository: ScanRepository,
+  modelDownloader: ModelDownloader,
+  onBack: () -> Unit
 ) {
-    val allScans by scanRepository.getAllScansFlow().collectAsState(initial = emptyList())
+  val allScans by scanRepository.getAllScansFlow().collectAsState(initial = emptyList())
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
-                    }
-                }
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = { Text(stringResource(R.string.settings_title)) },
+        navigationIcon = {
+          IconButton(onClick = onBack) {
+            Icon(
+              Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = stringResource(R.string.action_back)
             )
+          }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            LanguageSection()
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            RemoteModelSection(appSettings)
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            LocalModelSection(appSettings, modelDownloader)
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            ExportSection(scanRepository, allScans.size)
-        }
+      )
     }
+  ) { padding ->
+    Column(
+      modifier = Modifier
+          .fillMaxSize()
+          .padding(padding)
+          .padding(16.dp)
+          .verticalScroll(rememberScrollState()),
+      verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+      LanguageSection()
+
+      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+      RemoteModelSection(appSettings)
+
+      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+      LocalModelSection(appSettings, modelDownloader)
+
+      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+      ExportSection(scanRepository, allScans.size)
+    }
+  }
 }

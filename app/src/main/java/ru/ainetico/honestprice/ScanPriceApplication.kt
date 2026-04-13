@@ -14,23 +14,38 @@ import javax.inject.Inject
 @HiltAndroidApp
 class ScanPriceApplication : Application() {
 
-    @Inject lateinit var localVisionEngine: LocalVisionEngine
-    @Inject lateinit var modelDownloader: ModelDownloader
-    @Inject @ApplicationScope lateinit var appScope: CoroutineScope
+  @Inject
+  lateinit var localVisionEngine: LocalVisionEngine
 
-    override fun onCreate() {
-        super.onCreate()
-        appScope.launch {
-            if (modelDownloader.isModelDownloaded()) {
-                Log.i("ScanPriceApplication", "Models already present, initializing vision engine...")
-                localVisionEngine.initialize()
-                Log.i("ScanPriceApplication", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-            } else {
-                modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed }
-                Log.i("ScanPriceApplication", "Download completed, initializing vision engine...")
-                localVisionEngine.initialize()
-                Log.i("ScanPriceApplication", "Vision engine ready: ${localVisionEngine.isAvailable()}")
-            }
-        }
+  @Inject
+  lateinit var modelDownloader: ModelDownloader
+
+  @Inject
+  @ApplicationScope
+  lateinit var appScope: CoroutineScope
+
+  override fun onCreate() {
+    super.onCreate()
+    appScope.launch {
+      if (modelDownloader.isModelDownloaded()) {
+        Log.i(
+          "ScanPriceApplication",
+          "Models already present, initializing vision engine..."
+        )
+        localVisionEngine.initialize()
+        Log.i(
+          "ScanPriceApplication",
+          "Vision engine ready: ${localVisionEngine.isAvailable()}"
+        )
+      } else {
+        modelDownloader.state.first { it is ModelDownloader.DownloadState.Completed }
+        Log.i("ScanPriceApplication", "Download completed, initializing vision engine...")
+        localVisionEngine.initialize()
+        Log.i(
+          "ScanPriceApplication",
+          "Vision engine ready: ${localVisionEngine.isAvailable()}"
+        )
+      }
     }
+  }
 }

@@ -1,17 +1,17 @@
 package ru.ainetico.honestprice.model
 
-import ru.ainetico.honestprice.R
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import ru.ainetico.honestprice.R
 import java.io.File
 
 /**
@@ -26,14 +26,18 @@ class ModelDownloader(
   companion object {
     private const val TAG = "ModelDownloader"
 
-    val MODEL_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
-    val MMPROJ_URL = "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
+    val MODEL_URL =
+      "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf"
+    val MMPROJ_URL =
+      "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-BF16.gguf"
 
     const val MODEL_FILENAME = "Qwen3.5-0.8B-Q4_K_M.gguf"
     const val MMPROJ_FILENAME = "mmproj-BF16.gguf"
 
-    private const val MODEL_SHA256 = "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517"
-    private const val MMPROJ_SHA256 = "d312c4d02fd46eea7a16e4f3bbb58840e6222209322ca1e33ca03247ad8935d6"
+    private const val MODEL_SHA256 =
+      "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517"
+    private const val MMPROJ_SHA256 =
+      "d312c4d02fd46eea7a16e4f3bbb58840e6222209322ca1e33ca03247ad8935d6"
 
     private val EXPECTED_HASHES = mapOf(
       MODEL_FILENAME to MODEL_SHA256,
@@ -56,10 +60,13 @@ class ModelDownloader(
   private val _state = MutableStateFlow<DownloadState>(DownloadState.Idle)
   val state: StateFlow<DownloadState> = _state
 
-  private val file1Progress = MutableStateFlow(FileProgress(context.getString(R.string.download_file1_label), 0))
-  private val file2Progress = MutableStateFlow(FileProgress(context.getString(R.string.download_file2_label), 0))
+  private val file1Progress =
+    MutableStateFlow(FileProgress(context.getString(R.string.download_file1_label), 0))
+  private val file2Progress =
+    MutableStateFlow(FileProgress(context.getString(R.string.download_file2_label), 0))
 
-  private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+  private val downloadManager =
+    context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
   private val notificationHelper = DownloadNotificationHelper(context)
 
   init {
@@ -87,18 +94,32 @@ class ModelDownloader(
         val needModel = !File(modelsDir, MODEL_FILENAME).exists()
         val needMmproj = !File(modelsDir, MMPROJ_FILENAME).exists()
 
-        if (!needModel) file1Progress.value = FileProgress(context.getString(R.string.download_file1_label), 100, done = true)
-        if (!needMmproj) file2Progress.value = FileProgress(context.getString(R.string.download_file2_label), 100, done = true)
+        if (!needModel) file1Progress.value =
+          FileProgress(context.getString(R.string.download_file1_label), 100, done = true)
+        if (!needMmproj) file2Progress.value =
+          FileProgress(context.getString(R.string.download_file2_label), 100, done = true)
 
         _state.value = DownloadState.Downloading(file1Progress.value, file2Progress.value)
 
         // Launch both downloads in parallel (async so exceptions propagate on await)
         val deferred1 = if (needModel) {
-          scope.async { downloadFileWithManager(MODEL_URL, MODEL_FILENAME, file1Progress) }
+          scope.async {
+            downloadFileWithManager(
+              MODEL_URL,
+              MODEL_FILENAME,
+              file1Progress
+            )
+          }
         } else null
 
         val deferred2 = if (needMmproj) {
-          scope.async { downloadFileWithManager(MMPROJ_URL, MMPROJ_FILENAME, file2Progress) }
+          scope.async {
+            downloadFileWithManager(
+              MMPROJ_URL,
+              MMPROJ_FILENAME,
+              file2Progress
+            )
+          }
         } else null
 
         // Poll, update UI state and silent notification
@@ -108,7 +129,11 @@ class ModelDownloader(
           _state.value = DownloadState.Downloading(f1, f2)
 
           val totalProgress = (f1.progress + f2.progress) / 2
-          notificationHelper.showProgress(context.getString(R.string.download_progress_title), "$totalProgress%", totalProgress)
+          notificationHelper.showProgress(
+            context.getString(R.string.download_progress_title),
+            "$totalProgress%",
+            totalProgress
+          )
 
           delay(2000)
         }
@@ -122,11 +147,17 @@ class ModelDownloader(
           _state.value = DownloadState.Completed
           Log.i(TAG, "All models downloaded")
         } else {
-          _state.value = DownloadState.Error(context.getString(R.string.download_error_incomplete))
+          _state.value =
+            DownloadState.Error(context.getString(R.string.download_error_incomplete))
         }
       } catch (e: Exception) {
         Log.e(TAG, "Download failed", e)
-        _state.value = DownloadState.Error(context.getString(R.string.download_error_format, e.message))
+        _state.value = DownloadState.Error(
+          context.getString(
+            R.string.download_error_format,
+            e.message
+          )
+        )
       }
     }
   }
@@ -135,7 +166,11 @@ class ModelDownloader(
    * Download file using system DownloadManager and poll progress.
    * Blocks until download completes or fails.
    */
-  private suspend fun downloadFileWithManager(url: String, filename: String, progressFlow: MutableStateFlow<FileProgress>) {
+  private suspend fun downloadFileWithManager(
+    url: String,
+    filename: String,
+    progressFlow: MutableStateFlow<FileProgress>
+  ) {
     val modelsDir = File(context.filesDir, "models")
     val destFile = File(modelsDir, filename)
 
@@ -148,7 +183,10 @@ class ModelDownloader(
       .setTitle("${context.getString(R.string.app_name)} — $label")
       .setDescription(context.getString(R.string.download_description))
       .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-      .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "honestprice_$filename")
+      .setDestinationInExternalPublicDir(
+        Environment.DIRECTORY_DOWNLOADS,
+        "honestprice_$filename"
+      )
       .setAllowedOverMetered(true)
       .setAllowedOverRoaming(false)
 
@@ -172,7 +210,8 @@ class ModelDownloader(
 
         when (status) {
           DownloadManager.STATUS_RUNNING, DownloadManager.STATUS_PENDING -> {
-            val progress = if (totalBytes > 0) ((bytesDownloaded * 100) / totalBytes).toInt() else 0
+            val progress =
+              if (totalBytes > 0) ((bytesDownloaded * 100) / totalBytes).toInt() else 0
             // Only update if progress increased — prevents jitter
             if (progress > progressFlow.value.progress) {
               progressFlow.value = progressFlow.value.copy(progress = progress)
@@ -210,8 +249,12 @@ class ModelDownloader(
                 }
                 // Remove from Downloads
                 downloadManager.remove(downloadId)
-                progressFlow.value = progressFlow.value.copy(progress = 100, done = true)
-                Log.i(TAG, "$label downloaded: ${destFile.length() / 1024 / 1024}MB")
+                progressFlow.value =
+                  progressFlow.value.copy(progress = 100, done = true)
+                Log.i(
+                  TAG,
+                  "$label downloaded: ${destFile.length() / 1024 / 1024}MB"
+                )
               } else {
                 throw RuntimeException("Download URI is null")
               }

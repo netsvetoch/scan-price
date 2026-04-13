@@ -14,29 +14,35 @@ import kotlinx.coroutines.tasks.await
 
 class LocationProvider(private val context: Context) {
 
-    private val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+  private val fusedClient = LocationServices.getFusedLocationProviderClient(context)
 
-    @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(): Location? {
-        if (!hasPermission()) {
-            Log.d("LocationProvider", "Location permission not granted, skipping")
-            return null
-        }
-
-        return try {
-            val cancellationToken = CancellationTokenSource()
-            fusedClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                cancellationToken.token
-            ).await()
-        } catch (e: Exception) {
-            Log.w("LocationProvider", "Failed to get location: ${e.message}")
-            null
-        }
+  @SuppressLint("MissingPermission")
+  suspend fun getCurrentLocation(): Location? {
+    if (!hasPermission()) {
+      Log.d("LocationProvider", "Location permission not granted, skipping")
+      return null
     }
 
-    private fun hasPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-               ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    return try {
+      val cancellationToken = CancellationTokenSource()
+      fusedClient.getCurrentLocation(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        cancellationToken.token
+      ).await()
+    } catch (e: Exception) {
+      Log.w("LocationProvider", "Failed to get location: ${e.message}")
+      null
     }
+  }
+
+  private fun hasPermission(): Boolean {
+    return ContextCompat.checkSelfPermission(
+      context,
+      Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+              context,
+              Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+  }
 }

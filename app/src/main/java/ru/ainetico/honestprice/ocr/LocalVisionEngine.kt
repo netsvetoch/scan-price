@@ -3,16 +3,16 @@ package ru.ainetico.honestprice.ocr
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import ru.ainetico.honestprice.BuildConfig
 import com.arm.aichat.AiChat
 import com.arm.aichat.InferenceEngine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.model.ParsedPriceTag
 import org.json.JSONObject
-import java.io.File
+import ru.ainetico.honestprice.BuildConfig
 import ru.ainetico.honestprice.image.ImagePreprocessor
+import ru.ainetico.honestprice.model.ParsedPriceTag
+import java.io.File
 
 /**
  * On-device vision inference using llama.cpp + Qwen3.5 GGUF.
@@ -44,15 +44,21 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
 """
 
     const val DEFAULT_PROMPT = "This is a photo of a price tag from a Russian store. " +
-        "Extract the product name, description, prices, weight/volume from the tag. " +
-        "If there is a discounted or card price, include it separately from the regular price. " +
-        "Use null for any fields you cannot read."
+            "Extract the product name, description, prices, weight/volume from the tag. " +
+            "If there is a discounted or card price, include it separately from the regular price. " +
+            "Use null for any fields you cannot read."
   }
 
   private val imagePreprocessor = ImagePreprocessor()
-  @Volatile private var engine: InferenceEngine? = null
-  @Volatile private var isReady = false
-  @Volatile private var initError: String? = null
+
+  @Volatile
+  private var engine: InferenceEngine? = null
+
+  @Volatile
+  private var isReady = false
+
+  @Volatile
+  private var initError: String? = null
 
   /**
    * Initialize the engine — load model + mmproj.
@@ -76,7 +82,8 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
       // List available .so files for debugging
       val nativeLibDir = File(appContext.applicationInfo.nativeLibraryDir)
       Log.i(TAG, "Native libs in ${nativeLibDir.absolutePath}:")
-      nativeLibDir.listFiles()?.forEach { Log.i(TAG, "  ${it.name} (${it.length() / 1024}KB)") }
+      nativeLibDir.listFiles()
+        ?.forEach { Log.i(TAG, "  ${it.name} (${it.length() / 1024}KB)") }
 
       // Find model files — check internal storage first, then Downloads
       var modelsDir = File(appContext.filesDir, "models")
@@ -138,7 +145,10 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
         if (cropped !== bitmap) cropped.recycle()
 
         val response = eng.analyzeImage(imageBytes, prompt, JSON_SCHEMA)
-        if (BuildConfig.DEBUG) Log.d(TAG, "Response (${response.length} chars): '${response.take(500)}'")
+        if (BuildConfig.DEBUG) Log.d(
+          TAG,
+          "Response (${response.length} chars): '${response.take(500)}'"
+        )
 
         if (response.isBlank()) {
           Log.w(TAG, "Empty response from model")

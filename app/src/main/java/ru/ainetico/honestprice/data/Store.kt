@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "stores")
 data class Store(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    val name: String
+  @PrimaryKey(autoGenerate = true)
+  val id: Long = 0,
+  val name: String
 )

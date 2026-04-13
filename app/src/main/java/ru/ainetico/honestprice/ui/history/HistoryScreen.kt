@@ -47,7 +47,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
-import ru.ainetico.honestprice.ui.theme.Dimens
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.ainetico.honestprice.R
@@ -56,6 +55,7 @@ import ru.ainetico.honestprice.ui.camera.CameraEvent
 import ru.ainetico.honestprice.ui.camera.CameraScreen
 import ru.ainetico.honestprice.ui.camera.CameraState
 import ru.ainetico.honestprice.ui.camera.CameraViewModel
+import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.util.formatRelativeDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -170,16 +170,16 @@ fun HistoryScreen(
         // Loading skeleton
         Column(
           modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(16.dp),
+              .fillMaxSize()
+              .padding(padding)
+              .padding(16.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           repeat(5) {
             ru.ainetico.honestprice.ui.common.ShimmerBox(
               modifier = Modifier
-                .fillMaxWidth()
-                .height(Dimens.SkeletonItemHeight)
+                  .fillMaxWidth()
+                  .height(Dimens.SkeletonItemHeight)
             )
           }
         }
@@ -188,8 +188,8 @@ fun HistoryScreen(
       refreshState is LoadState.NotLoading && lazyPagingItems.itemCount == 0 -> {
         Box(
           Modifier
-            .fillMaxSize()
-            .padding(padding), contentAlignment = Alignment.Center
+              .fillMaxSize()
+              .padding(padding), contentAlignment = Alignment.Center
         ) {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -210,8 +210,8 @@ fun HistoryScreen(
       else -> {
         LazyColumn(
           modifier = Modifier
-            .fillMaxSize()
-            .padding(padding),
+              .fillMaxSize()
+              .padding(padding),
           contentPadding = PaddingValues(16.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -229,8 +229,8 @@ fun HistoryScreen(
               is ScanListItem.DateHeader -> {
                 Row(
                   modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                      .fillMaxWidth()
+                      .padding(vertical = 8.dp),
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -255,8 +255,8 @@ fun HistoryScreen(
             item {
               Box(
                 modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(16.dp),
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
               ) {
                 CircularProgressIndicator(modifier = Modifier.size(Dimens.AppendIndicatorSize))
@@ -275,7 +275,10 @@ fun HistoryScreen(
     val sheetModifier by remember {
       derivedStateOf {
         when {
-          cameraState is CameraState.Scanning && isVertical -> Modifier.fillMaxHeight(0.85f)
+          cameraState is CameraState.Scanning && isVertical -> Modifier.fillMaxHeight(
+            0.85f
+          )
+
           cameraState is CameraState.Scanning -> Modifier.height(Dimens.ScanningSheetHeight)
           else -> Modifier.fillMaxHeight(0.85f)
         }

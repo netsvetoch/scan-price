@@ -17,11 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.data.Scan
+import ru.ainetico.honestprice.model.WeightUnit
 import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.ui.theme.PriceGreen
-import ru.ainetico.honestprice.model.WeightUnit
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -29,13 +28,13 @@ import java.math.MathContext
 fun ScanCard(scan: Scan, onClick: () -> Unit) {
   Card(
     modifier = Modifier
-      .fillMaxWidth()
-      .clickable(onClick = onClick),
+        .fillMaxWidth()
+        .clickable(onClick = onClick),
   ) {
     Row(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.Top
     ) {
@@ -78,7 +77,9 @@ fun ScanCard(scan: Scan, onClick: () -> Unit) {
       }
       val honestPrice = remember(scan.pricePerUnitDiscount, scan.pricePerUnit) {
         (scan.pricePerUnitDiscount ?: scan.pricePerUnit)
-          ?.let { BigDecimal(it).round(MathContext(3)).stripTrailingZeros().toPlainString() }
+          ?.let {
+            BigDecimal(it).round(MathContext(3)).stripTrailingZeros().toPlainString()
+          }
       }
       val unitName = remember(scan.displayUnit) {
         scan.displayUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }?.displayName

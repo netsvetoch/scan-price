@@ -26,89 +26,88 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
-import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.ui.theme.Dimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSection() {
-    val context = LocalContext.current
-    val currentLang = AppCompatDelegate.getApplicationLocales().get(0)?.language
-        ?: context.resources.configuration.locales[0].language
-    val currentLangName = when (currentLang) {
-        "en" -> "English"
-        else -> "Русский"
+  val context = LocalContext.current
+  val currentLang = AppCompatDelegate.getApplicationLocales().get(0)?.language
+    ?: context.resources.configuration.locales[0].language
+  val currentLangName = when (currentLang) {
+    "en" -> "English"
+    else -> "Русский"
+  }
+
+  if (Build.VERSION.SDK_INT >= 33) {
+    Row(
+      modifier = Modifier
+          .fillMaxWidth()
+          .clickable {
+              val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
+              intent.data = Uri.parse("package:${context.packageName}")
+              context.startActivity(intent)
+          },
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(
+        text = stringResource(R.string.settings_language_title),
+        style = MaterialTheme.typography.titleMedium
+      )
+      Text(
+        text = "$currentLangName ›",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.primary
+      )
     }
+  } else {
+    var selectedLanguage by remember { mutableStateOf(currentLang) }
+    var languageExpanded by remember { mutableStateOf(false) }
+    val languageOptions = listOf("ru" to "Русский", "en" to "English")
 
-    if (Build.VERSION.SDK_INT >= 33) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
-                    intent.data = Uri.parse("package:${context.packageName}")
-                    context.startActivity(intent)
-                },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(
+        text = stringResource(R.string.settings_language_title),
+        style = MaterialTheme.typography.titleMedium
+      )
+      ExposedDropdownMenuBox(
+        expanded = languageExpanded,
+        onExpandedChange = { languageExpanded = it },
+        modifier = Modifier.width(Dimens.LanguageDropdownWidth)
+      ) {
+        OutlinedTextField(
+          value = languageOptions.first { it.first == selectedLanguage }.second,
+          onValueChange = {},
+          readOnly = true,
+          singleLine = true,
+          modifier = Modifier.menuAnchor(),
+          trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageExpanded) }
+        )
+        ExposedDropdownMenu(
+          expanded = languageExpanded,
+          onDismissRequest = { languageExpanded = false }
         ) {
-            Text(
-                text = stringResource(R.string.settings_language_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "$currentLangName ›",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    } else {
-        var selectedLanguage by remember { mutableStateOf(currentLang) }
-        var languageExpanded by remember { mutableStateOf(false) }
-        val languageOptions = listOf("ru" to "Русский", "en" to "English")
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.settings_language_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            ExposedDropdownMenuBox(
-                expanded = languageExpanded,
-                onExpandedChange = { languageExpanded = it },
-                modifier = Modifier.width(Dimens.LanguageDropdownWidth)
-            ) {
-                OutlinedTextField(
-                    value = languageOptions.first { it.first == selectedLanguage }.second,
-                    onValueChange = {},
-                    readOnly = true,
-                    singleLine = true,
-                    modifier = Modifier.menuAnchor(),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageExpanded) }
+          languageOptions.forEach { (tag, name) ->
+            DropdownMenuItem(
+              text = { Text(name) },
+              onClick = {
+                selectedLanguage = tag
+                languageExpanded = false
+                AppCompatDelegate.setApplicationLocales(
+                  LocaleListCompat.forLanguageTags(tag)
                 )
-                ExposedDropdownMenu(
-                    expanded = languageExpanded,
-                    onDismissRequest = { languageExpanded = false }
-                ) {
-                    languageOptions.forEach { (tag, name) ->
-                        DropdownMenuItem(
-                            text = { Text(name) },
-                            onClick = {
-                                selectedLanguage = tag
-                                languageExpanded = false
-                                AppCompatDelegate.setApplicationLocales(
-                                    LocaleListCompat.forLanguageTags(tag)
-                                )
-                            }
-                        )
-                    }
-                }
-            }
+              }
+            )
+          }
         }
+      }
     }
+  }
 }

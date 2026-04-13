@@ -18,12 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ru.ainetico.honestprice.R
+import ru.ainetico.honestprice.model.WeightUnit
 import ru.ainetico.honestprice.ui.theme.Dimens
 import ru.ainetico.honestprice.ui.theme.PriceGreen
 import ru.ainetico.honestprice.ui.theme.PriceGreenLight
-import ru.ainetico.honestprice.model.WeightUnit
 
 @Composable
 fun PriceCard(
@@ -39,14 +38,14 @@ fun PriceCard(
 
   Box(
     modifier = modifier
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
-      .background(
-        Brush.linearGradient(
-          colors = listOf(PriceGreenLight, PriceGreen)
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(Dimens.CornerRadiusLarge))
+        .background(
+            Brush.linearGradient(
+                colors = listOf(PriceGreenLight, PriceGreen)
+            )
         )
-      )
-      .padding(Dimens.PriceCardPadding),
+        .padding(Dimens.PriceCardPadding),
     contentAlignment = Alignment.Center
   ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {

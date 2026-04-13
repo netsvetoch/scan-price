@@ -40,8 +40,8 @@ fun StoreComboBox(
       },
       label = { Text(stringResource(R.string.result_store)) },
       modifier = Modifier
-        .fillMaxWidth()
-        .menuAnchor(),
+          .fillMaxWidth()
+          .menuAnchor(),
       singleLine = true,
       trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }
     )

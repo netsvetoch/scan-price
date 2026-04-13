@@ -8,18 +8,18 @@ import java.util.concurrent.TimeUnit
  */
 object ApiHttpClient {
 
-    val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .build()
+  val client: OkHttpClient = OkHttpClient.Builder()
+    .connectTimeout(15, TimeUnit.SECONDS)
+    .readTimeout(120, TimeUnit.SECONDS)
+    .writeTimeout(30, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(true)
+    .build()
 
-    /**
-     * Short-timeout client for lightweight requests (e.g. model listing).
-     */
-    val quickClient: OkHttpClient = client.newBuilder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .build()
+  /**
+   * Short-timeout client for lightweight requests (e.g. model listing).
+   */
+  val quickClient: OkHttpClient = client.newBuilder()
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(10, TimeUnit.SECONDS)
+    .build()
 }

@@ -24,9 +24,9 @@ fun ShimmerBox(
 ) {
   Box(
     modifier = modifier
-      .shimmer()
-      .clip(RoundedCornerShape(cornerRadius))
-      .background(MaterialTheme.colorScheme.surfaceVariant)
+        .shimmer()
+        .clip(RoundedCornerShape(cornerRadius))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
   )
 }
 
@@ -40,8 +40,8 @@ fun ShimmerImageSkeleton(
 ) {
   ShimmerBox(
     modifier = modifier
-      .fillMaxWidth()
-      .aspectRatio(aspectRatio)
+        .fillMaxWidth()
+        .aspectRatio(aspectRatio)
   )
 }
 
@@ -55,8 +55,8 @@ fun ShimmerLine(
 ) {
   ShimmerBox(
     modifier = modifier
-      .fillMaxWidth()
-      .height(height),
+        .fillMaxWidth()
+        .height(height),
     cornerRadius = 4.dp
   )
 }

@@ -28,7 +28,9 @@ import java.io.FileOutputStream
 @androidx.compose.runtime.Stable
 sealed class CameraState {
   object Preview : CameraState()
-  data class Adjusting(val bitmap: Bitmap) : CameraState()  // gallery image — user aligns price tag
+  data class Adjusting(val bitmap: Bitmap) :
+    CameraState()  // gallery image — user aligns price tag
+
   data class Scanning(
     val displayBitmap: Bitmap?,  // null = skeleton
     val status: String = ""
@@ -82,7 +84,15 @@ class CameraViewModel @javax.inject.Inject constructor(
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(
-            cropOp = { withContext(Dispatchers.Default) { ImageCropper.cropToFrame(bitmap, appContext.resources.displayMetrics.density, _isVerticalFrame.value) } },
+            cropOp = {
+              withContext(Dispatchers.Default) {
+                ImageCropper.cropToFrame(
+                  bitmap,
+                  appContext.resources.displayMetrics.density,
+                  _isVerticalFrame.value
+                )
+              }
+            },
             analyzeBitmap = bitmap,
             cropRect = cropRect
           )
@@ -90,14 +100,28 @@ class CameraViewModel @javax.inject.Inject constructor(
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: RemoteAnalysisException) {
         Log.e("CameraViewModel", "Remote failed", e)
-        val cropped = withContext(Dispatchers.Default) { ImageCropper.cropToFrame(bitmap, appContext.resources.displayMetrics.density, _isVerticalFrame.value) }
-        _state.value = CameraState.RemoteError(e.message ?: appContext.getString(R.string.camera_error_server), cropped)
+        val cropped = withContext(Dispatchers.Default) {
+          ImageCropper.cropToFrame(
+            bitmap,
+            appContext.resources.displayMetrics.density,
+            _isVerticalFrame.value
+          )
+        }
+        _state.value = CameraState.RemoteError(
+          e.message ?: appContext.getString(R.string.camera_error_server), cropped
+        )
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
-        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_timeout), bitmap)
+        _state.value =
+          CameraState.Error(appContext.getString(R.string.camera_error_timeout), bitmap)
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Processing failed", e)
-        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_recognition, e.message), bitmap)
+        _state.value = CameraState.Error(
+          appContext.getString(
+            R.string.camera_error_recognition,
+            e.message
+          ), bitmap
+        )
       }
     }
   }
@@ -112,7 +136,15 @@ class CameraViewModel @javax.inject.Inject constructor(
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(
-            cropOp = { withContext(Dispatchers.Default) { ImageCropper.cropToFrame(bitmap, appContext.resources.displayMetrics.density, _isVerticalFrame.value) } },
+            cropOp = {
+              withContext(Dispatchers.Default) {
+                ImageCropper.cropToFrame(
+                  bitmap,
+                  appContext.resources.displayMetrics.density,
+                  _isVerticalFrame.value
+                )
+              }
+            },
             analyzeBitmap = bitmap,
             forceLocal = true,
             analyzingStatus = R.string.camera_analyzing_local
@@ -121,7 +153,12 @@ class CameraViewModel @javax.inject.Inject constructor(
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Local retry failed", e)
-        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_generic, e.message), bitmap)
+        _state.value = CameraState.Error(
+          appContext.getString(
+            R.string.camera_error_generic,
+            e.message
+          ), bitmap
+        )
       }
     }
   }
@@ -168,16 +205,37 @@ class CameraViewModel @javax.inject.Inject constructor(
       try {
         val (scanId, result) = kotlinx.coroutines.withTimeout(SCAN_TIMEOUT_MS) {
           processImage(
-            cropOp = { withContext(Dispatchers.Default) { ImageCropper.cropAligned(bitmap, viewWidth, viewHeight, offsetX, offsetY, zoom, appContext.resources.displayMetrics.density, _isVerticalFrame.value) } }
+            cropOp = {
+              withContext(Dispatchers.Default) {
+                ImageCropper.cropAligned(
+                  bitmap,
+                  viewWidth,
+                  viewHeight,
+                  offsetX,
+                  offsetY,
+                  zoom,
+                  appContext.resources.displayMetrics.density,
+                  _isVerticalFrame.value
+                )
+              }
+            }
           )
         }
         _event.trySend(CameraEvent.NavigateToResult(scanId, result))
       } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
         Log.e("CameraViewModel", "Scan timed out", e)
-        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_timeout_short), bitmap)
+        _state.value = CameraState.Error(
+          appContext.getString(R.string.camera_error_timeout_short),
+          bitmap
+        )
       } catch (e: Exception) {
         Log.e("CameraViewModel", "Processing failed", e)
-        _state.value = CameraState.Error(appContext.getString(R.string.camera_error_generic, e.message), bitmap)
+        _state.value = CameraState.Error(
+          appContext.getString(
+            R.string.camera_error_generic,
+            e.message
+          ), bitmap
+        )
       }
     }
   }
@@ -232,7 +290,8 @@ class CameraViewModel @javax.inject.Inject constructor(
     val timestamp = System.currentTimeMillis()
 
     val cropped = cropOp()
-    _state.value = CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
+    _state.value =
+      CameraState.Scanning(cropped, appContext.getString(R.string.camera_compressing))
 
     val imagePath = saveBitmapToFile(cropped, timestamp)
     lastImagePath = imagePath
