@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import android.Manifest
 import android.content.Intent
@@ -59,8 +59,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 @Composable
 fun CameraScreen(
@@ -80,7 +80,7 @@ fun CameraScreen(
     onDispose { view.keepScreenOn = false }
   }
   val frameAspectRatio =
-    ru.ainetico.honestprice.FrameConfig.ratio(isVertical)
+    ru.ainetico.scanprice.FrameConfig.ratio(isVertical)
 
   // Permission state
   var cameraPermissionGranted by remember {

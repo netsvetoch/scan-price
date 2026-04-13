@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 enum class SyncStatus {
   LOCAL_ONLY

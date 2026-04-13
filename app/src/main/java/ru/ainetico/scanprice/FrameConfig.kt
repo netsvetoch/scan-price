@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice
+package ru.ainetico.scanprice
 
 /**
  * Global frame configuration — shared between UI overlay and image cropping.

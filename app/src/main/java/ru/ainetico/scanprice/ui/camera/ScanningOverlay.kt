@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -15,8 +15,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import ru.ainetico.honestprice.ui.theme.ScanLineGreen
-import ru.ainetico.honestprice.ui.theme.ScanLineGreenAlpha
+import ru.ainetico.scanprice.ui.theme.ScanLineGreen
+import ru.ainetico.scanprice.ui.theme.ScanLineGreenAlpha
 
 @Composable
 fun ScanningOverlay(modifier: Modifier = Modifier) {

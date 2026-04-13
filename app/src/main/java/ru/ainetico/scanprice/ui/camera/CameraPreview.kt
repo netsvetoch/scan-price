@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview

@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice
+package ru.ainetico.scanprice
 
 import android.app.Application
 import android.util.Log
@@ -6,9 +6,9 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import ru.ainetico.honestprice.di.ApplicationScope
-import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.ocr.LocalVisionEngine
+import ru.ainetico.scanprice.di.ApplicationScope
+import ru.ainetico.scanprice.model.ModelDownloader
+import ru.ainetico.scanprice.ocr.LocalVisionEngine
 import javax.inject.Inject
 
 @HiltAndroidApp

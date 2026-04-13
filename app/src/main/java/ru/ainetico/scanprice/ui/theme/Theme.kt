@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.theme
+package ru.ainetico.scanprice.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

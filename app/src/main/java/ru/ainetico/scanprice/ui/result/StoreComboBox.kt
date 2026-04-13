@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.result
+package ru.ainetico.scanprice.ui.result
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
@@ -14,8 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.Store
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.Store
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

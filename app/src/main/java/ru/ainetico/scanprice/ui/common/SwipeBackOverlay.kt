@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.common
+package ru.ainetico.scanprice.ui.common
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween

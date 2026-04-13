@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice
+package ru.ainetico.scanprice
 
 import android.os.Build
 import android.os.Bundle
@@ -19,19 +19,19 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.data.ScanRepository
-import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.navigation.AppNavigationViewModel
-import ru.ainetico.honestprice.navigation.Screen
-import ru.ainetico.honestprice.ui.camera.CameraViewModel
-import ru.ainetico.honestprice.ui.navigation.AppNavGraph
-import ru.ainetico.honestprice.ui.theme.ScanPriceTheme
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.data.ScanRepository
+import ru.ainetico.scanprice.model.ModelDownloader
+import ru.ainetico.scanprice.navigation.AppNavigationViewModel
+import ru.ainetico.scanprice.navigation.Screen
+import ru.ainetico.scanprice.ui.camera.CameraViewModel
+import ru.ainetico.scanprice.ui.navigation.AppNavGraph
+import ru.ainetico.scanprice.ui.theme.ScanPriceTheme
 import javax.inject.Inject
 
-private const val ACTION_SCAN = "ru.ainetico.honestprice.ACTION_SCAN"
-private const val ACTION_GALLERY = "ru.ainetico.honestprice.ACTION_GALLERY"
-private const val ACTION_MANUAL = "ru.ainetico.honestprice.ACTION_MANUAL"
+private const val ACTION_SCAN = "ru.ainetico.scanprice.ACTION_SCAN"
+private const val ACTION_GALLERY = "ru.ainetico.scanprice.ACTION_GALLERY"
+private const val ACTION_MANUAL = "ru.ainetico.scanprice.ACTION_MANUAL"
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {

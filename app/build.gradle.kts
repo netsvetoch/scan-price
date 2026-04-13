@@ -14,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "ru.ainetico.honestprice"
+    namespace = "ru.ainetico.scanprice"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "ru.ainetico.honestprice"
+        applicationId = "ru.ainetico.scanprice"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.R
+import ru.ainetico.scanprice.R
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest

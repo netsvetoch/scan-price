@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.result
+package ru.ainetico.scanprice.ui.result
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,11 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.model.WeightUnit
-import ru.ainetico.honestprice.ui.theme.Dimens
-import ru.ainetico.honestprice.ui.theme.PriceGreen
-import ru.ainetico.honestprice.ui.theme.PriceGreenLight
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.model.WeightUnit
+import ru.ainetico.scanprice.ui.theme.Dimens
+import ru.ainetico.scanprice.ui.theme.PriceGreen
+import ru.ainetico.scanprice.ui.theme.PriceGreenLight
 
 @Composable
 fun PriceCard(

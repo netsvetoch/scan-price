@@ -1,13 +1,13 @@
-package ru.ainetico.honestprice.analyzer
+package ru.ainetico.scanprice.analyzer
 
 import android.graphics.Bitmap
 import android.util.Log
 import kotlinx.coroutines.flow.first
-import ru.ainetico.honestprice.calculator.PriceCalculator
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.AnalysisResult
-import ru.ainetico.honestprice.ocr.VisionEngine
-import ru.ainetico.honestprice.ocr.VisionResult
+import ru.ainetico.scanprice.calculator.PriceCalculator
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.AnalysisResult
+import ru.ainetico.scanprice.ocr.VisionEngine
+import ru.ainetico.scanprice.ocr.VisionResult
 
 /**
  * Exception thrown when remote API fails — UI can offer "Process locally" button.

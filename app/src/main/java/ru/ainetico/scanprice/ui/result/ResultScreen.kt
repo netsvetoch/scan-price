@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.result
+package ru.ainetico.scanprice.ui.result
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
@@ -42,8 +42,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 @Composable
 fun ResultScreen(
@@ -108,7 +108,7 @@ fun ResultScreen(
             contentScale = ContentScale.FillWidth
           )
         } else {
-          ru.ainetico.honestprice.ui.common.ShimmerImageSkeleton()
+          ru.ainetico.scanprice.ui.common.ShimmerImageSkeleton()
         }
       }
 

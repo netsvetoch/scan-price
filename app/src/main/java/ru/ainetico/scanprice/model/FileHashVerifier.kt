@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.model
+package ru.ainetico.scanprice.model
 
 import java.io.File
 import java.security.MessageDigest

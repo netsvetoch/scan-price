@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.settings
+package ru.ainetico.scanprice.ui.settings
 
 import android.content.Intent
 import android.os.Build
@@ -28,8 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

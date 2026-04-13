@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit

@@ -10,14 +10,14 @@
 -keep class com.arm.aichat.** { *; }
 
 # Room entities and DAOs
--keep class ru.ainetico.honestprice.data.Scan { *; }
--keep class ru.ainetico.honestprice.data.Store { *; }
--keep class ru.ainetico.honestprice.data.ScanStatus { *; }
--keep class ru.ainetico.honestprice.data.SyncStatus { *; }
--keep class ru.ainetico.honestprice.data.Converters { *; }
--keep class ru.ainetico.honestprice.data.ScanDao { *; }
--keep class ru.ainetico.honestprice.data.StoreDao { *; }
--keep class ru.ainetico.honestprice.data.AppDatabase { *; }
+-keep class ru.ainetico.scanprice.data.Scan { *; }
+-keep class ru.ainetico.scanprice.data.Store { *; }
+-keep class ru.ainetico.scanprice.data.ScanStatus { *; }
+-keep class ru.ainetico.scanprice.data.SyncStatus { *; }
+-keep class ru.ainetico.scanprice.data.Converters { *; }
+-keep class ru.ainetico.scanprice.data.ScanDao { *; }
+-keep class ru.ainetico.scanprice.data.StoreDao { *; }
+-keep class ru.ainetico.scanprice.data.AppDatabase { *; }
 
 # Kotlin coroutines
 -dontwarn kotlinx.coroutines.**

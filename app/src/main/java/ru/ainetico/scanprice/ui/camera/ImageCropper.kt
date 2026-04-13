@@ -1,8 +1,8 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import android.graphics.Bitmap
 import android.util.Log
-import ru.ainetico.honestprice.FrameConfig
+import ru.ainetico.scanprice.FrameConfig
 
 object ImageCropper {
 

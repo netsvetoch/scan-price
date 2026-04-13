@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.model
+package ru.ainetico.scanprice.model
 
 import android.app.DownloadManager
 import android.app.NotificationManager

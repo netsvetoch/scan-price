@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,8 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 /**
  * Shown when camera permission is not granted.

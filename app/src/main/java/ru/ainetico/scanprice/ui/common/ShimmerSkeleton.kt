@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.common
+package ru.ainetico.scanprice.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

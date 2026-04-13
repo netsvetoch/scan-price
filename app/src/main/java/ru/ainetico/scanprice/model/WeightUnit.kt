@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.model
+package ru.ainetico.scanprice.model
 
 enum class WeightUnit(val displayName: String, private val baseUnitName: String?) {
   KG("кг", null),

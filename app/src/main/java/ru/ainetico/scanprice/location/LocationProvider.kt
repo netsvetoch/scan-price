@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.location
+package ru.ainetico.scanprice.location
 
 import android.Manifest
 import android.annotation.SuppressLint

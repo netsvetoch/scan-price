@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.settings
+package ru.ainetico.scanprice.ui.settings
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -42,10 +42,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.ocr.ApiHttpClient
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.ocr.ApiHttpClient
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 private sealed interface ConnectionStatus {
   data object Idle : ConnectionStatus
@@ -256,7 +256,7 @@ fun RemoteModelSection(appSettings: AppSettings) {
           scope.launch { appSettings.setSystemPrompt(it) }
         },
         label = { Text(stringResource(R.string.settings_system_prompt)) },
-        placeholder = { Text(ru.ainetico.honestprice.ocr.RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) },
+        placeholder = { Text(ru.ainetico.scanprice.ocr.RemoteVisionClient.DEFAULT_SYSTEM_PROMPT) },
         modifier = Modifier.fillMaxWidth(),
         minLines = 3,
         maxLines = 8

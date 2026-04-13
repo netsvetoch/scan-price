@@ -1,6 +1,6 @@
-package ru.ainetico.honestprice.ui.history
+package ru.ainetico.scanprice.ui.history
 
-import ru.ainetico.honestprice.data.Scan
+import ru.ainetico.scanprice.data.Scan
 
 sealed interface ScanListItem {
   data class ScanItem(val scan: Scan) : ScanListItem

@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.settings
+package ru.ainetico.scanprice.ui.settings
 
 import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme

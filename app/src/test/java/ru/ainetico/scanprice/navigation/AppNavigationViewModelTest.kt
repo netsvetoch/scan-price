@@ -1,11 +1,11 @@
-package ru.ainetico.honestprice.navigation
+package ru.ainetico.scanprice.navigation
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import ru.ainetico.honestprice.data.Scan
-import ru.ainetico.honestprice.data.ScanStatus
-import ru.ainetico.honestprice.model.AnalysisResult
-import ru.ainetico.honestprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.data.Scan
+import ru.ainetico.scanprice.data.ScanStatus
+import ru.ainetico.scanprice.model.AnalysisResult
+import ru.ainetico.scanprice.model.ParsedPriceTag
 import java.math.BigDecimal
 
 class AppNavigationViewModelTest {

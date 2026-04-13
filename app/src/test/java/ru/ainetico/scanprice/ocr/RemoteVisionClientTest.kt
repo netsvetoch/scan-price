@@ -1,12 +1,12 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import io.mockk.mockk
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.WeightUnit
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)

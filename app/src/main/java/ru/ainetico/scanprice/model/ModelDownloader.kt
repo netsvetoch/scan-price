@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.model
+package ru.ainetico.scanprice.model
 
 import android.app.DownloadManager
 import android.content.Context
@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import ru.ainetico.honestprice.R
+import ru.ainetico.scanprice.R
 import java.io.File
 
 /**

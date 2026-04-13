@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*

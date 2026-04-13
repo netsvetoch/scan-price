@@ -1,7 +1,7 @@
-package ru.ainetico.honestprice.calculator
+package ru.ainetico.scanprice.calculator
 
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.WeightUnit
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

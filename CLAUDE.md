@@ -20,7 +20,7 @@ adb logcat -s AndroidRuntime         # Read crash logs from connected device
 
 ## Architecture
 
-**MVVM with Jetpack Compose + Hilt DI.** Package: `ru.ainetico.honestprice`. DI modules in `di/` package. Navigation state managed by `AppNavigationViewModel`.
+**MVVM with Jetpack Compose + Hilt DI.** Package: `ru.ainetico.scanprice`. DI modules in `di/` package. Navigation state managed by `AppNavigationViewModel`.
 
 ### Layers
 

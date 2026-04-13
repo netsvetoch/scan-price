@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.result
+package ru.ainetico.scanprice.ui.result
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,13 +13,13 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.calculator.PriceCalculator
-import ru.ainetico.honestprice.data.ScanRepository
-import ru.ainetico.honestprice.data.Store
-import ru.ainetico.honestprice.data.StoreDao
-import ru.ainetico.honestprice.location.LocationProvider
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.calculator.PriceCalculator
+import ru.ainetico.scanprice.data.ScanRepository
+import ru.ainetico.scanprice.data.Store
+import ru.ainetico.scanprice.data.StoreDao
+import ru.ainetico.scanprice.location.LocationProvider
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.WeightUnit
 import java.math.BigDecimal
 
 @androidx.compose.runtime.Immutable
@@ -85,7 +85,7 @@ class ResultViewModel @javax.inject.Inject constructor(
     }
   }
 
-  fun loadScan(scan: ru.ainetico.honestprice.data.Scan) {
+  fun loadScan(scan: ru.ainetico.scanprice.data.Scan) {
     val unit = scan.weightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
     val availableUnits =
       listOf(WeightUnit.G, WeightUnit.KG, WeightUnit.ML, WeightUnit.L, WeightUnit.PCS)
@@ -108,7 +108,7 @@ class ResultViewModel @javax.inject.Inject constructor(
 
   fun loadFromAnalysis(
     scanId: Long,
-    result: ru.ainetico.honestprice.model.AnalysisResult,
+    result: ru.ainetico.scanprice.model.AnalysisResult,
     imagePath: String?
   ) {
     val tag = result.tag

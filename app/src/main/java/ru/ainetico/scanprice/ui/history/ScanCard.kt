@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.history
+package ru.ainetico.scanprice.ui.history
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,10 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import ru.ainetico.honestprice.data.Scan
-import ru.ainetico.honestprice.model.WeightUnit
-import ru.ainetico.honestprice.ui.theme.Dimens
-import ru.ainetico.honestprice.ui.theme.PriceGreen
+import ru.ainetico.scanprice.data.Scan
+import ru.ainetico.scanprice.model.WeightUnit
+import ru.ainetico.scanprice.ui.theme.Dimens
+import ru.ainetico.scanprice.ui.theme.PriceGreen
 import java.math.BigDecimal
 import java.math.MathContext
 

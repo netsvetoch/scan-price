@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.model
+package ru.ainetico.scanprice.model
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

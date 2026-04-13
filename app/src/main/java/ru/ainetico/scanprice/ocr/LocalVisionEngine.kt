@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -9,9 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import ru.ainetico.honestprice.BuildConfig
-import ru.ainetico.honestprice.image.ImagePreprocessor
-import ru.ainetico.honestprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.BuildConfig
+import ru.ainetico.scanprice.image.ImagePreprocessor
+import ru.ainetico.scanprice.model.ParsedPriceTag
 import java.io.File
 
 /**
@@ -180,8 +180,8 @@ class LocalVisionEngine(private val appContext: Context) : VisionEngine {
    * This is where the user aims the price tag.
    */
   private fun cropToPriceTag(bitmap: Bitmap): Bitmap {
-    val frameWidth = (bitmap.width * ru.ainetico.honestprice.FrameConfig.WIDTH_FRACTION).toInt()
-    val frameHeight = (frameWidth / ru.ainetico.honestprice.FrameConfig.ASPECT_RATIO).toInt()
+    val frameWidth = (bitmap.width * ru.ainetico.scanprice.FrameConfig.WIDTH_FRACTION).toInt()
+    val frameHeight = (frameWidth / ru.ainetico.scanprice.FrameConfig.ASPECT_RATIO).toInt()
     val left = (bitmap.width - frameWidth) / 2
     val top = ((bitmap.height - frameHeight) / 2f).toInt().coerceAtLeast(0)
 

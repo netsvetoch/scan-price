@@ -1,7 +1,7 @@
-package ru.ainetico.honestprice.util
+package ru.ainetico.scanprice.util
 
 import android.content.Context
-import ru.ainetico.honestprice.R
+import ru.ainetico.scanprice.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

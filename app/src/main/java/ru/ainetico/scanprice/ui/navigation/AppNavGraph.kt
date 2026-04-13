@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.navigation
+package ru.ainetico.scanprice.ui.navigation
 
 import android.content.Context
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -26,20 +26,20 @@ import androidx.navigation.navArgument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.data.ScanRepository
-import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.navigation.AppNavigationState
-import ru.ainetico.honestprice.navigation.AppNavigationViewModel
-import ru.ainetico.honestprice.navigation.Screen
-import ru.ainetico.honestprice.ui.camera.CameraViewModel
-import ru.ainetico.honestprice.ui.common.SwipeBackOverlay
-import ru.ainetico.honestprice.ui.history.HistoryScreen
-import ru.ainetico.honestprice.ui.history.HistoryViewModel
-import ru.ainetico.honestprice.ui.onboarding.OnboardingScreen
-import ru.ainetico.honestprice.ui.result.ResultScreen
-import ru.ainetico.honestprice.ui.result.ResultViewModel
-import ru.ainetico.honestprice.widget.updateLastScanWidget
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.data.ScanRepository
+import ru.ainetico.scanprice.model.ModelDownloader
+import ru.ainetico.scanprice.navigation.AppNavigationState
+import ru.ainetico.scanprice.navigation.AppNavigationViewModel
+import ru.ainetico.scanprice.navigation.Screen
+import ru.ainetico.scanprice.ui.camera.CameraViewModel
+import ru.ainetico.scanprice.ui.common.SwipeBackOverlay
+import ru.ainetico.scanprice.ui.history.HistoryScreen
+import ru.ainetico.scanprice.ui.history.HistoryViewModel
+import ru.ainetico.scanprice.ui.onboarding.OnboardingScreen
+import ru.ainetico.scanprice.ui.result.ResultScreen
+import ru.ainetico.scanprice.ui.result.ResultViewModel
+import ru.ainetico.scanprice.widget.updateLastScanWidget
 
 private const val TRANSITION_DURATION = 300
 
@@ -158,7 +158,7 @@ private fun HistoryDestination(
 ) {
   val historyViewModel: HistoryViewModel = hiltViewModel()
   val scope = rememberCoroutineScope()
-  var overlayScan by remember { mutableStateOf<ru.ainetico.honestprice.data.Scan?>(null) }
+  var overlayScan by remember { mutableStateOf<ru.ainetico.scanprice.data.Scan?>(null) }
   var showSettings by remember { mutableStateOf(false) }
 
   Box(modifier = Modifier.fillMaxSize()) {
@@ -203,7 +203,7 @@ private fun HistoryDestination(
 
     if (showSettings) {
       SwipeBackOverlay(onDismiss = { showSettings = false }) {
-        ru.ainetico.honestprice.ui.settings.SettingsScreen(
+        ru.ainetico.scanprice.ui.settings.SettingsScreen(
           appSettings = appSettings,
           scanRepository = repository,
           modelDownloader = modelDownloader,

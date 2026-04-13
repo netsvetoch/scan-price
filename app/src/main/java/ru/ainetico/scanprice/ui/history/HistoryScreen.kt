@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.history
+package ru.ainetico.scanprice.ui.history
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -47,14 +47,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.model.AnalysisResult
-import ru.ainetico.honestprice.ui.camera.CameraEvent
-import ru.ainetico.honestprice.ui.camera.CameraScreen
-import ru.ainetico.honestprice.ui.camera.CameraState
-import ru.ainetico.honestprice.ui.camera.CameraViewModel
-import ru.ainetico.honestprice.ui.theme.Dimens
-import ru.ainetico.honestprice.util.formatRelativeDate
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.model.AnalysisResult
+import ru.ainetico.scanprice.ui.camera.CameraEvent
+import ru.ainetico.scanprice.ui.camera.CameraScreen
+import ru.ainetico.scanprice.ui.camera.CameraState
+import ru.ainetico.scanprice.ui.camera.CameraViewModel
+import ru.ainetico.scanprice.ui.theme.Dimens
+import ru.ainetico.scanprice.util.formatRelativeDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +63,7 @@ fun HistoryScreen(
   cameraViewModel: CameraViewModel,
   showSheet: Boolean,
   onShowSheetChange: (Boolean) -> Unit,
-  onScanClick: (ru.ainetico.honestprice.data.Scan) -> Unit,
+  onScanClick: (ru.ainetico.scanprice.data.Scan) -> Unit,
   onNavigateToResult: (Long, AnalysisResult) -> Unit,
   onNavigateToSettings: () -> Unit,
   onNavigateToManualEntry: () -> Unit
@@ -165,7 +165,7 @@ fun HistoryScreen(
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           repeat(5) {
-            ru.ainetico.honestprice.ui.common.ShimmerBox(
+            ru.ainetico.scanprice.ui.common.ShimmerBox(
               modifier = Modifier
                   .fillMaxWidth()
                   .height(Dimens.SkeletonItemHeight)

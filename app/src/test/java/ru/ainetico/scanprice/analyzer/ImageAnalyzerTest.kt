@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.analyzer
+package ru.ainetico.scanprice.analyzer
 
 import android.graphics.Bitmap
 import io.mockk.coEvery
@@ -11,12 +11,12 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import ru.ainetico.honestprice.calculator.PriceCalculator
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.WeightUnit
-import ru.ainetico.honestprice.ocr.VisionEngine
-import ru.ainetico.honestprice.ocr.VisionResult
+import ru.ainetico.scanprice.calculator.PriceCalculator
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.WeightUnit
+import ru.ainetico.scanprice.ocr.VisionEngine
+import ru.ainetico.scanprice.ocr.VisionResult
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)

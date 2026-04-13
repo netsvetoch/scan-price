@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 import android.annotation.SuppressLint
 import android.content.Context

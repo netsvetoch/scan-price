@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -9,9 +9,9 @@
         android:shortcutShortLabel="@string/shortcut_camera"
         android:shortcutLongLabel="@string/shortcut_camera">
         <intent
-            android:action="ru.ainetico.honestprice.ACTION_SCAN"
-            android:targetPackage="ru.ainetico.honestprice"
-            android:targetClass="ru.ainetico.honestprice.MainActivity" />
+            android:action="ru.ainetico.scanprice.ACTION_SCAN"
+            android:targetPackage="ru.ainetico.scanprice"
+            android:targetClass="ru.ainetico.scanprice.MainActivity" />
     </shortcut>
     <shortcut
         android:shortcutId="gallery"
@@ -20,9 +20,9 @@
         android:shortcutShortLabel="@string/shortcut_gallery"
         android:shortcutLongLabel="@string/shortcut_gallery">
         <intent
-            android:action="ru.ainetico.honestprice.ACTION_GALLERY"
-            android:targetPackage="ru.ainetico.honestprice"
-            android:targetClass="ru.ainetico.honestprice.MainActivity" />
+            android:action="ru.ainetico.scanprice.ACTION_GALLERY"
+            android:targetPackage="ru.ainetico.scanprice"
+            android:targetClass="ru.ainetico.scanprice.MainActivity" />
     </shortcut>
     <shortcut
         android:shortcutId="manual_entry"
@@ -31,8 +31,8 @@
         android:shortcutShortLabel="@string/shortcut_manual"
         android:shortcutLongLabel="@string/shortcut_manual">
         <intent
-            android:action="ru.ainetico.honestprice.ACTION_MANUAL"
-            android:targetPackage="ru.ainetico.honestprice"
-            android:targetClass="ru.ainetico.honestprice.MainActivity" />
+            android:action="ru.ainetico.scanprice.ACTION_MANUAL"
+            android:targetPackage="ru.ainetico.scanprice"
+            android:targetClass="ru.ainetico.scanprice.MainActivity" />
     </shortcut>
 </shortcuts>

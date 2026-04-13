@@ -1,8 +1,8 @@
-package ru.ainetico.honestprice.calculator
+package ru.ainetico.scanprice.calculator
 
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.PriceResult
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.PriceResult
+import ru.ainetico.scanprice.model.WeightUnit
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode

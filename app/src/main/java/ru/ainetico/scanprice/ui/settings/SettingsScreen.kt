@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.settings
+package ru.ainetico.scanprice.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,10 +21,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.data.ScanRepository
-import ru.ainetico.honestprice.model.ModelDownloader
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.data.ScanRepository
+import ru.ainetico.scanprice.model.ModelDownloader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

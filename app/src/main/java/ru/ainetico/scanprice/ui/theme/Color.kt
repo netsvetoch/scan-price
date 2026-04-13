@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.theme
+package ru.ainetico.scanprice.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

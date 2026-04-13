@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.widget
+package ru.ainetico.scanprice.widget
 
 import android.content.Context
 import androidx.compose.ui.unit.dp
@@ -31,11 +31,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.MainActivity
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.ScanDao
-import ru.ainetico.honestprice.model.WeightUnit
-import ru.ainetico.honestprice.util.formatRelativeDate
+import ru.ainetico.scanprice.MainActivity
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.ScanDao
+import ru.ainetico.scanprice.model.WeightUnit
+import ru.ainetico.scanprice.util.formatRelativeDate
 import java.math.BigDecimal
 import java.math.MathContext
 import java.text.SimpleDateFormat

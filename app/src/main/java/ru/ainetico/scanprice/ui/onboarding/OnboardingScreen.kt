@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.onboarding
+package ru.ainetico.scanprice.ui.onboarding
 
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,10 +41,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.ModelDownloader
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 @Composable
 fun OnboardingScreen(

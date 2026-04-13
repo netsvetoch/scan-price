@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -36,8 +36,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 /**
  * Gallery image adjustment screen — user drags/zooms to align the price tag within the frame overlay.

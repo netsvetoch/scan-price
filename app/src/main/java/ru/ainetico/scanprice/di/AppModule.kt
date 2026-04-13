@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.di
+package ru.ainetico.scanprice.di
 
 import android.content.Context
 import dagger.Module
@@ -9,8 +9,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import ru.ainetico.honestprice.calculator.PriceCalculator
-import ru.ainetico.honestprice.location.LocationProvider
+import ru.ainetico.scanprice.calculator.PriceCalculator
+import ru.ainetico.scanprice.location.LocationProvider
 import javax.inject.Singleton
 
 @Module

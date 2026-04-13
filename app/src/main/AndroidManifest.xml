@@ -31,9 +31,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="ru.ainetico.honestprice.ACTION_SCAN" />
-                <action android:name="ru.ainetico.honestprice.ACTION_GALLERY" />
-                <action android:name="ru.ainetico.honestprice.ACTION_MANUAL" />
+                <action android:name="ru.ainetico.scanprice.ACTION_SCAN" />
+                <action android:name="ru.ainetico.scanprice.ACTION_GALLERY" />
+                <action android:name="ru.ainetico.scanprice.ACTION_MANUAL" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <meta-data

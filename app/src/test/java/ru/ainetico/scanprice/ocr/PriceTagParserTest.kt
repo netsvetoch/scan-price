@@ -1,13 +1,13 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import ru.ainetico.honestprice.model.WeightUnit
-import ru.ainetico.honestprice.ocr.PriceTagParser.optStringOrNull
-import ru.ainetico.honestprice.ocr.PriceTagParser.toBigDecimalSafe
+import ru.ainetico.scanprice.model.WeightUnit
+import ru.ainetico.scanprice.ocr.PriceTagParser.optStringOrNull
+import ru.ainetico.scanprice.ocr.PriceTagParser.toBigDecimalSafe
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)

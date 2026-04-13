@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import android.graphics.Bitmap
 import io.mockk.*
@@ -9,8 +9,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import ru.ainetico.honestprice.FrameConfig
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.FrameConfig
+import ru.ainetico.scanprice.model.WeightUnit
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
@@ -96,7 +96,7 @@ class LocalVisionEngineTest {
         method.isAccessible = true
 
         val json = """{"product_name":"Масло","price_regular":250,"weight_value":180,"weight_unit":"г"}"""
-        val tag = method.invoke(engine, json) as ru.ainetico.honestprice.model.ParsedPriceTag
+        val tag = method.invoke(engine, json) as ru.ainetico.scanprice.model.ParsedPriceTag
 
         assertEquals("Масло", tag.productName)
         assertTrue(BigDecimal("250").compareTo(tag.priceRegular) == 0)
@@ -110,7 +110,7 @@ class LocalVisionEngineTest {
         method.isAccessible = true
 
         val json = """{"product_name":"Хлеб","price_regular":45}"""
-        val tag = method.invoke(engine, json) as ru.ainetico.honestprice.model.ParsedPriceTag
+        val tag = method.invoke(engine, json) as ru.ainetico.scanprice.model.ParsedPriceTag
 
         assertEquals("Хлеб", tag.productName)
         assertNull(tag.priceDiscount)

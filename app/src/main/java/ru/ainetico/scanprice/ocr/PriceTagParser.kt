@@ -1,8 +1,8 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import org.json.JSONObject
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.WeightUnit
 import java.math.BigDecimal
 
 /**

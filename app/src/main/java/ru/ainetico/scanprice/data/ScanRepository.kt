@@ -1,9 +1,9 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 import androidx.paging.PagingSource
 import kotlinx.coroutines.flow.Flow
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.PriceResult
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.PriceResult
 
 interface ScanRepository {
   suspend fun createProcessing(imagePath: String): Long

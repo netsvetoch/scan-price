@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.di
+package ru.ainetico.scanprice.di
 
 import android.content.Context
 import dagger.Module
@@ -7,13 +7,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
-import ru.ainetico.honestprice.analyzer.ImageAnalyzer
-import ru.ainetico.honestprice.calculator.PriceCalculator
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.ModelDownloader
-import ru.ainetico.honestprice.ocr.LocalVisionEngine
-import ru.ainetico.honestprice.ocr.RemoteVisionClient
-import ru.ainetico.honestprice.ocr.VisionEngine
+import ru.ainetico.scanprice.analyzer.ImageAnalyzer
+import ru.ainetico.scanprice.calculator.PriceCalculator
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.ModelDownloader
+import ru.ainetico.scanprice.ocr.LocalVisionEngine
+import ru.ainetico.scanprice.ocr.RemoteVisionClient
+import ru.ainetico.scanprice.ocr.VisionEngine
 import javax.inject.Singleton
 
 @Module

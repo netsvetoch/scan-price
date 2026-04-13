@@ -1,11 +1,11 @@
-package ru.ainetico.honestprice.navigation
+package ru.ainetico.scanprice.navigation
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import ru.ainetico.honestprice.data.Scan
-import ru.ainetico.honestprice.model.AnalysisResult
+import ru.ainetico.scanprice.data.Scan
+import ru.ainetico.scanprice.model.AnalysisResult
 
 data class AppNavigationState(
   val pendingResult: Pair<Long, AnalysisResult>? = null,

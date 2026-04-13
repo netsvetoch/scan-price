@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import android.graphics.Bitmap
 import android.util.Base64
@@ -11,9 +11,9 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import ru.ainetico.honestprice.BuildConfig
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.BuildConfig
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.ParsedPriceTag
 import java.io.ByteArrayOutputStream
 
 /**

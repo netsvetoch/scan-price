@@ -1,7 +1,7 @@
-package ru.ainetico.honestprice.ocr
+package ru.ainetico.scanprice.ocr
 
 import android.graphics.Bitmap
-import ru.ainetico.honestprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.ParsedPriceTag
 
 /**
  * Unified contract for vision engines (local and remote).

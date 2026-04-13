@@ -1,18 +1,18 @@
-package ru.ainetico.honestprice.tile
+package ru.ainetico.scanprice.tile
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.service.quicksettings.TileService
-import ru.ainetico.honestprice.MainActivity
+import ru.ainetico.scanprice.MainActivity
 
 class ScanTileService : TileService() {
 
   @SuppressLint("StartActivityAndCollapseDeprecated")
   override fun onClick() {
     val intent = Intent(this, MainActivity::class.java).apply {
-      action = "ru.ainetico.honestprice.ACTION_SCAN"
+      action = "ru.ainetico.scanprice.ACTION_SCAN"
       addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
     if (Build.VERSION.SDK_INT >= 34) {

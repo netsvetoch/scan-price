@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.model
+package ru.ainetico.scanprice.model
 
 data class AnalysisResult(
   val tag: ParsedPriceTag,

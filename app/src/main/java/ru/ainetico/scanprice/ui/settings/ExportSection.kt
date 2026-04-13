@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.settings
+package ru.ainetico.scanprice.ui.settings
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -27,10 +27,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.DataExporter
-import ru.ainetico.honestprice.data.ScanRepository
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.DataExporter
+import ru.ainetico.scanprice.data.ScanRepository
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 @Composable
 fun ExportSection(

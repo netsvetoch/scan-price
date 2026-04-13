@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.image
+package ru.ainetico.scanprice.image
 
 import android.graphics.Bitmap
 import android.graphics.Rect

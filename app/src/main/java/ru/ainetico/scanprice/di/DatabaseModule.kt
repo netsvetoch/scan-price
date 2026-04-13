@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.di
+package ru.ainetico.scanprice.di
 
 import android.content.Context
 import androidx.room.Room
@@ -7,9 +7,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ru.ainetico.honestprice.data.AppDatabase
-import ru.ainetico.honestprice.data.ScanDao
-import ru.ainetico.honestprice.data.StoreDao
+import ru.ainetico.scanprice.data.AppDatabase
+import ru.ainetico.scanprice.data.ScanDao
+import ru.ainetico.scanprice.data.StoreDao
 import javax.inject.Singleton
 
 @Module

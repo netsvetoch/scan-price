@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -18,10 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.analyzer.ImageAnalyzer
-import ru.ainetico.honestprice.analyzer.RemoteAnalysisException
-import ru.ainetico.honestprice.data.ScanRepository
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.analyzer.ImageAnalyzer
+import ru.ainetico.scanprice.analyzer.RemoteAnalysisException
+import ru.ainetico.scanprice.data.ScanRepository
 import java.io.File
 import java.io.FileOutputStream
 
@@ -43,7 +43,7 @@ sealed class CameraState {
 sealed class CameraEvent {
   data class NavigateToResult(
     val scanId: Long,
-    val result: ru.ainetico.honestprice.model.AnalysisResult
+    val result: ru.ainetico.scanprice.model.AnalysisResult
   ) : CameraEvent()
 
   object NavigateToManualEntry : CameraEvent()
@@ -270,7 +270,7 @@ class CameraViewModel @javax.inject.Inject constructor(
     cropRect: Rect? = null,
     forceLocal: Boolean = false,
     analyzingStatus: Int = R.string.camera_analyzing
-  ): Pair<Long, ru.ainetico.honestprice.model.AnalysisResult> {
+  ): Pair<Long, ru.ainetico.scanprice.model.AnalysisResult> {
     val timestamp = System.currentTimeMillis()
 
     val cropped = cropOp()

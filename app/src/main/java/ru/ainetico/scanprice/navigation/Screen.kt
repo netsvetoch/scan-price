@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.navigation
+package ru.ainetico.scanprice.navigation
 
 sealed class Screen(val route: String) {
   object Onboarding : Screen("onboarding")

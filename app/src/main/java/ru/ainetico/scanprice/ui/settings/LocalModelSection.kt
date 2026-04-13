@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.settings
+package ru.ainetico.scanprice.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,9 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import ru.ainetico.honestprice.R
-import ru.ainetico.honestprice.data.AppSettings
-import ru.ainetico.honestprice.model.ModelDownloader
+import ru.ainetico.scanprice.R
+import ru.ainetico.scanprice.data.AppSettings
+import ru.ainetico.scanprice.model.ModelDownloader
 
 @Composable
 fun LocalModelSection(
@@ -51,7 +51,7 @@ fun LocalModelSection(
       scope.launch { appSettings.setLocalPrompt(it) }
     },
     label = { Text(stringResource(R.string.settings_local_prompt)) },
-    placeholder = { Text(ru.ainetico.honestprice.ocr.LocalVisionEngine.DEFAULT_PROMPT) },
+    placeholder = { Text(ru.ainetico.scanprice.ocr.LocalVisionEngine.DEFAULT_PROMPT) },
     modifier = Modifier.fillMaxWidth(),
     minLines = 3,
     maxLines = 8

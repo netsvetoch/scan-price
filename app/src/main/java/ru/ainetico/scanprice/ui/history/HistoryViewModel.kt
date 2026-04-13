@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.history
+package ru.ainetico.scanprice.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +10,7 @@ import androidx.paging.insertSeparators
 import androidx.paging.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import ru.ainetico.honestprice.data.ScanRepository
+import ru.ainetico.scanprice.data.ScanRepository
 import java.util.Calendar
 
 private fun dateKey(timestamp: Long): String {

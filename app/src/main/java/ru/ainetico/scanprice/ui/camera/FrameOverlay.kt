@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.ui.camera
+package ru.ainetico.scanprice.ui.camera
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
@@ -8,8 +8,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import ru.ainetico.honestprice.FrameConfig
-import ru.ainetico.honestprice.ui.theme.Dimens
+import ru.ainetico.scanprice.FrameConfig
+import ru.ainetico.scanprice.ui.theme.Dimens
 
 /**
  * Draws a darkened overlay with a transparent "frame" cutout — rounded rect,

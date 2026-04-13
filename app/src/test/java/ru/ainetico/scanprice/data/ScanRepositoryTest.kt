@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.data
+package ru.ainetico.scanprice.data
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -7,9 +7,9 @@ import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
-import ru.ainetico.honestprice.model.ParsedPriceTag
-import ru.ainetico.honestprice.model.PriceResult
-import ru.ainetico.honestprice.model.WeightUnit
+import ru.ainetico.scanprice.model.ParsedPriceTag
+import ru.ainetico.scanprice.model.PriceResult
+import ru.ainetico.scanprice.model.WeightUnit
 import java.math.BigDecimal
 
 class ScanRepositoryTest {

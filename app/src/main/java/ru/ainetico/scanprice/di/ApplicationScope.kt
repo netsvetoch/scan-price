@@ -1,4 +1,4 @@
-package ru.ainetico.honestprice.di
+package ru.ainetico.scanprice.di
 
 import javax.inject.Qualifier
 
