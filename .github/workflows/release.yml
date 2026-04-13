@@ -1,0 +1,69 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK 30.0.14904198
+        run: |
+          yes | sdkmanager --install "ndk;30.0.14904198" >/dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/30.0.14904198" >> $GITHUB_ENV
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant gradlew execute permission
+        run: chmod +x ./gradlew
+
+      - name: Build release APK (arm64-v8a)
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(find app/build/outputs/apk/release -name "*.apk" | head -n1)
+          echo "path=$APK" >> $GITHUB_OUTPUT
+          cp "$APK" "scanprice-${{ github.run_number }}-arm64-v8a.apk"
+          echo "name=scanprice-${{ github.run_number }}-arm64-v8a.apk" >> $GITHUB_OUTPUT
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scanprice-apk
+          path: ${{ steps.apk.outputs.name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }} (${{ github.sha }})
+          body: |
+            Автосборка из ветки `main`.
+            Коммит: ${{ github.sha }}
+            ABI: arm64-v8a
+          files: ${{ steps.apk.outputs.name }}
+          draft: false
+          prerelease: false
