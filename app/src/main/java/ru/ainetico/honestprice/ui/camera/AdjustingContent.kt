@@ -22,7 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,12 +49,12 @@ fun AdjustingContent(
   onToggleOrientation: () -> Unit,
   onConfirm: (viewWidth: Float, viewHeight: Float, offsetX: Float, offsetY: Float, zoom: Float) -> Unit
 ) {
-  var offsetX by remember { mutableStateOf(0f) }
-  var offsetY by remember { mutableStateOf(0f) }
-  var zoom by remember { mutableStateOf(1f) }
+  var offsetX by remember { mutableFloatStateOf(0f) }
+  var offsetY by remember { mutableFloatStateOf(0f) }
+  var zoom by remember { mutableFloatStateOf(1f) }
 
-  var viewWidth by remember { mutableStateOf(0f) }
-  var viewHeight by remember { mutableStateOf(0f) }
+  var viewWidth by remember { mutableFloatStateOf(0f) }
+  var viewHeight by remember { mutableFloatStateOf(0f) }
 
   Box(
     modifier = Modifier

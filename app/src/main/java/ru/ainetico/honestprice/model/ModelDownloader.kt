@@ -2,7 +2,7 @@ package ru.ainetico.honestprice.model
 
 import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -179,7 +179,7 @@ class ModelDownloader(
     val label = progressFlow.value.label
 
     // Enqueue download — downloads to public Downloads dir first (DownloadManager limitation)
-    val request = DownloadManager.Request(Uri.parse(url))
+    val request = DownloadManager.Request(url.toUri())
       .setTitle("${context.getString(R.string.app_name)} — $label")
       .setDescription(context.getString(R.string.download_description))
       .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)

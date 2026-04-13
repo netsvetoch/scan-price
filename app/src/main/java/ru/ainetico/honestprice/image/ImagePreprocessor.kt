@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.Rect
+import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 
 class ImagePreprocessor {
@@ -86,11 +87,9 @@ class ImagePreprocessor {
     val longer = maxOf(bitmap.width, bitmap.height)
     if (longer <= maxSide) return bitmap
     val scale = maxSide.toFloat() / longer
-    return Bitmap.createScaledBitmap(
-      bitmap,
+    return bitmap.scale(
       (bitmap.width * scale).toInt(),
-      (bitmap.height * scale).toInt(),
-      true
+      (bitmap.height * scale).toInt()
     )
   }
 
@@ -98,11 +97,9 @@ class ImagePreprocessor {
     val shortSide = minOf(bitmap.width, bitmap.height)
     if (shortSide <= MIN_SHORT_SIDE) return bitmap
     val scale = MIN_SHORT_SIDE.toFloat() / shortSide
-    return Bitmap.createScaledBitmap(
-      bitmap,
+    return bitmap.scale(
       (bitmap.width * scale).toInt(),
-      (bitmap.height * scale).toInt(),
-      true
+      (bitmap.height * scale).toInt()
     )
   }
 }

@@ -7,7 +7,9 @@
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
       "Bash(./gradlew :app:compileDebugKotlin :app:testDebugUnitTest)",
-      "Bash(./gradlew -v)"
+      "Bash(./gradlew -v)",
+      "Bash(./gradlew :app:lintDebug)",
+      "Bash(./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug)"
     ]
   }
 }

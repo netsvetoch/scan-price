@@ -3,6 +3,7 @@ package ru.ainetico.honestprice.ocr
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -167,11 +168,9 @@ class RemoteVisionClient(private val appSettings: AppSettings) : VisionEngine {
     val maxSide = 800
     val resized = if (maxOf(bitmap.width, bitmap.height) > maxSide) {
       val scale = maxSide.toFloat() / maxOf(bitmap.width, bitmap.height)
-      Bitmap.createScaledBitmap(
-        bitmap,
+      bitmap.scale(
         (bitmap.width * scale).toInt(),
-        (bitmap.height * scale).toInt(),
-        true
+        (bitmap.height * scale).toInt()
       )
     } else bitmap
 

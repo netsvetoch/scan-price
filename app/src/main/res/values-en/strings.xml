@@ -16,20 +16,14 @@
     <string name="onboarding_allow">Allow</string>
     <string name="onboarding_skip">Skip</string>
     <string name="camera_gallery">Gallery</string>
-    <string name="camera_capture">Capture</string>
     <string name="camera_manual">Manual</string>
-    <string name="camera_retake">Retake</string>
-    <string name="camera_scanning">Scanning…</string>
     <string name="camera_permission_needed">Camera access is required for scanning</string>
-    <string name="camera_open_settings">Open settings</string>
     <string name="result_product_name">Product name</string>
     <string name="result_product_description">Description (additional details)</string>
     <string name="result_price_regular">Price</string>
     <string name="result_price_discount">Discounted</string>
     <string name="result_weight">Weight / Volume</string>
-    <string name="result_unit">Unit</string>
     <string name="result_store">Store</string>
-    <string name="result_barcode">Barcode</string>
     <string name="result_honest_price">Unit price</string>
     <string name="result_regular_per_unit">regular: %s ₽/%s</string>
     <string name="result_cancel">Cancel</string>
@@ -119,4 +113,6 @@
     <string name="camera_frame_hint">Move the image so the price tag fits inside the frame</string>
     <string name="camera_rotate_frame">Rotate frame</string>
     <string name="camera_scan_button">Scan</string>
+    <string name="camera_torch_on">Turn off flashlight</string>
+    <string name="camera_torch_off">Turn on flashlight</string>
 </resources>

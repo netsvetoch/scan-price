@@ -80,6 +80,10 @@ android {
             useLegacyPackaging = true
         }
     }
+    lint {
+        disable += "ChromeOsAbiSupport"
+        lintConfig = file("lint.xml")
+    }
 }
 
 dependencies {
@@ -92,7 +96,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -105,7 +109,7 @@ dependencies {
     implementation(project(":llama-lib"))
 
     // Shimmer skeleton animation
-    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
+    implementation(libs.shimmer)
 
     // CameraX
     implementation(libs.camerax.core)
@@ -130,10 +134,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     // AppCompat (for per-app language support on pre-API 33)
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation(libs.androidx.appcompat)
 
     // Encrypted SharedPreferences for secure API key storage
-    implementation("androidx.security:security-crypto:1.0.0")
+    implementation(libs.androidx.security.crypto)
 
     // Preferences DataStore
     implementation(libs.datastore.preferences)
@@ -151,7 +155,7 @@ dependencies {
     implementation(libs.paging.compose)
 
     // ExifInterface for EXIF rotation
-    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation(libs.androidx.exifinterface)
 
     // Glance widget
     implementation(libs.glance.appwidget)
@@ -164,6 +168,6 @@ dependencies {
     testImplementation(libs.junit5.api)
     testImplementation(libs.junit5.params)
     testRuntimeOnly(libs.junit5.engine)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:${libs.versions.junit5.get()}")
 }

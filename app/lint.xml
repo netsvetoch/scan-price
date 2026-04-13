@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- security-crypto 1.1.0 is alpha-only; stick with stable 1.0.0 (see CLAUDE.md) -->
+    <issue id="GradleDependency">
+        <ignore regexp="security-crypto" />
+    </issue>
+</lint>

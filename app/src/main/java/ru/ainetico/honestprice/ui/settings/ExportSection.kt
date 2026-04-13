@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ fun ExportSection(
 ) {
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
+  val resources = LocalResources.current
 
   SettingsSectionHeader(
     titleRes = R.string.settings_export_title,
@@ -64,20 +66,20 @@ fun ExportSection(
               scanRepository.getAllScans()
             }
             if (scans.isEmpty()) {
-              exportStatus = context.getString(R.string.settings_export_no_data)
+              exportStatus = resources.getString(R.string.settings_export_no_data)
               isExportError = false
             } else {
               val exporter = DataExporter(context)
               val result = exporter.export(scans)
               val files = listOfNotNull(result.csvFile, result.zipFile)
               exporter.shareFiles(files)
-              exportStatus = context.resources.getQuantityString(
+              exportStatus = resources.getQuantityString(
                 R.plurals.settings_export_success, scans.size, scans.size
               )
               isExportError = false
             }
           } catch (e: Exception) {
-            exportStatus = context.getString(R.string.settings_export_error, e.message)
+            exportStatus = resources.getString(R.string.settings_export_error, e.message)
             isExportError = true
             Log.e("Settings", "Export failed", e)
           }

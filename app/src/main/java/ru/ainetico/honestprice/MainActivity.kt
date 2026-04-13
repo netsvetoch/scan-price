@@ -1,5 +1,6 @@
 package ru.ainetico.honestprice
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -49,9 +50,11 @@ class MainActivity : AppCompatActivity() {
     enableEdgeToEdge()
 
     // Request max display refresh rate (120Hz+)
-    window.attributes = window.attributes.apply {
-      preferredDisplayModeId = display?.supportedModes
-        ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      window.attributes = window.attributes.apply {
+        preferredDisplayModeId = display?.supportedModes
+          ?.maxByOrNull { it.refreshRate }?.modeId ?: 0
+      }
     }
 
     val launchAction = intent?.action

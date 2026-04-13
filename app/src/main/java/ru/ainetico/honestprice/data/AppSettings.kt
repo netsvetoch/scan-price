@@ -1,5 +1,6 @@
 package ru.ainetico.honestprice.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
@@ -73,16 +74,19 @@ class AppSettings(context: Context) {
   private val _apiModel = MutableStateFlow(securePrefs.getString("api_model", "") ?: "")
   val apiModel: StateFlow<String> = _apiModel
 
+  @SuppressLint("ApplySharedPref")
   fun setApiUrl(url: String) {
     securePrefs.edit().putString("api_url", url).commit()
     _apiUrl.value = url
   }
 
+  @SuppressLint("ApplySharedPref")
   fun setApiKey(key: String) {
     securePrefs.edit().putString("api_key", key).commit()
     _apiKey.value = key
   }
 
+  @SuppressLint("ApplySharedPref")
   fun setApiModel(model: String) {
     securePrefs.edit().putString("api_model", model).commit()
     _apiModel.value = model
