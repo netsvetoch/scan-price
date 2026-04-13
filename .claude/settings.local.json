@@ -14,7 +14,8 @@
       "Bash(./gradlew :app:testDebugUnitTest :app:lintDebug)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Bash(./gradlew :app:lintDebug :app:testDebugUnitTest)"
+      "Bash(./gradlew :app:lintDebug :app:testDebugUnitTest)",
+      "Bash(./gradlew clean:*)"
     ]
   }
 }
